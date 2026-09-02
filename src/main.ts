@@ -1,5 +1,5 @@
 import "./styles.css";
-import { PHRASES, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
+import { JOURNEY_PHRASES, PHRASES, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
 import {
   burnLetters,
@@ -11,7 +11,7 @@ import {
   validateWord
 } from "./word-engine";
 
-type ModeId = "classic" | "burn" | "blitz" | "daily";
+type ModeId = "classic" | "burn" | "blitz" | "daily" | "journey";
 
 type FoundWord = {
   word: string;
@@ -33,6 +33,7 @@ type RoundState = {
   boardNumber: number;
   boardsCleared: number;
   boardWords: number;
+  journeyStage?: number;
   starting: boolean;
   dealing: boolean;
   paused: boolean;
@@ -63,6 +64,12 @@ const MODE_META: Record<ModeId, { name: string; kicker: string; description: str
     name: "Daily Phrase",
     kicker: "One phrase. One score.",
     description: "The same phrase for everyone today. Your best score is saved locally.",
+    duration: 120
+  },
+  journey: {
+    name: "Journey",
+    kicker: "Master every phrase",
+    description: "A curated path of phrases with three score medals on every stage.",
     duration: 120
   }
 };
@@ -140,6 +147,7 @@ function showMenu(): void {
   stopTimer();
   flowToken += 1;
   const dailyDone = save.daily[todayKey()] ?? 0;
+  const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
   screens.show("menu", shell("MAKE A WORD", `
     <section class="hero-panel">
       <div>
@@ -164,6 +172,12 @@ function showMenu(): void {
         <span class="menu-card__tag">TODAY</span>
         <strong>Daily Phrase</strong>
         <small>${dailyDone ? `Best today: ${dailyDone.toLocaleString()}` : "Unplayed"}</small>
+        <span class="arrow">→</span>
+      </button>
+      <button class="menu-card menu-card--journey" data-nav data-action="journey">
+        <span class="menu-card__tag">JOURNEY</span>
+        <strong>Phrase Road</strong>
+        <small>${journeyMedals} / ${JOURNEY_PHRASES.length * 3} medals</small>
         <span class="arrow">→</span>
       </button>
       <button class="menu-card" data-nav data-action="stats">
@@ -200,17 +214,53 @@ function showModes(): void {
   screens.show("modes", shell("CHOOSE A MODE", `<section class="mode-list">${cards}</section>`, { back: "menu" }));
 }
 
+function medalCount(score: number, medals: [number, number, number] | undefined): number {
+  if (!medals) return 0;
+  if (score >= medals[2]) return 3;
+  if (score >= medals[1]) return 2;
+  if (score >= medals[0]) return 1;
+  return 0;
+}
+
+function showJourney(): void {
+  const totalMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
+  const stages = JOURNEY_PHRASES.map((phrase, index) => {
+    const stage = index + 1;
+    const locked = stage > save.journeyUnlocked;
+    const score = save.journeyScores[phrase.id] ?? 0;
+    const earned = save.journeyMedals[phrase.id] ?? 0;
+    return `
+      <button class="journey-stage ${locked ? "journey-stage--locked" : ""}" data-nav data-journey-stage="${index}" ${locked ? "disabled" : ""}>
+        <span class="journey-stage__number">${String(stage).padStart(2, "0")}</span>
+        <span class="journey-stage__body">
+          <small>${locked ? "LOCKED" : phrase.label.toUpperCase()}</small>
+          <strong>${locked ? "Complete the previous stage" : phrase.text}</strong>
+          <i aria-label="${earned} of 3 medals">${[0, 1, 2].map((medal) => `<b class="${medal < earned ? "earned" : ""}">◆</b>`).join("")}</i>
+        </span>
+        <span class="journey-stage__score">${locked ? "—" : score.toLocaleString()}</span>
+      </button>`;
+  }).join("");
+
+  screens.show("journey", shell("PHRASE ROAD", `
+    <section class="journey-header">
+      <div><span class="eyebrow">CLASSIC JOURNEY</span><h2>Master the phrase.</h2><p>Earn one medal to open the next stage. Return for all three.</p></div>
+      <div><strong>${totalMedals}</strong><span>OF ${JOURNEY_PHRASES.length * 3} MEDALS</span></div>
+    </section>
+    <section class="journey-list">${stages}</section>
+  `, { back: "menu" }));
+}
+
 function choosePhrase(mode: ModeId): PhraseEntry {
   if (mode === "daily") return phraseForDay();
-  const phrase = randomPhrase(lastPhraseText);
+  const phrase = randomPhrase(lastPhraseText, mode === "burn");
   lastPhraseText = phrase.text;
   return phrase;
 }
 
-function startRound(mode: ModeId): void {
+function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: number): void {
   stopTimer();
   const token = ++flowToken;
-  const phrase = choosePhrase(mode);
+  const phrase = phraseOverride ?? choosePhrase(mode);
   round = {
     mode,
     phrase,
@@ -226,6 +276,7 @@ function startRound(mode: ModeId): void {
     boardNumber: 1,
     boardsCleared: 0,
     boardWords: 0,
+    journeyStage,
     starting: true,
     dealing: false,
     paused: false,
@@ -283,6 +334,8 @@ function renderGame(): void {
   if (!round) return;
   const state = round;
   const meta = MODE_META[state.mode];
+  const totalLetters = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
+  const spentLetters = state.burned.size;
   screens.show("game", `
     <main class="game-screen game-screen--${state.mode} ${state.timeLeft <= 10 ? "game-screen--danger" : ""}">
       <header class="game-hud">
@@ -298,9 +351,15 @@ function renderGame(): void {
 
       <section class="playfield">
         <div class="phrase-header">
-          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · SPEND THESE LETTERS` : "MINE THIS PHRASE"}</span>
+          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · SPEND THESE LETTERS` : state.mode === "journey" ? `STAGE ${String((state.journeyStage ?? 0) + 1).padStart(2, "0")} · PHRASE ROAD` : "MINE THIS PHRASE"}</span>
           <small>${state.phrase.label} • DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}</small>
         </div>
+        ${state.mode === "burn" ? `
+          <div class="burn-progress" aria-label="${spentLetters} of ${totalLetters} letters spent">
+            <div><span>LETTERS SPENT</span><strong id="burn-progress-count">${spentLetters} / ${totalLetters}</strong></div>
+            <div class="burn-progress__track"><i id="burn-progress-fill" style="transform:scaleX(${totalLetters ? spentLetters / totalLetters : 0})"></i></div>
+            <b>BOARD CLEAR <small>+1,000</small></b>
+          </div>` : ""}
         <div class="phrase-display" id="phrase-display">${renderPhrase(state)}</div>
 
         <form class="word-entry" id="word-form" autocomplete="off">
@@ -320,6 +379,12 @@ function renderGame(): void {
               <div class="burn-board-stat"><strong id="boards-cleared">${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
               <p>Spend every letter for a +1,000 Board Clear bonus. Deal early for a 5-second penalty.</p>
               <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
+            ` : state.mode === "journey" ? `
+              <span>STAGE MEDALS</span>
+              <div class="journey-targets">
+                ${(state.phrase.medals ?? []).map((target, index) => `<div><b>${"◆".repeat(index + 1)}</b><strong>${target.toLocaleString()}</strong></div>`).join("")}
+              </div>
+              <p>Earn one medal to unlock the next phrase. Return later and master all three targets.</p>
             ` : `
               <span>SCORING</span>
               <p>Length beats volume. Keep answers flowing to increase your combo multiplier.</p>
@@ -451,7 +516,22 @@ function updateGameHud(previousScore?: number): void {
   if (combo) combo.textContent = `×${Math.max(1, round.combo + 1)}`;
   if (count) count.textContent = String(round.found.length);
   if (list) list.innerHTML = renderFound(round);
-  if (phrase && round.mode === "burn") phrase.innerHTML = renderPhrase(round);
+  if (phrase && round.mode === "burn") {
+    phrase.innerHTML = renderPhrase(round);
+    updateBurnProgress(round);
+  }
+}
+
+function updateBurnProgress(state: RoundState): void {
+  const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
+  const spent = state.burned.size;
+  const count = document.querySelector<HTMLElement>("#burn-progress-count");
+  const fill = document.querySelector<HTMLElement>("#burn-progress-fill");
+  if (count) count.textContent = `${spent} / ${total}`;
+  if (fill) {
+    fill.style.transform = `scaleX(${total ? spent / total : 0})`;
+    fill.classList.toggle("burn-progress__fill--complete", spent === total);
+  }
 }
 
 function animateNumber(element: HTMLElement, from: number, to: number, duration: number): void {
@@ -583,11 +663,11 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
     bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50 + (boardClear ? 1000 : 0);
     const previousScore = state.score;
     state.score += bonus;
-    state.boardsCleared += 1;
+    if (boardClear) state.boardsCleared += 1;
     updateGameHud(previousScore);
     showEvent(
-      `+${bonus.toLocaleString()}`,
-      boardClear ? `BOARD CLEAR · ALL LETTERS` : `BOARD ${String(state.boardNumber).padStart(2, "0")} EXHAUSTED`,
+      boardClear ? "BOARD CLEAR" : `+${bonus.toLocaleString()}`,
+      boardClear ? `+${bonus.toLocaleString()} · ALL LETTERS` : `BOARD ${String(state.boardNumber).padStart(2, "0")} EXHAUSTED`,
       boardClear ? "event-card--board event-card--board-clear" : "event-card--board"
     );
     audio.play("board", save.settings.sound);
@@ -658,6 +738,7 @@ function updateBurnBoardDisplay(state: RoundState): void {
   if (cleared) cleared.textContent = String(state.boardsCleared);
   if (combo) combo.textContent = `×${Math.max(1, state.combo + 1)}`;
   if (input) input.value = "";
+  updateBurnProgress(state);
 }
 
 function togglePause(force?: boolean): void {
@@ -701,9 +782,18 @@ function endRound(): void {
   lastResult = round;
 
   const modeKey = round.mode;
-  round.newBest = round.score > (save.bestScores[modeKey] ?? 0);
+  const previousBest = round.mode === "journey"
+    ? save.journeyScores[round.phrase.id] ?? 0
+    : save.bestScores[modeKey] ?? 0;
+  round.newBest = round.score > previousBest;
   save.bestScores[modeKey] = Math.max(save.bestScores[modeKey] ?? 0, round.score);
   if (round.mode === "daily") save.daily[todayKey()] = Math.max(save.daily[todayKey()] ?? 0, round.score);
+  if (round.mode === "journey" && round.journeyStage !== undefined) {
+    const earned = medalCount(round.score, round.phrase.medals);
+    save.journeyScores[round.phrase.id] = Math.max(previousBest, round.score);
+    save.journeyMedals[round.phrase.id] = Math.max(save.journeyMedals[round.phrase.id] ?? 0, earned);
+    if (earned >= 1) save.journeyUnlocked = Math.min(JOURNEY_PHRASES.length, Math.max(save.journeyUnlocked, round.journeyStage + 2));
+  }
   save.totalWords += round.found.length;
   save.totalScore += round.score;
   save.roundsPlayed += 1;
@@ -718,20 +808,22 @@ function showResults(): void {
   if (!result) return showMenu();
   const sorted = result.found.slice().sort((a, b) => b.word.length - a.word.length || b.points - a.points);
   const longest = sorted[0]?.word ?? "—";
-  const best = save.bestScores[result.mode] ?? result.score;
+  const best = result.mode === "journey" ? save.journeyScores[result.phrase.id] ?? result.score : save.bestScores[result.mode] ?? result.score;
   const newBest = result.newBest;
+  const journeyMedals = result.mode === "journey" ? medalCount(result.score, result.phrase.medals) : 0;
+  const hasNextJourneyStage = result.mode === "journey" && result.journeyStage !== undefined && result.journeyStage + 1 < JOURNEY_PHRASES.length;
 
   screens.show("results", shell("ROUND COMPLETE", `
     <section class="results-hero">
       <span class="eyebrow">${MODE_META[result.mode].name.toUpperCase()} • ${result.phrase.label.toUpperCase()}</span>
       <div class="results-score" id="results-score" data-final-score="${result.score}">0</div>
-      <div class="results-label">${newBest ? "PERSONAL BEST" : `BEST ${best.toLocaleString()}`}</div>
+      <div class="results-label">${result.mode === "journey" ? `${journeyMedals} / 3 MEDALS${journeyMedals ? " · STAGE CLEARED" : ""}` : newBest ? "PERSONAL BEST" : `BEST ${best.toLocaleString()}`}</div>
     </section>
     <section class="result-stats">
       <div><span>WORDS</span><strong>${result.found.length}</strong></div>
       <div><span>LONGEST</span><strong>${longest.toUpperCase()}</strong></div>
       <div><span>BEST COMBO</span><strong>×${result.bestCombo + 1}</strong></div>
-      <div><span>${result.mode === "burn" ? "BOARDS" : "MODE"}</span><strong>${result.mode === "burn" ? result.boardsCleared : MODE_META[result.mode].name.toUpperCase()}</strong></div>
+      <div><span>${result.mode === "burn" ? "BOARD CLEARS" : result.mode === "journey" ? "MEDALS" : "MODE"}</span><strong>${result.mode === "burn" ? result.boardsCleared : result.mode === "journey" ? `${journeyMedals} / 3` : MODE_META[result.mode].name.toUpperCase()}</strong></div>
     </section>
     <section class="result-words">
       <div class="section-heading"><span>YOUR WORDS</span><small>${result.found.length} FOUND</small></div>
@@ -740,9 +832,15 @@ function showResults(): void {
       </div>
     </section>
     <section class="result-actions">
-      <button class="primary-button" data-nav data-action="again">PLAY AGAIN</button>
-      <button class="secondary-button" data-nav data-action="modes">CHANGE MODE</button>
-      <button class="text-button" data-nav data-action="menu">MAIN MENU</button>
+      ${result.mode === "journey" ? `
+        ${hasNextJourneyStage && journeyMedals ? `<button class="primary-button" data-nav data-action="journey-next">NEXT STAGE</button>` : `<button class="primary-button" data-nav data-action="again">REPLAY STAGE</button>`}
+        ${hasNextJourneyStage && journeyMedals ? `<button class="secondary-button" data-nav data-action="again">REPLAY STAGE</button>` : ""}
+        <button class="text-button" data-nav data-action="journey">PHRASE ROAD</button>
+      ` : `
+        <button class="primary-button" data-nav data-action="again">PLAY AGAIN</button>
+        <button class="secondary-button" data-nav data-action="modes">CHANGE MODE</button>
+        <button class="text-button" data-nav data-action="menu">MAIN MENU</button>
+      `}
     </section>
   `));
   requestAnimationFrame(() => {
@@ -762,7 +860,7 @@ function showStats(): void {
       <div class="stat-tile"><span>LONGEST WORD</span><strong>${save.longestWord ? save.longestWord.toUpperCase() : "—"}</strong></div>
     </section>
     <section class="best-list">
-      ${(["classic", "burn", "blitz", "daily"] as ModeId[]).map((id) => `<div><span>${MODE_META[id].name}</span><strong>${(save.bestScores[id] ?? 0).toLocaleString()}</strong></div>`).join("")}
+      ${(["classic", "burn", "blitz", "daily", "journey"] as ModeId[]).map((id) => `<div><span>${MODE_META[id].name}</span><strong>${(save.bestScores[id] ?? 0).toLocaleString()}</strong></div>`).join("")}
     </section>
   `, { back: "menu" }));
 }
@@ -774,6 +872,7 @@ function showHelp(): void {
       <article><span>02</span><div><h3>Make words</h3><p>Words must be at least three letters. Longer answers are worth dramatically more points.</p></div></article>
       <article><span>03</span><div><h3>Keep the chain alive</h3><p>Submit another valid word within five seconds to raise your combo and increase the score.</p></div></article>
       <article><span>04</span><div><h3>Burn changes everything</h3><p>In Burn, letters do not return after a word. A huge answer can be valuable—or destroy several future possibilities.</p></div></article>
+      <article><span>05</span><div><h3>Master Phrase Road</h3><p>Journey gives every curated phrase three score medals. Earn one to open the next stage, then return for mastery.</p></div></article>
     </section>
     <button class="primary-button" data-nav data-action="modes">CHOOSE A MODE</button>
   `, { back: "menu" }));
@@ -795,6 +894,7 @@ function settingsReturn(): void {
   if (settingsReturnScreen === "game" && round) renderGame();
   else if (settingsReturnScreen === "results") showResults();
   else if (settingsReturnScreen === "modes") showModes();
+  else if (settingsReturnScreen === "journey") showJourney();
   else if (settingsReturnScreen === "stats") showStats();
   else if (settingsReturnScreen === "help") showHelp();
   else if (settingsReturnScreen === "title") showTitle();
@@ -802,8 +902,15 @@ function settingsReturn(): void {
 }
 
 appRoot.addEventListener("click", (event) => {
-  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode]");
+  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-journey-stage]");
   if (!target) return;
+  const journeyStage = target.dataset.journeyStage;
+  if (journeyStage !== undefined) {
+    const stage = Number(journeyStage);
+    const phrase = JOURNEY_PHRASES[stage];
+    if (phrase && stage < save.journeyUnlocked) startRound("journey", phrase, stage);
+    return;
+  }
   const mode = target.dataset.mode as ModeId | undefined;
   if (mode) return startRound(mode);
   const action = target.dataset.action;
@@ -811,17 +918,24 @@ appRoot.addEventListener("click", (event) => {
 
   if (action === "enter-menu" || action === "menu") showMenu();
   else if (action === "modes") showModes();
+  else if (action === "journey") showJourney();
   else if (action === "stats") showStats();
   else if (action === "help") showHelp();
   else if (action === "settings") showSettings();
   else if (action === "settings-back") settingsReturn();
   else if (action === "pause") togglePause(true);
   else if (action === "resume") togglePause(false);
-  else if (action === "restart" && round) startRound(round.mode);
+  else if (action === "restart" && round) startRound(round.mode, round.mode === "journey" ? round.phrase : undefined, round.journeyStage);
   else if (action === "end-run") endRound();
   else if (action === "next-board") void advanceBurnBoard(false);
   else if (action === "quit") { round = null; showMenu(); }
-  else if (action === "again" && lastResult) startRound(lastResult.mode);
+  else if (action === "again" && lastResult) startRound(lastResult.mode, lastResult.mode === "journey" ? lastResult.phrase : undefined, lastResult.journeyStage);
+  else if (action === "journey-next" && lastResult?.journeyStage !== undefined) {
+    const nextStage = lastResult.journeyStage + 1;
+    const phrase = JOURNEY_PHRASES[nextStage];
+    if (phrase && nextStage < save.journeyUnlocked) startRound("journey", phrase, nextStage);
+    else showJourney();
+  }
   else if (action === "toggle-sound") {
     save.settings.sound = !save.settings.sound;
     store.save(save);

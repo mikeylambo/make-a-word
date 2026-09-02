@@ -1,4 +1,4 @@
-export type ScreenId = "title" | "menu" | "modes" | "game" | "results" | "stats" | "settings" | "help";
+export type ScreenId = "title" | "menu" | "modes" | "journey" | "game" | "results" | "stats" | "settings" | "help";
 
 export type SaveData = {
   bestScores: Record<string, number>;
@@ -7,6 +7,9 @@ export type SaveData = {
   longestWord: string;
   roundsPlayed: number;
   daily: Record<string, number>;
+  journeyScores: Record<string, number>;
+  journeyMedals: Record<string, number>;
+  journeyUnlocked: number;
   settings: {
     sound: boolean;
     reducedMotion: boolean;
@@ -20,6 +23,9 @@ const DEFAULT_SAVE: SaveData = {
   longestWord: "",
   roundsPlayed: 0,
   daily: {},
+  journeyScores: {},
+  journeyMedals: {},
+  journeyUnlocked: 1,
   settings: { sound: true, reducedMotion: false }
 };
 
@@ -36,6 +42,8 @@ export class SaveStore {
         ...parsed,
         bestScores: { ...DEFAULT_SAVE.bestScores, ...(parsed.bestScores ?? {}) },
         daily: { ...DEFAULT_SAVE.daily, ...(parsed.daily ?? {}) },
+        journeyScores: { ...DEFAULT_SAVE.journeyScores, ...(parsed.journeyScores ?? {}) },
+        journeyMedals: { ...DEFAULT_SAVE.journeyMedals, ...(parsed.journeyMedals ?? {}) },
         settings: { ...DEFAULT_SAVE.settings, ...(parsed.settings ?? {}) }
       };
     } catch {

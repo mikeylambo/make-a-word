@@ -1,6 +1,17 @@
-import words from "an-array-of-english-words";
+import commonWords from "./common-words.txt?raw";
+import blockedWords from "../content/dictionary-blocklist.json";
+import dictionaryAdditions from "../content/dictionary-additions.json";
 
-const WORDS = new Set(words.map((word) => word.toLowerCase()));
+const BLOCKED_WORDS = new Set(blockedWords);
+const WORDS = new Set(
+  commonWords
+    .split(/\s+/)
+    .map((word) => word.toLowerCase())
+    .filter((word) => word.length >= 3 && !BLOCKED_WORDS.has(word))
+);
+dictionaryAdditions.forEach((word) => WORDS.add(word));
+
+export const dictionarySize = WORDS.size;
 
 export type ValidationResult =
   | { ok: true; word: string }
