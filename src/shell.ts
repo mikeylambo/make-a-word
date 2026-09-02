@@ -57,6 +57,9 @@ export class ScreenManager {
     this.current = id;
     this.root.dataset.screen = id;
     this.root.innerHTML = html;
+    this.root.classList.remove("screen-transition");
+    void this.root.offsetWidth;
+    this.root.classList.add("screen-transition");
     this.focusFirst();
     return this.root;
   }
@@ -94,25 +97,38 @@ export class MenuNavigator {
 export class TinyAudio {
   private context?: AudioContext;
 
-  play(kind: "accept" | "reject" | "tick" | "start" | "end", enabled: boolean): void {
+  play(
+    kind: "accept" | "reject" | "tick" | "start" | "go" | "end" | "combo" | "board" | "warning",
+    enabled: boolean
+  ): void {
     if (!enabled) return;
     this.context ??= new AudioContext();
     const ctx = this.context;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const map = {
-      accept: [620, 0.06],
-      reject: [150, 0.09],
-      tick: [380, 0.03],
-      start: [520, 0.12],
-      end: [220, 0.2]
+    const soundMap = {
+      accept: { notes: [620, 930], duration: .09, gain: .055, type: "sine" as OscillatorType },
+      reject: { notes: [155, 120], duration: .12, gain: .045, type: "sawtooth" as OscillatorType },
+      tick: { notes: [420], duration: .045, gain: .038, type: "square" as OscillatorType },
+      warning: { notes: [520], duration: .065, gain: .05, type: "square" as OscillatorType },
+      start: { notes: [392], duration: .11, gain: .05, type: "sine" as OscillatorType },
+      go: { notes: [523, 659, 784], duration: .24, gain: .045, type: "triangle" as OscillatorType },
+      combo: { notes: [784, 988], duration: .16, gain: .04, type: "triangle" as OscillatorType },
+      board: { notes: [392, 523, 659, 784], duration: .34, gain: .043, type: "triangle" as OscillatorType },
+      end: { notes: [440, 349, 262], duration: .36, gain: .045, type: "triangle" as OscillatorType }
     } as const;
-    const [frequency, duration] = map[kind];
-    osc.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + duration);
+    const sound = soundMap[kind];
+    sound.notes.forEach((frequency, index) => {
+      const startAt = ctx.currentTime + index * (kind === "accept" ? .025 : .07);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = sound.type;
+      osc.frequency.setValueAtTime(frequency, startAt);
+      if (kind === "accept") osc.frequency.exponentialRampToValueAtTime(frequency * 1.035, startAt + sound.duration);
+      gain.gain.setValueAtTime(.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(sound.gain, startAt + .012);
+      gain.gain.exponentialRampToValueAtTime(.0001, startAt + sound.duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(startAt);
+      osc.stop(startAt + sound.duration + .02);
+    });
   }
 }

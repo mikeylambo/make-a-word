@@ -1,9 +1,10 @@
 import "./styles.css";
 import { PHRASES, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
-import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData } from "./shell";
+import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
 import {
   burnLetters,
   countsForText,
+  hasPlayableWord,
   humanReason,
   remainingCounts,
   scoreWord,
@@ -28,8 +29,14 @@ type RoundState = {
   combo: number;
   bestCombo: number;
   lastValidAt: number;
+  boardNumber: number;
+  boardsCleared: number;
+  boardWords: number;
+  starting: boolean;
+  dealing: boolean;
   paused: boolean;
   ended: boolean;
+  newBest: boolean;
 };
 
 const MODE_META: Record<ModeId, { name: string; kicker: string; description: string; duration: number }> = {
@@ -42,7 +49,7 @@ const MODE_META: Record<ModeId, { name: string; kicker: string; description: str
   burn: {
     name: "Burn",
     kicker: "Spend every letter wisely",
-    description: "Submitted letters disappear permanently. Every word changes what remains.",
+    description: "Spend a phrase, clear the board, then keep scoring from the next deal.",
     duration: 150
   },
   blitz: {
@@ -72,6 +79,12 @@ let round: RoundState | null = null;
 let timerId: number | null = null;
 let lastResult: RoundState | null = null;
 let lastPhraseText = "";
+let flowToken = 0;
+let settingsReturnScreen: ScreenId = "menu";
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (char) => ({
@@ -106,6 +119,7 @@ function shell(title: string, content: string, options: { back?: string; compact
 
 function showTitle(): void {
   stopTimer();
+  flowToken += 1;
   screens.show("title", `
     <main class="title-screen">
       <div class="title-orbit" aria-hidden="true"><span>A</span><span>R</span><span>T</span><span>E</span></div>
@@ -122,6 +136,7 @@ function showTitle(): void {
 
 function showMenu(): void {
   stopTimer();
+  flowToken += 1;
   const dailyDone = save.daily[todayKey()] ?? 0;
   screens.show("menu", shell("MAKE A WORD", `
     <section class="hero-panel">
@@ -192,6 +207,7 @@ function choosePhrase(mode: ModeId): PhraseEntry {
 
 function startRound(mode: ModeId): void {
   stopTimer();
+  const token = ++flowToken;
   const phrase = choosePhrase(mode);
   round = {
     mode,
@@ -204,11 +220,35 @@ function startRound(mode: ModeId): void {
     combo: 0,
     bestCombo: 0,
     lastValidAt: 0,
+    boardNumber: 1,
+    boardsCleared: 0,
+    boardWords: 0,
+    starting: true,
+    dealing: false,
     paused: false,
-    ended: false
+    ended: false,
+    newBest: false
   };
-  audio.play("start", save.settings.sound);
   renderGame();
+  void runRoundCountdown(token);
+}
+
+async function runRoundCountdown(token: number): Promise<void> {
+  for (const value of ["3", "2", "1"]) {
+    if (token !== flowToken || !round || round.ended) return;
+    showEvent(value, "GET READY", "event-card--countdown");
+    audio.play("start", save.settings.sound);
+    await delay(650);
+  }
+  if (token !== flowToken || !round || round.ended) return;
+  showEvent("MAKE WORDS", round.mode === "burn" ? "BOARD 01 · GO" : "GO", "event-card--go");
+  audio.play("go", save.settings.sound);
+  round.starting = false;
+  setGameControlsDisabled(false);
+  focusWordInput();
+  await delay(650);
+  if (token !== flowToken || !round || round.ended) return;
+  clearEvent();
   timerId = window.setInterval(tick, 1000);
 }
 
@@ -241,10 +281,10 @@ function renderGame(): void {
   const state = round;
   const meta = MODE_META[state.mode];
   screens.show("game", `
-    <main class="game-screen">
+    <main class="game-screen game-screen--${state.mode} ${state.timeLeft <= 10 ? "game-screen--danger" : ""}">
       <header class="game-hud">
-        <button class="icon-button" data-nav data-action="pause" aria-label="Pause">Ⅱ</button>
-        <div class="hud-stat"><span>MODE</span><strong>${meta.name.toUpperCase()}</strong></div>
+        <button class="icon-button" data-nav data-action="pause" aria-label="Pause" ${state.starting || state.dealing ? "disabled" : ""}>Ⅱ</button>
+        <div class="hud-stat"><span>${state.mode === "burn" ? "BOARD" : "MODE"}</span><strong>${state.mode === "burn" ? String(state.boardNumber).padStart(2, "0") : meta.name.toUpperCase()}</strong></div>
         <div class="hud-stat hud-stat--score"><span>SCORE</span><strong id="score-value">${state.score.toLocaleString()}</strong></div>
         <div class="hud-stat hud-stat--combo"><span>COMBO</span><strong id="combo-value">×${Math.max(1, state.combo + 1)}</strong></div>
         <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="time-value">${formatTime(state.timeLeft)}</strong></div>
@@ -252,13 +292,13 @@ function renderGame(): void {
 
       <section class="playfield">
         <div class="phrase-header">
-          <span>${state.mode === "burn" ? "SPEND THESE LETTERS" : "MINE THIS PHRASE"}</span>
+          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · SPEND THESE LETTERS` : "MINE THIS PHRASE"}</span>
           <small>${state.phrase.label} • DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}</small>
         </div>
         <div class="phrase-display" id="phrase-display">${renderPhrase(state)}</div>
 
         <form class="word-entry" id="word-form" autocomplete="off">
-          <input id="word-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter a word" placeholder="TYPE A WORD" />
+          <input id="word-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter a word" placeholder="TYPE A WORD" ${state.starting || state.dealing ? "disabled" : ""} />
           <button class="submit-word" type="submit">ENTER</button>
         </form>
         <div class="feedback" id="feedback">3+ letters • ENTER to submit</div>
@@ -269,12 +309,21 @@ function renderGame(): void {
             <div class="found-list" id="found-list">${renderFound(state)}</div>
           </div>
           <aside class="round-tip">
-            <span>${state.mode === "burn" ? "BURN RULE" : "SCORING"}</span>
-            <p>${state.mode === "burn" ? "Once a letter is used, it is gone. Save scarce letters for the words that deserve them." : "Length beats volume. Keep answers flowing to increase your combo multiplier."}</p>
+            ${state.mode === "burn" ? `
+              <span>BURN RUN</span>
+              <div class="burn-board-stat"><strong>${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
+              <p>Empty the board for a clear bonus, or take a 5-second penalty to deal a new phrase.</p>
+              <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
+            ` : `
+              <span>SCORING</span>
+              <p>Length beats volume. Keep answers flowing to increase your combo multiplier.</p>
+            `}
           </aside>
         </div>
       </section>
 
+      <div class="event-stage" id="event-stage" aria-live="assertive"></div>
+      <div class="score-fx-stage" id="score-fx-stage" aria-hidden="true"></div>
       <div id="pause-layer"></div>
     </main>
   `);
@@ -292,11 +341,38 @@ function bindWordForm(): void {
 }
 
 function focusWordInput(): void {
-  requestAnimationFrame(() => document.querySelector<HTMLInputElement>("#word-input")?.focus({ preventScroll: true }));
+  requestAnimationFrame(() => {
+    const input = document.querySelector<HTMLInputElement>("#word-input");
+    if (!input?.disabled) input?.focus({ preventScroll: true });
+  });
+}
+
+function showEvent(title: string, subtitle = "", className = ""): void {
+  const stage = document.querySelector<HTMLElement>("#event-stage");
+  if (!stage) return;
+  stage.innerHTML = `
+    <div class="event-card ${className}">
+      ${subtitle ? `<span>${escapeHtml(subtitle)}</span>` : ""}
+      <strong>${escapeHtml(title)}</strong>
+    </div>`;
+}
+
+function clearEvent(): void {
+  const stage = document.querySelector<HTMLElement>("#event-stage");
+  if (stage) stage.innerHTML = "";
+}
+
+function setGameControlsDisabled(disabled: boolean): void {
+  const input = document.querySelector<HTMLInputElement>("#word-input");
+  const pause = document.querySelector<HTMLButtonElement>("[data-action='pause']");
+  const deal = document.querySelector<HTMLButtonElement>("[data-action='next-board']");
+  if (input) input.disabled = disabled;
+  if (pause) pause.disabled = disabled;
+  if (deal) deal.disabled = disabled;
 }
 
 function submitCurrentWord(): void {
-  if (!round || round.paused || round.ended) return;
+  if (!round || round.paused || round.ended || round.starting || round.dealing) return;
   const input = document.querySelector<HTMLInputElement>("#word-input");
   if (!input) return;
   const available = round.mode === "burn" ? remainingCounts(round.phrase.text, round.burned) : countsForText(round.phrase.text);
@@ -319,49 +395,165 @@ function submitCurrentWord(): void {
   round.bestCombo = Math.max(round.bestCombo, round.combo);
   round.lastValidAt = now;
   const points = scoreWord(result.word.length, round.combo, round.mode === "burn");
+  const previousScore = round.score;
   round.score += points;
   round.submitted.add(result.word);
   round.found.push({ word: result.word, points });
+  round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
 
   input.value = "";
   audio.play("accept", save.settings.sound);
+  if (round.combo >= 2) audio.play("combo", save.settings.sound);
   if (feedback) {
     feedback.classList.remove("feedback--bad");
     feedback.classList.add("feedback--good");
     feedback.textContent = `${result.word.toUpperCase()}  +${points}${round.combo ? `  •  COMBO ×${round.combo + 1}` : ""}`;
   }
-  updateGameHud();
+  updateGameHud(previousScore);
+  showScoreImpact(result.word, points, round.combo + 1);
+
+  if (round.mode === "burn") {
+    const availableAfterWord = remainingCounts(round.phrase.text, round.burned);
+    if (!hasPlayableWord(availableAfterWord, round.submitted)) {
+      const token = flowToken;
+      round.dealing = true;
+      setGameControlsDisabled(true);
+      window.setTimeout(() => {
+        if (token === flowToken && round?.mode === "burn" && !round.ended) void advanceBurnBoard(true);
+      }, 500);
+    }
+  }
 }
 
-function updateGameHud(): void {
+function updateGameHud(previousScore?: number): void {
   if (!round) return;
   const score = document.querySelector<HTMLElement>("#score-value");
   const combo = document.querySelector<HTMLElement>("#combo-value");
   const count = document.querySelector<HTMLElement>("#word-count");
   const list = document.querySelector<HTMLElement>("#found-list");
   const phrase = document.querySelector<HTMLElement>("#phrase-display");
-  if (score) score.textContent = round.score.toLocaleString();
+  if (score) {
+    if (previousScore === undefined) score.textContent = round.score.toLocaleString();
+    else animateNumber(score, previousScore, round.score, 360);
+    score.classList.remove("hud-hit");
+    void score.offsetWidth;
+    score.classList.add("hud-hit");
+  }
   if (combo) combo.textContent = `×${Math.max(1, round.combo + 1)}`;
   if (count) count.textContent = String(round.found.length);
   if (list) list.innerHTML = renderFound(round);
   if (phrase && round.mode === "burn") phrase.innerHTML = renderPhrase(round);
 }
 
+function animateNumber(element: HTMLElement, from: number, to: number, duration: number): void {
+  if (save.settings.reducedMotion || from === to) {
+    element.textContent = to.toLocaleString();
+    return;
+  }
+  const startedAt = performance.now();
+  const frame = (now: number) => {
+    const progress = Math.min(1, (now - startedAt) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = Math.round(from + (to - from) * eased).toLocaleString();
+    if (progress < 1) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+function showScoreImpact(word: string, points: number, multiplier: number): void {
+  const stage = document.querySelector<HTMLElement>("#score-fx-stage");
+  if (!stage) return;
+  const tier = multiplier >= 5 ? "score-impact--major" : multiplier >= 3 ? "score-impact--combo" : "";
+  stage.innerHTML = `
+    <div class="score-impact ${tier}">
+      <strong>${escapeHtml(word.toUpperCase())}</strong>
+      <span>+${points.toLocaleString()}</span>
+      ${multiplier > 1 ? `<b>COMBO ×${multiplier}</b>` : ""}
+    </div>`;
+  window.setTimeout(() => {
+    if (stage.querySelector(".score-impact")) stage.innerHTML = "";
+  }, multiplier >= 5 ? 1050 : 720);
+}
+
 function tick(): void {
   if (!round || round.paused || round.ended) return;
   round.timeLeft -= 1;
   const time = document.querySelector<HTMLElement>("#time-value");
+  const game = document.querySelector<HTMLElement>(".game-screen");
   if (time) {
     time.textContent = formatTime(round.timeLeft);
     time.classList.toggle("danger", round.timeLeft <= 10);
   }
-  if (round.timeLeft <= 10 && round.timeLeft > 0) audio.play("tick", save.settings.sound);
+  game?.classList.toggle("game-screen--danger", round.timeLeft <= 10);
+  if (round.timeLeft === 10) {
+    showEvent("10 SECONDS", "FINAL COUNTDOWN", "event-card--warning");
+    audio.play("warning", save.settings.sound);
+    window.setTimeout(clearEvent, 720);
+  } else if (round.timeLeft <= 5 && round.timeLeft > 0) {
+    showEvent(String(round.timeLeft), "", "event-card--final");
+    audio.play("warning", save.settings.sound);
+    window.setTimeout(clearEvent, 620);
+  } else if (round.timeLeft < 10 && round.timeLeft > 5) {
+    audio.play("tick", save.settings.sound);
+  }
   if (round.timeLeft <= 0) endRound();
 }
 
+async function advanceBurnBoard(cleared: boolean): Promise<void> {
+  const state = round;
+  if (!state || state.mode !== "burn" || state.ended || state.starting) return;
+  if (state.dealing && !cleared) return;
+  state.dealing = true;
+  setGameControlsDisabled(true);
+
+  let bonus = 0;
+  if (cleared) {
+    const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
+    const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
+    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50;
+    const previousScore = state.score;
+    state.score += bonus;
+    state.boardsCleared += 1;
+    updateGameHud(previousScore);
+    showEvent(`+${bonus.toLocaleString()}`, `BOARD ${String(state.boardNumber).padStart(2, "0")} CLEAR`, "event-card--board");
+    audio.play("board", save.settings.sound);
+  } else {
+    state.timeLeft = Math.max(0, state.timeLeft - 5);
+    state.combo = 0;
+    state.lastValidAt = 0;
+    const time = document.querySelector<HTMLElement>("#time-value");
+    if (time) time.textContent = formatTime(state.timeLeft);
+    showEvent("NEW DEAL", "−5 SECONDS", "event-card--skip");
+    audio.play("start", save.settings.sound);
+    if (state.timeLeft <= 0) {
+      await delay(450);
+      endRound();
+      return;
+    }
+  }
+
+  const token = flowToken;
+  await delay(cleared ? 1050 : 700);
+  if (token !== flowToken || round !== state || state.ended) return;
+
+  state.phrase = choosePhrase("burn");
+  state.boardNumber += 1;
+  state.burned = new Set();
+  state.submitted = new Set();
+  state.boardWords = 0;
+  state.dealing = false;
+  if (cleared) state.lastValidAt = performance.now();
+  renderGame();
+  showEvent(`BOARD ${String(state.boardNumber).padStart(2, "0")}`, "NEW PHRASE", "event-card--deal");
+  await delay(520);
+  if (token !== flowToken || round !== state || state.ended) return;
+  clearEvent();
+  focusWordInput();
+}
+
 function togglePause(force?: boolean): void {
-  if (!round || round.ended) return;
+  if (!round || round.ended || round.starting || round.dealing) return;
   round.paused = force ?? !round.paused;
   const layer = document.querySelector<HTMLElement>("#pause-layer");
   if (!layer) return;
@@ -378,6 +570,7 @@ function togglePause(force?: boolean): void {
         <p>${round.phrase.text}</p>
         <button class="primary-button" data-nav data-action="resume">RESUME</button>
         <button class="secondary-button" data-nav data-action="restart">RESTART</button>
+        <button class="secondary-button secondary-button--danger" data-nav data-action="end-run">END RUN</button>
         <button class="text-button" data-nav data-action="quit">QUIT TO MENU</button>
       </div>
     </div>`;
@@ -392,11 +585,13 @@ function stopTimer(): void {
 function endRound(): void {
   if (!round || round.ended) return;
   round.ended = true;
+  flowToken += 1;
   stopTimer();
   audio.play("end", save.settings.sound);
   lastResult = round;
 
   const modeKey = round.mode;
+  round.newBest = round.score > (save.bestScores[modeKey] ?? 0);
   save.bestScores[modeKey] = Math.max(save.bestScores[modeKey] ?? 0, round.score);
   if (round.mode === "daily") save.daily[todayKey()] = Math.max(save.daily[todayKey()] ?? 0, round.score);
   save.totalWords += round.found.length;
@@ -414,19 +609,19 @@ function showResults(): void {
   const sorted = result.found.slice().sort((a, b) => b.word.length - a.word.length || b.points - a.points);
   const longest = sorted[0]?.word ?? "—";
   const best = save.bestScores[result.mode] ?? result.score;
-  const newBest = result.score >= best && result.score > 0;
+  const newBest = result.newBest;
 
   screens.show("results", shell("ROUND COMPLETE", `
     <section class="results-hero">
       <span class="eyebrow">${MODE_META[result.mode].name.toUpperCase()} • ${result.phrase.label.toUpperCase()}</span>
-      <div class="results-score">${result.score.toLocaleString()}</div>
+      <div class="results-score" id="results-score" data-final-score="${result.score}">0</div>
       <div class="results-label">${newBest ? "PERSONAL BEST" : `BEST ${best.toLocaleString()}`}</div>
     </section>
     <section class="result-stats">
       <div><span>WORDS</span><strong>${result.found.length}</strong></div>
       <div><span>LONGEST</span><strong>${longest.toUpperCase()}</strong></div>
       <div><span>BEST COMBO</span><strong>×${result.bestCombo + 1}</strong></div>
-      <div><span>MODE</span><strong>${MODE_META[result.mode].name.toUpperCase()}</strong></div>
+      <div><span>${result.mode === "burn" ? "BOARDS" : "MODE"}</span><strong>${result.mode === "burn" ? result.boardsCleared : MODE_META[result.mode].name.toUpperCase()}</strong></div>
     </section>
     <section class="result-words">
       <div class="section-heading"><span>YOUR WORDS</span><small>${result.found.length} FOUND</small></div>
@@ -440,6 +635,10 @@ function showResults(): void {
       <button class="text-button" data-nav data-action="menu">MAIN MENU</button>
     </section>
   `));
+  requestAnimationFrame(() => {
+    const score = document.querySelector<HTMLElement>("#results-score");
+    if (score) animateNumber(score, 0, result.score, 900);
+  });
 }
 
 function showStats(): void {
@@ -470,10 +669,11 @@ function showHelp(): void {
   `, { back: "menu" }));
 }
 
-function showSettings(returnTo: string = "menu"): void {
-  const previous = screens.getCurrent();
+function showSettings(returnTo?: ScreenId): void {
+  const current = screens.getCurrent();
+  if (current !== "settings") settingsReturnScreen = returnTo ?? current;
   screens.show("settings", shell("SETTINGS", `
-    <section class="settings-list" data-return="${returnTo === "menu" ? previous : returnTo}">
+    <section class="settings-list">
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
     </section>
@@ -482,11 +682,12 @@ function showSettings(returnTo: string = "menu"): void {
 }
 
 function settingsReturn(): void {
-  const returnId = document.querySelector<HTMLElement>(".settings-list")?.dataset.return;
-  if (returnId === "game" && round) renderGame();
-  else if (returnId === "modes") showModes();
-  else if (returnId === "stats") showStats();
-  else if (returnId === "help") showHelp();
+  if (settingsReturnScreen === "game" && round) renderGame();
+  else if (settingsReturnScreen === "results") showResults();
+  else if (settingsReturnScreen === "modes") showModes();
+  else if (settingsReturnScreen === "stats") showStats();
+  else if (settingsReturnScreen === "help") showHelp();
+  else if (settingsReturnScreen === "title") showTitle();
   else showMenu();
 }
 
@@ -507,17 +708,19 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "pause") togglePause(true);
   else if (action === "resume") togglePause(false);
   else if (action === "restart" && round) startRound(round.mode);
+  else if (action === "end-run") endRound();
+  else if (action === "next-board") void advanceBurnBoard(false);
   else if (action === "quit") { round = null; showMenu(); }
   else if (action === "again" && lastResult) startRound(lastResult.mode);
   else if (action === "toggle-sound") {
     save.settings.sound = !save.settings.sound;
     store.save(save);
-    showSettings("settings");
+    showSettings();
   } else if (action === "toggle-motion") {
     save.settings.reducedMotion = !save.settings.reducedMotion;
     document.documentElement.classList.toggle("reduce-motion", save.settings.reducedMotion);
     store.save(save);
-    showSettings("settings");
+    showSettings();
   }
 });
 

@@ -78,6 +78,16 @@ export function remainingCounts(phrase: string, burned: Set<number>): Map<string
   return counts;
 }
 
+export function hasPlayableWord(counts: Map<string, number>, submitted: Set<string>): boolean {
+  const availableLetters = [...counts.values()].reduce((sum, count) => sum + count, 0);
+  if (availableLetters < 3) return false;
+  for (const word of WORDS) {
+    if (word.length < 3 || word.length > availableLetters || submitted.has(word)) continue;
+    if (canSpell(word, counts)) return true;
+  }
+  return false;
+}
+
 export function humanReason(reason: Exclude<ValidationResult, { ok: true }>["reason"]): string {
   if (reason === "too-short") return "Words need at least 3 letters";
   if (reason === "duplicate") return "Already found";
