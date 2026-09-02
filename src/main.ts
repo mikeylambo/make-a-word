@@ -29,8 +29,10 @@ type RoundState = {
   combo: number;
   bestCombo: number;
   lastValidAt: number;
+  comboFrozenAt: number;
   boardNumber: number;
   boardsCleared: number;
+  fullBurns: number;
   boardWords: number;
   starting: boolean;
   dealing: boolean;
@@ -81,6 +83,7 @@ let lastResult: RoundState | null = null;
 let lastPhraseText = "";
 let flowToken = 0;
 let settingsReturnScreen: ScreenId = "menu";
+let comboMeterFrame: number | null = null;
 
 function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -220,8 +223,10 @@ function startRound(mode: ModeId): void {
     combo: 0,
     bestCombo: 0,
     lastValidAt: 0,
+    comboFrozenAt: 0,
     boardNumber: 1,
     boardsCleared: 0,
+    fullBurns: 0,
     boardWords: 0,
     starting: true,
     dealing: false,
@@ -286,7 +291,10 @@ function renderGame(): void {
         <button class="icon-button" data-nav data-action="pause" aria-label="Pause" ${state.starting || state.dealing ? "disabled" : ""}>Ⅱ</button>
         <div class="hud-stat"><span>${state.mode === "burn" ? "BOARD" : "MODE"}</span><strong>${state.mode === "burn" ? String(state.boardNumber).padStart(2, "0") : meta.name.toUpperCase()}</strong></div>
         <div class="hud-stat hud-stat--score"><span>SCORE</span><strong id="score-value">${state.score.toLocaleString()}</strong></div>
-        <div class="hud-stat hud-stat--combo"><span>COMBO</span><strong id="combo-value">×${Math.max(1, state.combo + 1)}</strong></div>
+        <div class="hud-stat hud-stat--combo">
+          <span>COMBO</span><strong id="combo-value">×${Math.max(1, state.combo + 1)}</strong>
+          <div class="combo-meter" aria-hidden="true"><i id="combo-meter-fill"></i></div>
+        </div>
         <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="time-value">${formatTime(state.timeLeft)}</strong></div>
       </header>
 
@@ -311,8 +319,8 @@ function renderGame(): void {
           <aside class="round-tip">
             ${state.mode === "burn" ? `
               <span>BURN RUN</span>
-              <div class="burn-board-stat"><strong>${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
-              <p>Empty the board for a clear bonus, or take a 5-second penalty to deal a new phrase.</p>
+              <div class="burn-board-stat"><strong id="boards-cleared">${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
+              <p>Spend every letter for a +1,000 Full Burn. Deal early for a 5-second penalty.</p>
               <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
             ` : `
               <span>SCORING</span>
@@ -394,6 +402,7 @@ function submitCurrentWord(): void {
   round.combo = round.lastValidAt && now - round.lastValidAt <= 5000 ? round.combo + 1 : 0;
   round.bestCombo = Math.max(round.bestCombo, round.combo);
   round.lastValidAt = now;
+  round.comboFrozenAt = 0;
   const points = scoreWord(result.word.length, round.combo, round.mode === "burn");
   const previousScore = round.score;
   round.score += points;
@@ -412,6 +421,7 @@ function submitCurrentWord(): void {
   }
   updateGameHud(previousScore);
   showScoreImpact(result.word, points, round.combo + 1);
+  startComboMeter();
 
   if (round.mode === "burn") {
     const availableAfterWord = remainingCounts(round.phrase.text, round.burned);
@@ -461,6 +471,64 @@ function animateNumber(element: HTMLElement, from: number, to: number, duration:
   requestAnimationFrame(frame);
 }
 
+function freezeComboMeter(): void {
+  if (!round?.lastValidAt || round.comboFrozenAt) return;
+  round.comboFrozenAt = performance.now();
+}
+
+function resumeComboMeter(): void {
+  if (!round?.lastValidAt) return;
+  if (round.comboFrozenAt) {
+    round.lastValidAt += performance.now() - round.comboFrozenAt;
+    round.comboFrozenAt = 0;
+  }
+  startComboMeter();
+}
+
+function startComboMeter(): void {
+  if (comboMeterFrame !== null) cancelAnimationFrame(comboMeterFrame);
+  comboMeterFrame = null;
+  if (!round?.lastValidAt || round.ended) return;
+
+  const frame = (now: number) => {
+    const state = round;
+    const fill = document.querySelector<HTMLElement>("#combo-meter-fill");
+    if (!state || state.ended || !fill || !state.lastValidAt) {
+      comboMeterFrame = null;
+      return;
+    }
+    if (state.paused || state.dealing || state.starting) {
+      comboMeterFrame = requestAnimationFrame(frame);
+      return;
+    }
+
+    const remaining = Math.max(0, 1 - (now - state.lastValidAt) / 5000);
+    fill.style.transform = `scaleX(${remaining})`;
+    fill.classList.toggle("combo-meter__fill--low", remaining <= .28);
+    if (remaining <= 0) {
+      state.combo = 0;
+      state.lastValidAt = 0;
+      state.comboFrozenAt = 0;
+      const combo = document.querySelector<HTMLElement>("#combo-value");
+      if (combo) combo.textContent = "×1";
+      comboMeterFrame = null;
+      return;
+    }
+    comboMeterFrame = requestAnimationFrame(frame);
+  };
+  comboMeterFrame = requestAnimationFrame(frame);
+}
+
+function clearComboMeter(): void {
+  if (comboMeterFrame !== null) cancelAnimationFrame(comboMeterFrame);
+  comboMeterFrame = null;
+  const fill = document.querySelector<HTMLElement>("#combo-meter-fill");
+  if (fill) {
+    fill.style.transform = "scaleX(0)";
+    fill.classList.remove("combo-meter__fill--low");
+  }
+}
+
 function showScoreImpact(word: string, points: number, multiplier: number): void {
   const stage = document.querySelector<HTMLElement>("#score-fx-stage");
   if (!stage) return;
@@ -477,7 +545,7 @@ function showScoreImpact(word: string, points: number, multiplier: number): void
 }
 
 function tick(): void {
-  if (!round || round.paused || round.ended) return;
+  if (!round || round.paused || round.dealing || round.ended) return;
   round.timeLeft -= 1;
   const time = document.querySelector<HTMLElement>("#time-value");
   const game = document.querySelector<HTMLElement>(".game-screen");
@@ -505,23 +573,33 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
   if (!state || state.mode !== "burn" || state.ended || state.starting) return;
   if (state.dealing && !cleared) return;
   state.dealing = true;
+  freezeComboMeter();
   setGameControlsDisabled(true);
+  document.querySelector<HTMLElement>("#phrase-display")?.classList.add("phrase-display--leaving");
 
   let bonus = 0;
   if (cleared) {
     const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
     const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
-    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50;
+    const fullBurn = remaining === 0;
+    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50 + (fullBurn ? 1000 : 0);
+    if (fullBurn) state.fullBurns += 1;
     const previousScore = state.score;
     state.score += bonus;
     state.boardsCleared += 1;
     updateGameHud(previousScore);
-    showEvent(`+${bonus.toLocaleString()}`, `BOARD ${String(state.boardNumber).padStart(2, "0")} CLEAR`, "event-card--board");
+    showEvent(
+      `+${bonus.toLocaleString()}`,
+      fullBurn ? `FULL BURN · BOARD ${String(state.boardNumber).padStart(2, "0")}` : `BOARD ${String(state.boardNumber).padStart(2, "0")} CLEAR`,
+      fullBurn ? "event-card--board event-card--full-burn" : "event-card--board"
+    );
     audio.play("board", save.settings.sound);
   } else {
     state.timeLeft = Math.max(0, state.timeLeft - 5);
     state.combo = 0;
     state.lastValidAt = 0;
+    state.comboFrozenAt = 0;
+    clearComboMeter();
     const time = document.querySelector<HTMLElement>("#time-value");
     if (time) time.textContent = formatTime(state.timeLeft);
     showEvent("NEW DEAL", "−5 SECONDS", "event-card--skip");
@@ -534,7 +612,7 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
   }
 
   const token = flowToken;
-  await delay(cleared ? 1050 : 700);
+  await delay(cleared ? 680 : 440);
   if (token !== flowToken || round !== state || state.ended) return;
 
   state.phrase = choosePhrase("burn");
@@ -542,23 +620,59 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
   state.burned = new Set();
   state.submitted = new Set();
   state.boardWords = 0;
-  state.dealing = false;
-  if (cleared) state.lastValidAt = performance.now();
-  renderGame();
+  updateBurnBoardDisplay(state);
   showEvent(`BOARD ${String(state.boardNumber).padStart(2, "0")}`, "NEW PHRASE", "event-card--deal");
-  await delay(520);
+  await delay(430);
   if (token !== flowToken || round !== state || state.ended) return;
   clearEvent();
+  state.dealing = false;
+  if (cleared) {
+    state.lastValidAt = performance.now();
+    state.comboFrozenAt = 0;
+    startComboMeter();
+  }
+  setGameControlsDisabled(false);
   focusWordInput();
+}
+
+function updateBurnBoardDisplay(state: RoundState): void {
+  const boardValue = document.querySelector<HTMLElement>(".game-hud .hud-stat:first-of-type strong");
+  const heading = document.querySelector<HTMLElement>(".phrase-header > span");
+  const details = document.querySelector<HTMLElement>(".phrase-header > small");
+  const phrase = document.querySelector<HTMLElement>("#phrase-display");
+  const feedback = document.querySelector<HTMLElement>("#feedback");
+  const cleared = document.querySelector<HTMLElement>("#boards-cleared");
+  const combo = document.querySelector<HTMLElement>("#combo-value");
+  const input = document.querySelector<HTMLInputElement>("#word-input");
+
+  if (boardValue) boardValue.textContent = String(state.boardNumber).padStart(2, "0");
+  if (heading) heading.textContent = `BOARD ${String(state.boardNumber).padStart(2, "0")} · SPEND THESE LETTERS`;
+  if (details) details.textContent = `${state.phrase.label} · DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}`;
+  if (phrase) {
+    phrase.innerHTML = renderPhrase(state);
+    phrase.classList.remove("phrase-display--leaving");
+    phrase.classList.add("phrase-display--entering");
+    window.setTimeout(() => phrase.classList.remove("phrase-display--entering"), 520);
+  }
+  if (feedback) {
+    feedback.classList.remove("feedback--good", "feedback--bad");
+    feedback.textContent = "NEW BOARD · 3+ letters · ENTER to submit";
+  }
+  if (cleared) cleared.textContent = String(state.boardsCleared);
+  if (combo) combo.textContent = `×${Math.max(1, state.combo + 1)}`;
+  if (input) input.value = "";
 }
 
 function togglePause(force?: boolean): void {
   if (!round || round.ended || round.starting || round.dealing) return;
-  round.paused = force ?? !round.paused;
+  const willPause = force ?? !round.paused;
+  if (willPause) freezeComboMeter();
+  round.paused = willPause;
   const layer = document.querySelector<HTMLElement>("#pause-layer");
   if (!layer) return;
   if (!round.paused) {
     layer.innerHTML = "";
+    resumeComboMeter();
     focusWordInput();
     return;
   }
@@ -567,7 +681,6 @@ function togglePause(force?: boolean): void {
       <div class="pause-card">
         <span class="eyebrow">ROUND PAUSED</span>
         <h2>${MODE_META[round.mode].name}</h2>
-        <p>${round.phrase.text}</p>
         <button class="primary-button" data-nav data-action="resume">RESUME</button>
         <button class="secondary-button" data-nav data-action="restart">RESTART</button>
         <button class="secondary-button secondary-button--danger" data-nav data-action="end-run">END RUN</button>

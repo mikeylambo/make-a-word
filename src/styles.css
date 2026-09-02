@@ -127,6 +127,9 @@ body::before {
 .hud-stat--score strong.hud-hit { animation:hud-hit .38s cubic-bezier(.2,1.5,.4,1); text-shadow:0 0 24px rgba(201,255,85,.45); }
 @keyframes hud-hit { 45% { transform:scale(1.22); color:#fff; } }
 .hud-stat--combo strong { color: var(--violet); }
+.combo-meter { width:min(108px,88%); height:3px; margin-top:6px; overflow:hidden; border-radius:999px; background:rgba(147,119,255,.14); }
+.combo-meter i { display:block; width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--violet),#c7baff); box-shadow:0 0 12px rgba(147,119,255,.5); transform:scaleX(0); transform-origin:left center; will-change:transform; }
+.combo-meter i.combo-meter__fill--low { background:var(--danger); box-shadow:0 0 12px rgba(255,92,117,.5); }
 .hud-stat--time { text-align: right; padding-right: 8px; }
 .hud-stat--time strong.danger { color: var(--danger); animation: pulse .6s ease infinite alternate; }
 @keyframes pulse { to { opacity: .45; } }
@@ -134,6 +137,10 @@ body::before {
 .phrase-header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; color: var(--muted); font: 700 9px "Space Grotesk"; letter-spacing: .15em; }
 .phrase-header small { color: #596174; }
 .phrase-display { min-height: 180px; display: flex; align-content: center; justify-content: center; flex-wrap: wrap; gap: 10px 16px; padding: 34px 0; }
+.phrase-display--leaving { animation:board-out .38s cubic-bezier(.55,0,1,.45) both; }
+.phrase-display--entering { animation:board-in .5s cubic-bezier(.16,1,.3,1) both; }
+@keyframes board-out { to { opacity:0; transform:translateY(18px) scale(.97); filter:blur(6px); } }
+@keyframes board-in { from { opacity:0; transform:translateY(-18px) scale(.98); filter:blur(5px); } }
 .phrase-word { display: inline-flex; gap: 4px; white-space: nowrap; }
 .phrase-letter { width: clamp(32px,4.5vw,54px); height: clamp(42px,5.8vw,66px); display: inline-grid; place-items: center; border: 1px solid rgba(255,255,255,.3); border-radius: 11px; background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.025)); box-shadow: inset 0 -7px 18px rgba(0,0,0,.2), 0 8px 26px rgba(0,0,0,.22), 0 0 18px rgba(147,119,255,.06); color:#fff; text-shadow:0 2px 12px rgba(255,255,255,.14); font: 700 clamp(20px,3vw,34px) "Space Grotesk"; transition: .24s cubic-bezier(.2,.9,.2,1); animation:letter-deal .42s cubic-bezier(.2,1.4,.4,1) both; }
 .phrase-word:nth-child(2n) .phrase-letter { animation-delay:.035s; }
@@ -183,8 +190,12 @@ body::before {
 .event-card--countdown strong { color:var(--lime); font-size:100px; }
 .event-card--go strong { color:var(--lime); font-size:clamp(42px,8vw,88px); }
 .event-card--board strong { color:var(--lime); }
+.event-card--full-burn { border-color:rgba(255,147,87,.36); background:linear-gradient(90deg,transparent,rgba(39,20,14,.96) 18%,rgba(39,20,14,.96) 82%,transparent); }
+.event-card--full-burn span { color:var(--orange); }
+.event-card--full-burn strong { color:#fff3df; text-shadow:0 0 42px rgba(255,147,87,.38); }
 .event-card--skip strong { color:var(--orange); }
-.event-card--deal strong { color:#fff; }
+.event-card--deal { min-width:0; width:min(330px,calc(100% - 32px)); padding:18px 24px; border:1px solid rgba(255,255,255,.13); border-radius:18px; background:rgba(10,14,24,.94); }
+.event-card--deal strong { color:#fff; font-size:clamp(38px,6vw,58px); }
 .event-card--warning span, .event-card--warning strong, .event-card--final strong { color:var(--danger); }
 .event-card--final { min-width:0; width:210px; border-color:rgba(255,92,117,.3); }
 .event-card--final strong { font-size:110px; }
@@ -204,7 +215,6 @@ body::before {
 .pause-overlay { position:fixed; inset:0; z-index:30; background:rgba(5,7,12,.82); backdrop-filter:blur(14px); display:grid; place-items:center; padding:24px; }
 .pause-card { width:min(420px,100%); padding:34px; border:1px solid var(--line); border-radius:24px; background:#101522; text-align:center; display:grid; gap:12px; }
 .pause-card h2 { margin:2px 0; font:700 42px "Space Grotesk"; }
-.pause-card p { color:var(--muted); margin:0 0 10px; font-size:13px; }
 
 .results-hero { text-align:center; padding:30px 0 38px; }
 .results-score { margin-top:12px; font:700 clamp(70px,12vw,130px)/1 "Space Grotesk"; letter-spacing:-.07em; text-shadow:0 0 55px rgba(255,255,255,.09); animation:result-score-in .8s cubic-bezier(.2,1.2,.3,1) both; }
