@@ -190,9 +190,9 @@ body::before {
 .event-card--countdown strong { color:var(--lime); font-size:100px; }
 .event-card--go strong { color:var(--lime); font-size:clamp(42px,8vw,88px); }
 .event-card--board strong { color:var(--lime); }
-.event-card--full-burn { border-color:rgba(255,147,87,.36); background:linear-gradient(90deg,transparent,rgba(39,20,14,.96) 18%,rgba(39,20,14,.96) 82%,transparent); }
-.event-card--full-burn span { color:var(--orange); }
-.event-card--full-burn strong { color:#fff3df; text-shadow:0 0 42px rgba(255,147,87,.38); }
+.event-card--board-clear { border-color:rgba(255,147,87,.36); background:linear-gradient(90deg,transparent,rgba(39,20,14,.96) 18%,rgba(39,20,14,.96) 82%,transparent); }
+.event-card--board-clear span { color:var(--orange); }
+.event-card--board-clear strong { color:#fff3df; text-shadow:0 0 42px rgba(255,147,87,.38); }
 .event-card--skip strong { color:var(--orange); }
 .event-card--deal { min-width:0; width:min(330px,calc(100% - 32px)); padding:18px 24px; border:1px solid rgba(255,255,255,.13); border-radius:18px; background:rgba(10,14,24,.94); }
 .event-card--deal strong { color:#fff; font-size:clamp(38px,6vw,58px); }

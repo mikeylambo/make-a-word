@@ -32,7 +32,6 @@ type RoundState = {
   comboFrozenAt: number;
   boardNumber: number;
   boardsCleared: number;
-  fullBurns: number;
   boardWords: number;
   starting: boolean;
   dealing: boolean;
@@ -226,7 +225,6 @@ function startRound(mode: ModeId): void {
     comboFrozenAt: 0,
     boardNumber: 1,
     boardsCleared: 0,
-    fullBurns: 0,
     boardWords: 0,
     starting: true,
     dealing: false,
@@ -320,7 +318,7 @@ function renderGame(): void {
             ${state.mode === "burn" ? `
               <span>BURN RUN</span>
               <div class="burn-board-stat"><strong id="boards-cleared">${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
-              <p>Spend every letter for a +1,000 Full Burn. Deal early for a 5-second penalty.</p>
+              <p>Spend every letter for a +1,000 Board Clear bonus. Deal early for a 5-second penalty.</p>
               <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
             ` : `
               <span>SCORING</span>
@@ -581,17 +579,16 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
   if (cleared) {
     const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
     const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
-    const fullBurn = remaining === 0;
-    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50 + (fullBurn ? 1000 : 0);
-    if (fullBurn) state.fullBurns += 1;
+    const boardClear = remaining === 0;
+    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50 + (boardClear ? 1000 : 0);
     const previousScore = state.score;
     state.score += bonus;
     state.boardsCleared += 1;
     updateGameHud(previousScore);
     showEvent(
       `+${bonus.toLocaleString()}`,
-      fullBurn ? `FULL BURN · BOARD ${String(state.boardNumber).padStart(2, "0")}` : `BOARD ${String(state.boardNumber).padStart(2, "0")} CLEAR`,
-      fullBurn ? "event-card--board event-card--full-burn" : "event-card--board"
+      boardClear ? `BOARD CLEAR · ALL LETTERS` : `BOARD ${String(state.boardNumber).padStart(2, "0")} EXHAUSTED`,
+      boardClear ? "event-card--board event-card--board-clear" : "event-card--board"
     );
     audio.play("board", save.settings.sound);
   } else {
