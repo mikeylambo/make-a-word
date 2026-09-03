@@ -472,7 +472,7 @@ function renderTogetherGame(): void {
     <main class="game-screen game-screen--together">
       <header class="together-hud">
         <button class="icon-button" data-nav data-action="pause-together" aria-label="Pause">Ⅱ</button>
-        <div><span>${state.mode === "relay" ? "WORD RELAY" : state.mode === "last-word" ? "LAST WORD" : "PASS & PLAY"} · ROUND ${state.roundNumber}/${state.totalRounds}</span><strong id="together-turn">${escapeHtml(player?.name ?? "Player")}'S TURN</strong></div>
+        <div><span>${state.mode === "relay" ? "WORD RELAY" : state.mode === "last-word" ? "LAST WORD" : "PASS & PLAY"} · ROUND ${state.roundNumber}/${state.totalRounds}</span><strong id="together-turn">${escapeHtml((player?.name ?? "Player").toUpperCase())}'S TURN</strong></div>
         <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="together-time">${formatTime(state.timeLeft)}</strong></div>
       </header>
       <section class="playfield together-playfield">
