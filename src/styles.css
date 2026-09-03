@@ -29,9 +29,9 @@ body {
     var(--bg);
   color: var(--text);
 }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button { color: inherit; }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
 
 body::before {
   content: "";
@@ -144,6 +144,16 @@ body::before {
 .player-count button { width:48px; height:48px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.035); color:var(--muted); font:700 17px "Space Grotesk"; cursor:pointer; }
 .player-count button.selected { border-color:var(--lime); background:var(--lime); color:#0b0f13; box-shadow:0 0 28px rgba(201,255,85,.14); }
 .match-options { display:flex; gap:22px; align-items:flex-end; }
+.match-options--local { justify-content:center; margin:0 0 14px; }
+.online-callout { width:100%; min-height:150px; display:flex; justify-content:space-between; align-items:center; gap:20px; margin:0 0 22px; padding:26px 30px; border:1px solid rgba(87,217,255,.28); border-radius:22px; background:linear-gradient(135deg,rgba(87,217,255,.13),rgba(147,119,255,.1)); text-align:left; cursor:pointer; transition:.2s ease; }
+.online-callout:hover { transform:translateY(-3px); border-color:rgba(87,217,255,.55); box-shadow:0 20px 70px rgba(31,111,153,.1); }
+.online-callout span, .online-callout b, .online-callout strong, .online-callout small { display:block; }
+.online-callout b { color:var(--cyan); font:700 9px "Space Grotesk"; letter-spacing:.18em; }
+.online-callout strong { margin:9px 0 7px; font:700 32px "Space Grotesk"; letter-spacing:-.04em; }
+.online-callout small { color:#9fa8ba; }
+.online-callout i { color:var(--cyan); font:700 10px "Space Grotesk"; letter-spacing:.14em; font-style:normal; white-space:nowrap; }
+.local-divider { display:flex; align-items:center; gap:14px; margin:0 0 18px; color:#626b80; font:700 9px "Space Grotesk"; letter-spacing:.16em; }
+.local-divider::before, .local-divider::after { content:""; height:1px; flex:1; background:var(--line); }
 .player-names { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:0 0 16px; }
 .player-names label { padding:12px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.025); }
 .player-names span { display:block; margin:0 0 7px; color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.13em; }
@@ -161,6 +171,79 @@ body::before {
 .multiplayer-mode small { color:#646d80; font:700 9px "Space Grotesk"; letter-spacing:.1em; }
 .multiplayer-mode b { position:absolute; top:26px; right:27px; color:var(--muted); font-size:22px; }
 .multiplayer-note { margin:18px auto; max-width:620px; color:#5d667a; text-align:center; font-size:12px; }
+
+.online-intro { min-height:250px; display:grid; align-content:center; padding:35px 38px; border:1px solid rgba(87,217,255,.18); border-radius:26px; background:linear-gradient(145deg,rgba(87,217,255,.1),rgba(147,119,255,.06),rgba(255,255,255,.015)); }
+.online-intro h2 { margin:13px 0 11px; font:700 clamp(40px,7vw,76px)/.92 "Space Grotesk"; letter-spacing:-.065em; }
+.online-intro p { max-width:670px; margin:0; color:var(--muted); line-height:1.55; }
+.online-entry-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:14px; margin-top:14px; }
+.online-entry { display:grid; align-content:start; gap:15px; min-height:390px; padding:26px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.025); }
+.online-entry--host { border-color:rgba(201,255,85,.16); }
+.online-entry--join { border-color:rgba(147,119,255,.18); }
+.online-entry > span { color:var(--cyan); font:700 9px "Space Grotesk"; letter-spacing:.17em; }
+.online-entry h3 { margin:0 0 8px; font:700 30px "Space Grotesk"; letter-spacing:-.04em; }
+.online-entry label { display:block; }
+.online-entry label b { display:block; margin-bottom:7px; color:#737d92; font:700 8px "Space Grotesk"; letter-spacing:.13em; }
+.online-entry input, .online-entry select { width:100%; height:52px; padding:0 14px; border:1px solid var(--line); border-radius:12px; background:#0c111d; color:#fff; }
+.online-entry select { appearance:auto; }
+.online-entry .room-code-input { text-transform:uppercase; font:700 24px "Space Grotesk"; letter-spacing:.2em; }
+.online-options { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.online-entry .primary-button, .online-entry .secondary-button { margin-top:auto; }
+.online-message { min-height:22px; margin:14px 0 0; color:var(--muted); text-align:center; font-size:13px; }
+.online-message--bad { color:#ff8fa1; }
+.online-fineprint { margin:5px 0 24px; color:#596174; text-align:center; font-size:11px; }
+.online-connecting { min-height:calc(100dvh - 150px); display:grid; align-content:center; justify-items:center; text-align:center; }
+.online-connecting h2 { margin:20px 0 6px; font:700 54px "Space Grotesk"; letter-spacing:.18em; }
+.online-connecting p { color:var(--muted); }
+.connection-spinner { width:44px; height:44px; border:3px solid rgba(255,255,255,.1); border-top-color:var(--cyan); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.online-lobby-hero { display:grid; justify-items:center; padding:36px 24px; border:1px solid rgba(87,217,255,.2); border-radius:24px; background:linear-gradient(145deg,rgba(87,217,255,.1),rgba(147,119,255,.06)); text-align:center; }
+.online-lobby-hero h2 { margin:17px 0 7px; color:#fff; font:700 clamp(52px,11vw,104px)/.9 "Space Grotesk"; letter-spacing:.16em; text-indent:.16em; text-shadow:0 0 44px rgba(87,217,255,.16); }
+.online-lobby-hero p { margin:0 0 20px; color:var(--muted); }
+.online-lobby-hero p strong { color:#d5d9e5; }
+.online-lobby-meta { display:grid; grid-template-columns:repeat(4,1fr); margin:14px 0; border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+.online-lobby-meta > div { min-height:75px; display:grid; place-content:center; gap:5px; padding:12px; border-right:1px solid var(--line); text-align:center; }
+.online-lobby-meta > div:last-child { border:0; }
+.online-lobby-meta span { color:#687187; font:700 8px "Space Grotesk"; letter-spacing:.13em; }
+.online-lobby-meta strong { font:700 15px "Space Grotesk"; }
+.online-player-list { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; }
+.online-player { min-height:66px; display:grid; grid-template-columns:12px 1fr auto auto; align-items:center; gap:11px; padding:0 13px 0 17px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.024); }
+.online-player.you { border-color:rgba(87,217,255,.25); }
+.online-player.ready strong { color:var(--lime); }
+.online-player span { font:700 14px "Space Grotesk"; }
+.online-player strong { color:#737c90; font:700 8px "Space Grotesk"; letter-spacing:.12em; }
+.online-player button { width:30px; height:30px; border:1px solid rgba(255,92,117,.18); border-radius:9px; background:transparent; color:#a76d78; cursor:pointer; }
+.presence-dot { width:7px; height:7px; border-radius:50%; background:#4a5264; box-shadow:0 0 0 4px rgba(255,255,255,.025); }
+.presence-dot.online { background:var(--lime); box-shadow:0 0 12px rgba(201,255,85,.45); }
+.online-lobby-actions { display:grid; justify-items:center; gap:10px; padding:26px 0 32px; text-align:center; }
+.online-lobby-actions p { margin:0; color:var(--muted); }
+.online-lobby-actions button:disabled { opacity:.46; cursor:default; transform:none; }
+
+.online-hud { min-height:76px; display:grid; grid-template-columns:46px 90px repeat(3,minmax(100px,1fr)) 90px; align-items:center; gap:8px; padding:max(12px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left)); border-bottom:1px solid var(--line); background:rgba(8,11,20,.92); position:sticky; top:0; z-index:10; }
+.online-room-badge span { display:block; color:#687187; font:700 7px "Space Grotesk"; letter-spacing:.13em; }
+.online-room-badge strong { display:block; margin-top:3px; color:var(--cyan); font:700 14px "Space Grotesk"; letter-spacing:.1em; }
+.online-signal { justify-self:end; color:var(--lime); font:700 8px "Space Grotesk"; letter-spacing:.13em; }
+.online-signal.offline { color:var(--orange); }
+.online-playfield { position:relative; }
+.online-countdown { position:fixed; inset:0; z-index:30; display:grid; place-items:center; pointer-events:none; opacity:0; background:rgba(5,8,15,.62); backdrop-filter:blur(5px); color:#fff; font:700 clamp(72px,18vw,190px) "Space Grotesk"; letter-spacing:-.07em; transition:.2s ease; }
+.online-countdown.visible { opacity:1; }
+.online-race-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:12px; margin-top:24px; }
+.online-live-board, .online-race-grid .found-panel { border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.018); overflow:hidden; }
+.online-live-board .found-panel__header, .online-race-grid .found-panel__header { padding:14px 16px; border-bottom:1px solid var(--line); }
+.online-ranking { display:grid; gap:7px; }
+.online-live-board .online-ranking { padding:9px; }
+.online-rank { min-height:56px; display:grid; grid-template-columns:28px 1fr auto auto; align-items:center; gap:10px; padding:0 13px; border:1px solid transparent; border-radius:11px; background:rgba(255,255,255,.025); }
+.online-rank.you { border-color:rgba(87,217,255,.2); background:rgba(87,217,255,.04); }
+.online-rank.leader { background:rgba(201,255,85,.045); }
+.online-rank b { color:#667085; font:700 15px "Space Grotesk"; }
+.online-rank span { font:700 12px "Space Grotesk"; }
+.online-rank small { color:#687187; font:700 7px "Space Grotesk"; letter-spacing:.1em; }
+.online-rank strong { min-width:65px; color:var(--lime); text-align:right; font:700 16px "Space Grotesk"; }
+.online-results-hero { padding:32px 0 38px; text-align:center; }
+.online-results-hero h2 { margin:14px 0 6px; font:700 clamp(48px,9vw,92px)/.95 "Space Grotesk"; letter-spacing:-.06em; }
+.online-results-hero p { margin:0; color:var(--muted); }
+.online-ranking--results { width:min(760px,100%); margin:0 auto; }
+.online-ranking--results .online-rank { min-height:70px; border:1px solid var(--line); padding:0 20px; }
 
 .handoff-screen { min-height:100dvh; display:grid; place-items:center; padding:24px; }
 .handoff-card { width:min(470px,100%); padding:42px 34px; border:1px solid var(--line); border-radius:28px; background:linear-gradient(150deg,rgba(147,119,255,.13),rgba(255,147,87,.06)); text-align:center; display:grid; justify-items:center; gap:14px; }
@@ -394,7 +477,17 @@ body::before {
   .journey-list { grid-template-columns:1fr; }
   .multiplayer-header { grid-template-columns:1fr; padding:24px 20px; }
   .player-count { text-align:left; }
-  .match-options { align-items:flex-start; }
+  .match-options { align-items:flex-start; flex-wrap:wrap; }
+  .online-callout { min-height:135px; padding:22px; }
+  .online-entry-grid { grid-template-columns:1fr; }
+  .online-entry { min-height:0; }
+  .online-lobby-meta { grid-template-columns:1fr 1fr; }
+  .online-lobby-meta > div:nth-child(2) { border-right:0; }
+  .online-lobby-meta > div:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+  .online-player-list { grid-template-columns:1fr; }
+  .online-hud { grid-template-columns:42px 72px repeat(2,1fr); }
+  .online-hud .hud-stat--combo, .online-signal { display:none; }
+  .online-race-grid { grid-template-columns:1fr; }
   .player-names { grid-template-columns:repeat(2,1fr); }
   .multiplayer-modes { grid-template-columns:1fr; }
   .multiplayer-mode { min-height:235px; }
@@ -433,6 +526,11 @@ body::before {
   .menu-grid { grid-template-columns:1fr; }
   .menu-card, .menu-card--feature { min-height:140px; grid-column:auto; }
   .menu-card--feature .menu-card__tag, .menu-card__tag { margin-bottom:35px; }
+  .online-callout { align-items:flex-start; flex-direction:column; }
+  .online-options { grid-template-columns:1fr; }
+  .online-lobby-hero h2 { font-size:48px; }
+  .online-rank { grid-template-columns:25px 1fr auto; }
+  .online-rank small { display:none; }
   .phrase-letter { width:25px; height:35px; font-size:16px; }
   .game-hud { padding-left:8px; padding-right:8px; }
   .hud-stat span { font-size:7px; }

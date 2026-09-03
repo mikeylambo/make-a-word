@@ -1,4 +1,4 @@
-export type ScreenId = "title" | "menu" | "modes" | "journey" | "multiplayer" | "multiplayer-game" | "multiplayer-round" | "multiplayer-results" | "challenge" | "game" | "results" | "stats" | "settings" | "help";
+export type ScreenId = "title" | "menu" | "modes" | "journey" | "multiplayer" | "multiplayer-game" | "multiplayer-round" | "multiplayer-results" | "online" | "online-room" | "challenge" | "game" | "results" | "stats" | "settings" | "help";
 
 export type SaveData = {
   bestScores: Record<string, number>;
@@ -11,6 +11,8 @@ export type SaveData = {
   journeyMedals: Record<string, number>;
   journeyUnlocked: number;
   partyMatches: number;
+  onlineMatches: number;
+  completedOnlineMatchIds: string[];
   challengesCompleted: number;
   completedChallengeIds: string[];
   settings: {
@@ -30,6 +32,8 @@ const DEFAULT_SAVE: SaveData = {
   journeyMedals: {},
   journeyUnlocked: 1,
   partyMatches: 0,
+  onlineMatches: 0,
+  completedOnlineMatchIds: [],
   challengesCompleted: 0,
   completedChallengeIds: [],
   settings: { sound: true, reducedMotion: false }
@@ -50,6 +54,7 @@ export class SaveStore {
         daily: { ...DEFAULT_SAVE.daily, ...(parsed.daily ?? {}) },
         journeyScores: { ...DEFAULT_SAVE.journeyScores, ...(parsed.journeyScores ?? {}) },
         journeyMedals: { ...DEFAULT_SAVE.journeyMedals, ...(parsed.journeyMedals ?? {}) },
+        completedOnlineMatchIds: Array.isArray(parsed.completedOnlineMatchIds) ? parsed.completedOnlineMatchIds : [],
         completedChallengeIds: Array.isArray(parsed.completedChallengeIds) ? parsed.completedChallengeIds : [],
         settings: { ...DEFAULT_SAVE.settings, ...(parsed.settings ?? {}) }
       };

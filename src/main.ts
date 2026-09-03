@@ -2,6 +2,14 @@ import "./styles.css";
 import { JOURNEY_PHRASES, PHRASES, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
 import {
+  clearOnlineCredentials,
+  fetchOnlineRoom,
+  loadOnlineCredentials,
+  sendOnlineAction,
+  storeOnlineCredentials
+} from "./online-client";
+import type { OnlineCredentials, OnlinePlayerView, OnlineRoomView, OnlineSettings } from "./online-types";
+import {
   burnLetters,
   countsForText,
   hasPlayableWord,
@@ -131,6 +139,15 @@ let togetherTimerId: number | null = null;
 let togetherRoundCount = 3;
 let togetherPlayerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 let pendingChallenge: ChallengePayload | null = null;
+let onlineRoom: OnlineRoomView | null = null;
+let onlineCredentials: OnlineCredentials | null = null;
+let onlinePollId: number | null = null;
+let onlineClockId: number | null = null;
+let onlineClockOffset = 0;
+let onlineBusy = false;
+let onlineError = "";
+let onlineLastCountdown = -1;
+let onlineNextHeartbeatAt = 0;
 
 function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -211,6 +228,7 @@ function shell(title: string, content: string, options: { back?: string; compact
 function showTitle(): void {
   stopTimer();
   stopTogetherTimer();
+  stopOnlineSync();
   flowToken += 1;
   screens.show("title", `
     <main class="title-screen">
@@ -229,6 +247,7 @@ function showTitle(): void {
 function showMenu(): void {
   stopTimer();
   stopTogetherTimer();
+  stopOnlineSync();
   flowToken += 1;
   const dailyDone = save.daily[todayKey()] ?? 0;
   const streak = dailyStreak();
@@ -266,9 +285,9 @@ function showMenu(): void {
         <span class="arrow">→</span>
       </button>
       <button class="menu-card menu-card--together" data-nav data-action="multiplayer">
-        <span class="menu-card__tag">2–4 PLAYERS</span>
+        <span class="menu-card__tag">LOCAL + ONLINE</span>
         <strong>Play Together</strong>
-        <small>Word Relay • Pass &amp; Play • Last Word</small>
+        <small>Room Codes • Word Relay • Last Word</small>
         <span class="arrow">→</span>
       </button>
       <button class="menu-card" data-nav data-action="stats">
@@ -343,20 +362,26 @@ function showJourney(): void {
 
 function showMultiplayer(): void {
   stopTogetherTimer();
+  stopOnlineSync();
   screens.show("multiplayer", shell("PLAY TOGETHER", `
     <section class="multiplayer-header">
-      <div><span class="eyebrow">ONE DEVICE · 2–4 PLAYERS</span><h2>Bring the classroom game back.</h2><p>Name your players, choose a match length, and compete across multiple phrases.</p></div>
-      <div class="match-options">
-        <div class="player-count" role="group" aria-label="Number of players">
-          <span>PLAYERS</span>
-          <div>${[2, 3, 4].map((count) => `<button class="${count === togetherPlayerCount ? "selected" : ""}" data-nav data-player-count="${count}">${count}</button>`).join("")}</div>
-        </div>
-        <div class="player-count" role="group" aria-label="Number of rounds">
-          <span>ROUNDS</span>
-          <div>${[1, 3, 5].map((count) => `<button class="${count === togetherRoundCount ? "selected" : ""}" data-nav data-round-count="${count}">${count}</button>`).join("")}</div>
-        </div>
-      </div>
+      <div><span class="eyebrow">LOCAL OR ONLINE</span><h2>Bring the classroom game back.</h2><p>Gather around one screen or give everyone a room code and let them play from their own device.</p></div>
     </section>
+    <button class="online-callout" data-nav data-action="online">
+      <span><b>PLAY ONLINE</b><strong>Word Race</strong><small>2–8 players · private room codes · everyone plays at once</small></span>
+      <i>CREATE OR JOIN →</i>
+    </button>
+    <div class="local-divider"><span>LOCAL MATCH</span></div>
+    <div class="match-options match-options--local">
+      <div class="player-count" role="group" aria-label="Number of players">
+        <span>PLAYERS</span>
+        <div>${[2, 3, 4].map((count) => `<button class="${count === togetherPlayerCount ? "selected" : ""}" data-nav data-player-count="${count}">${count}</button>`).join("")}</div>
+      </div>
+      <div class="player-count" role="group" aria-label="Number of rounds">
+        <span>ROUNDS</span>
+        <div>${[1, 3, 5].map((count) => `<button class="${count === togetherRoundCount ? "selected" : ""}" data-nav data-round-count="${count}">${count}</button>`).join("")}</div>
+      </div>
+    </div>
     <section class="player-names" aria-label="Player names">
       ${togetherPlayerNames.slice(0, togetherPlayerCount).map((name, index) => `<label><span>PLAYER ${index + 1}</span><input maxlength="16" data-player-name="${index}" value="${escapeHtml(name)}" aria-label="Player ${index + 1} name" /></label>`).join("")}
     </section>
@@ -379,6 +404,481 @@ function showMultiplayer(): void {
     </section>
     <p class="multiplayer-note">Made for family game nights, classrooms, and friendly competition.</p>
   `, { back: "menu" }));
+}
+
+function rememberedOnlineName(): string {
+  try {
+    return localStorage.getItem("make-a-word.online-name") ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function rememberOnlineName(name: string): void {
+  try {
+    localStorage.setItem("make-a-word.online-name", name);
+  } catch {
+    // A private browser can decline local persistence without blocking online play.
+  }
+}
+
+function stopOnlineSync(): void {
+  if (onlinePollId !== null) window.clearInterval(onlinePollId);
+  if (onlineClockId !== null) window.clearInterval(onlineClockId);
+  onlinePollId = null;
+  onlineClockId = null;
+  onlineLastCountdown = -1;
+}
+
+function onlineSelf(room = onlineRoom): OnlinePlayerView | undefined {
+  return room?.players.find((player) => player.id === onlineCredentials?.playerId);
+}
+
+function cleanRoomCode(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+}
+
+function updateRoomUrl(code?: string): void {
+  const url = new URL(location.href);
+  url.search = "";
+  url.hash = "";
+  if (code) url.searchParams.set("room", code);
+  history.replaceState({}, "", `${url.pathname}${url.search}`);
+}
+
+function showOnlineHome(prefillCode = ""): void {
+  stopOnlineSync();
+  onlineError = "";
+  const name = rememberedOnlineName();
+  const code = cleanRoomCode(prefillCode);
+  screens.show("online", shell("PLAY ONLINE", `
+    <section class="online-intro">
+      <span class="eyebrow">WORD RACE · 2–8 PLAYERS</span>
+      <h2>Same phrase.<br>Everyone at once.</h2>
+      <p>Create a private room for friends, family, or a classroom. Every player competes on their own device while scores update live.</p>
+    </section>
+    <section class="online-entry-grid">
+      <article class="online-entry online-entry--host">
+        <span>HOST A MATCH</span><h3>Create a room</h3>
+        <label><b>YOUR NAME</b><input id="online-host-name" maxlength="16" value="${escapeHtml(name)}" placeholder="Player name" autocomplete="nickname" /></label>
+        <div class="online-options">
+          <label><b>ROUNDS</b><select id="online-rounds" aria-label="Online rounds"><option value="1">1 round</option><option value="3" selected>3 rounds</option><option value="5">5 rounds</option></select></label>
+          <label><b>ROUND TIME</b><select id="online-duration" aria-label="Online round time"><option value="60">60 seconds</option><option value="90" selected>90 seconds</option><option value="120">2 minutes</option></select></label>
+          <label><b>ROOM SIZE</b><select id="online-capacity" aria-label="Online room size"><option value="4">4 players</option><option value="6">6 players</option><option value="8" selected>8 players</option></select></label>
+        </div>
+        <button class="primary-button" type="button" data-nav data-action="online-create">CREATE ROOM</button>
+      </article>
+      <article class="online-entry online-entry--join">
+        <span>JOIN A MATCH</span><h3>Enter a room code</h3>
+        <label><b>YOUR NAME</b><input id="online-join-name" maxlength="16" value="${escapeHtml(name)}" placeholder="Player name" autocomplete="nickname" /></label>
+        <label><b>ROOM CODE</b><input id="online-code" class="room-code-input" maxlength="6" value="${escapeHtml(code)}" placeholder="ABC123" autocomplete="off" autocapitalize="characters" /></label>
+        <button class="secondary-button" type="button" data-nav data-action="online-join">JOIN ROOM</button>
+      </article>
+    </section>
+    <div class="online-message" id="online-message" role="status"></div>
+    <p class="online-fineprint">Private rooms expire automatically after six hours. No account is required.</p>
+  `, { back: "multiplayer" }));
+  requestAnimationFrame(() => (code ? document.querySelector<HTMLInputElement>("#online-join-name") : document.querySelector<HTMLInputElement>("#online-host-name"))?.focus());
+}
+
+function showOnlineConnecting(code: string): void {
+  screens.show("online", shell("JOINING ROOM", `
+    <section class="online-connecting"><span class="connection-spinner" aria-hidden="true"></span><h2>${escapeHtml(code)}</h2><p>Reconnecting to your match…</p></section>
+  `, { back: "online-cancel" }));
+}
+
+function setOnlineMessage(message: string, bad = true): void {
+  onlineError = message;
+  const element = document.querySelector<HTMLElement>("#online-message, #online-feedback");
+  if (!element) return;
+  element.textContent = message;
+  element.classList.toggle("online-message--bad", bad);
+  element.classList.toggle("feedback--bad", bad);
+}
+
+async function createOnlineRoom(): Promise<void> {
+  if (onlineBusy) return;
+  const name = document.querySelector<HTMLInputElement>("#online-host-name")?.value.trim() ?? "";
+  const settings: OnlineSettings = {
+    rounds: Number(document.querySelector<HTMLSelectElement>("#online-rounds")?.value ?? 3) as OnlineSettings["rounds"],
+    roundSeconds: Number(document.querySelector<HTMLSelectElement>("#online-duration")?.value ?? 90) as OnlineSettings["roundSeconds"],
+    maxPlayers: Number(document.querySelector<HTMLSelectElement>("#online-capacity")?.value ?? 8)
+  };
+  if (!name) return setOnlineMessage("Enter your name first.");
+  onlineBusy = true;
+  setOnlineMessage("Creating your room…", false);
+  const response = await sendOnlineAction({ action: "create", name, settings });
+  onlineBusy = false;
+  if (!response.ok || !response.credentials) return setOnlineMessage(response.ok ? "The room did not return a session." : response.error);
+  rememberOnlineName(name);
+  enterOnlineRoom(response.room, response.credentials);
+}
+
+async function joinOnlineRoom(): Promise<void> {
+  if (onlineBusy) return;
+  const name = document.querySelector<HTMLInputElement>("#online-join-name")?.value.trim() ?? "";
+  const code = cleanRoomCode(document.querySelector<HTMLInputElement>("#online-code")?.value ?? "");
+  if (!name) return setOnlineMessage("Enter your name first.");
+  if (code.length !== 6) return setOnlineMessage("Enter the six-character room code.");
+  onlineBusy = true;
+  setOnlineMessage("Joining the room…", false);
+  const response = await sendOnlineAction({ action: "join", code, name });
+  onlineBusy = false;
+  if (!response.ok || !response.credentials) return setOnlineMessage(response.ok ? "The room did not return a session." : response.error);
+  rememberOnlineName(name);
+  enterOnlineRoom(response.room, response.credentials);
+}
+
+function enterOnlineRoom(room: OnlineRoomView, credentials: OnlineCredentials): void {
+  onlineRoom = room;
+  onlineCredentials = credentials;
+  onlineClockOffset = room.serverNow - Date.now();
+  onlineNextHeartbeatAt = Date.now() + 8_000;
+  onlineError = "";
+  storeOnlineCredentials(credentials);
+  updateRoomUrl(room.code);
+  renderOnlineRoom();
+  startOnlineSync();
+}
+
+async function resumeOnlineRoom(code: string): Promise<void> {
+  const credentials = loadOnlineCredentials(code);
+  if (!credentials) {
+    showOnlineHome(code);
+    return;
+  }
+  onlineCredentials = credentials;
+  showOnlineConnecting(code);
+  const response = await fetchOnlineRoom(credentials);
+  if (!response.ok) {
+    clearOnlineCredentials();
+    onlineCredentials = null;
+    showOnlineHome(code);
+    setOnlineMessage(response.error);
+    return;
+  }
+  enterOnlineRoom(response.room, credentials);
+}
+
+function startOnlineSync(): void {
+  stopOnlineSync();
+  onlinePollId = window.setInterval(() => void syncOnlineRoom(), 1_200);
+  onlineClockId = window.setInterval(updateOnlineClock, 100);
+  updateOnlineClock();
+}
+
+async function syncOnlineRoom(): Promise<void> {
+  if (!onlineCredentials || onlineBusy || document.hidden) return;
+  onlineBusy = true;
+  const heartbeat = Date.now() >= onlineNextHeartbeatAt;
+  const response = heartbeat
+    ? await sendOnlineAction({ action: "heartbeat", credentials: onlineCredentials })
+    : await fetchOnlineRoom(onlineCredentials);
+  if (heartbeat) onlineNextHeartbeatAt = Date.now() + 8_000;
+  onlineBusy = false;
+  if (!response.ok) {
+    const signal = document.querySelector<HTMLElement>("#online-signal");
+    if (signal) {
+      signal.textContent = "RECONNECTING";
+      signal.classList.add("offline");
+    }
+    if (response.code === "SESSION_EXPIRED" || response.code === "ROOM_NOT_FOUND") setOnlineMessage(response.error);
+    return;
+  }
+  applyOnlineRoom(response.room);
+}
+
+function applyOnlineRoom(next: OnlineRoomView): void {
+  const previousPhase = onlineRoom?.phase;
+  const previousPhrase = onlineRoom?.phrase?.id;
+  onlineRoom = next;
+  onlineClockOffset = next.serverNow - Date.now();
+  if (screens.getCurrent() === "settings") return;
+  const signal = document.querySelector<HTMLElement>("#online-signal");
+  if (signal) {
+    signal.textContent = "SYNCED";
+    signal.classList.remove("offline");
+  }
+  if (screens.getCurrent() !== "online-room" || previousPhase !== next.phase || previousPhrase !== next.phrase?.id) {
+    renderOnlineRoom();
+    return;
+  }
+  updateOnlineRoomDom();
+}
+
+function onlinePlayerCards(room: OnlineRoomView): string {
+  const viewerIsHost = onlineSelf(room)?.isHost;
+  return room.players.map((player) => `
+    <article class="online-player ${player.id === onlineCredentials?.playerId ? "you" : ""} ${player.ready ? "ready" : ""}">
+      <i class="presence-dot ${player.online ? "online" : ""}" aria-label="${player.online ? "Online" : "Reconnecting"}"></i>
+      <span>${escapeHtml(player.name)}${player.id === onlineCredentials?.playerId ? " · YOU" : ""}</span>
+      <strong>${player.isHost ? "HOST" : player.ready ? "READY" : "NOT READY"}</strong>
+      ${viewerIsHost && !player.isHost ? `<button data-nav data-action="online-kick" data-player-id="${player.id}" aria-label="Remove ${escapeHtml(player.name)}">×</button>` : ""}
+    </article>`).join("");
+}
+
+function onlineLeaderboard(room: OnlineRoomView, final = false): string {
+  const ranked = room.players.slice().sort((a, b) => (final ? b.score - a.score : b.roundScore - a.roundScore) || b.foundCount - a.foundCount);
+  return ranked.map((player, index) => `
+    <div class="online-rank ${player.id === onlineCredentials?.playerId ? "you" : ""} ${index === 0 ? "leader" : ""}">
+      <b>${index + 1}</b><span>${escapeHtml(player.name)}${player.id === onlineCredentials?.playerId ? " · YOU" : ""}</span>
+      <small>${player.foundCount} ${player.foundCount === 1 ? "WORD" : "WORDS"}</small>
+      <strong>${(final ? player.score : player.roundScore).toLocaleString()}</strong>
+    </div>`).join("");
+}
+
+function renderOnlineRoom(): void {
+  const room = onlineRoom;
+  if (!room || !onlineCredentials) return showOnlineHome();
+  if (room.phase === "lobby") renderOnlineLobby(room);
+  else if (room.phase === "playing") renderOnlineGame(room);
+  else renderOnlineResults(room);
+}
+
+function renderOnlineLobby(room: OnlineRoomView): void {
+  const self = onlineSelf(room);
+  if (!self) return showOnlineHome(room.code);
+  const guestsReady = room.players.filter((player) => !player.isHost).every((player) => player.ready);
+  const canStart = self.isHost && room.players.length >= 2 && guestsReady;
+  screens.show("online-room", shell(`ROOM ${room.code}`, `
+    <section class="online-lobby-hero">
+      <span class="eyebrow">PRIVATE WORD RACE</span><h2>${room.code}</h2><p>Share this code. Everyone joins at <strong>make-a-word.vercel.app</strong>.</p>
+      <button class="secondary-button" data-nav data-action="online-share">SHARE ROOM</button>
+    </section>
+    <section class="online-lobby-meta">
+      <div><span>PLAYERS</span><strong id="online-lobby-count">${room.players.length} / ${room.settings.maxPlayers}</strong></div>
+      <div><span>ROUNDS</span><strong>${room.settings.rounds}</strong></div>
+      <div><span>TIME</span><strong>${room.settings.roundSeconds}s</strong></div>
+      <div><span>CONNECTION</span><strong id="online-signal">SYNCED</strong></div>
+    </section>
+    <section class="online-player-list" id="online-player-list">${onlinePlayerCards(room)}</section>
+    <div class="online-message" id="online-message" role="status">${escapeHtml(onlineError)}</div>
+    <section class="online-lobby-actions">
+      ${self.isHost
+        ? `<button class="primary-button primary-button--wide" data-nav data-action="online-start" ${canStart ? "" : "disabled"}>${room.players.length < 2 ? "WAITING FOR PLAYERS" : guestsReady ? "START MATCH" : "WAITING FOR READY"}</button><p>You control when each round begins.</p>`
+        : `<button class="primary-button primary-button--wide" data-nav data-action="online-ready">${self.ready ? "I'M READY ✓" : "READY UP"}</button><p>${self.ready ? "Waiting for the host to begin." : "Let the host know you are ready."}</p>`}
+      <button class="text-button" data-nav data-action="online-leave">LEAVE ROOM</button>
+    </section>
+  `, { back: "online-leave" }));
+}
+
+function renderOnlineGame(room: OnlineRoomView): void {
+  const self = onlineSelf(room);
+  if (!self || !room.phrase) return;
+  screens.show("online-room", `
+    <main class="game-screen online-game-screen">
+      <header class="online-hud">
+        <button class="icon-button" data-nav data-action="online-leave" aria-label="Leave room">←</button>
+        <div class="online-room-badge"><span>ROOM</span><strong>${room.code}</strong></div>
+        <div class="hud-stat hud-stat--score"><span>YOUR SCORE</span><strong id="online-score">${self.roundScore.toLocaleString()}</strong></div>
+        <div class="hud-stat hud-stat--combo"><span>COMBO</span><strong id="online-combo">×${Math.max(1, self.combo + 1)}</strong></div>
+        <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="online-time">${formatTime(room.settings.roundSeconds)}</strong></div>
+        <div class="online-signal" id="online-signal">SYNCED</div>
+      </header>
+      <section class="playfield online-playfield">
+        <div class="phrase-header"><span>WORD RACE · ROUND ${room.roundNumber}/${room.settings.rounds}</span><small>${escapeHtml(room.phrase.label)} · EVERYONE HAS THE SAME PHRASE</small></div>
+        <div class="phrase-display">${renderPhraseText(room.phrase.text)}</div>
+        <div class="online-countdown" id="online-countdown" aria-live="assertive"></div>
+        <form class="word-entry" id="online-word-form" autocomplete="off">
+          <input id="online-word-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter an online word" placeholder="TYPE A WORD" />
+          <button class="submit-word" type="submit">ENTER</button>
+        </form>
+        <div class="feedback" id="online-feedback">Your words stay private until the round ends</div>
+        <div class="online-race-grid">
+          <section class="online-live-board"><div class="found-panel__header"><span>LIVE STANDINGS</span><strong>${room.players.length} PLAYERS</strong></div><div class="online-ranking" id="online-ranking">${onlineLeaderboard(room)}</div></section>
+          <section class="found-panel"><div class="found-panel__header"><span>YOUR WORDS</span><strong id="online-word-count">${room.words.length}</strong></div><div class="found-list" id="online-word-list">${onlineWordList(room)}</div></section>
+        </div>
+      </section>
+      <div class="score-fx-stage" id="score-fx-stage" aria-hidden="true"></div>
+    </main>`);
+  document.querySelector<HTMLFormElement>("#online-word-form")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void submitOnlineWord();
+  });
+  updateOnlineClock();
+}
+
+function onlineWordList(room: OnlineRoomView): string {
+  if (!room.words.length) return `<div class="empty-found">Your words will appear here.</div>`;
+  return room.words.slice().reverse().map((item, index) => `<div class="found-word ${index === 0 ? "found-word--new" : ""}"><span>${escapeHtml(item.word.toUpperCase())}</span><strong>+${item.points}</strong></div>`).join("");
+}
+
+function renderOnlineResults(room: OnlineRoomView): void {
+  const self = onlineSelf(room);
+  if (!self) return;
+  const final = room.phase === "match-results";
+  if (final && !save.completedOnlineMatchIds.includes(room.matchId)) {
+    save.completedOnlineMatchIds.push(room.matchId);
+    save.onlineMatches += 1;
+    store.save(save);
+  }
+  const ranked = room.players.slice().sort((a, b) => (final ? b.score - a.score : b.roundScore - a.roundScore) || b.foundCount - a.foundCount);
+  const leader = ranked[0];
+  screens.show("online-room", shell(final ? "MATCH COMPLETE" : `ROUND ${room.roundNumber} COMPLETE`, `
+    <section class="online-results-hero">
+      <span class="eyebrow">${final ? "WORD RACE WINNER" : "ROUND LEADER"}</span>
+      <h2>${escapeHtml(leader?.name ?? "Great match")}</h2>
+      <p>${(final ? leader?.score : leader?.roundScore)?.toLocaleString() ?? 0} points</p>
+    </section>
+    <section class="online-ranking online-ranking--results" id="online-ranking">${onlineLeaderboard(room, final)}</section>
+    <div class="online-message" id="online-message" role="status">${escapeHtml(onlineError)}</div>
+    <section class="online-lobby-actions">
+      ${final
+        ? self.isHost ? `<button class="primary-button primary-button--wide" data-nav data-action="online-rematch">PLAY A REMATCH</button>` : `<p>Waiting to see if the host starts a rematch.</p>`
+        : self.isHost ? `<button class="primary-button primary-button--wide" data-nav data-action="online-next">START NEXT ROUND</button>` : `<p>Waiting for the host to start round ${room.roundNumber + 1}.</p>`}
+      <button class="secondary-button" data-nav data-action="online-share">SHARE ROOM</button>
+      <button class="text-button" data-nav data-action="online-leave">LEAVE ROOM</button>
+    </section>
+  `, { back: "online-leave" }));
+}
+
+function updateOnlineRoomDom(): void {
+  const room = onlineRoom;
+  if (!room) return;
+  if (room.phase === "lobby") {
+    const self = onlineSelf(room);
+    const list = document.querySelector<HTMLElement>("#online-player-list");
+    const count = document.querySelector<HTMLElement>("#online-lobby-count");
+    if (list) list.innerHTML = onlinePlayerCards(room);
+    if (count) count.textContent = `${room.players.length} / ${room.settings.maxPlayers}`;
+    const start = document.querySelector<HTMLButtonElement>('[data-action="online-start"]');
+    if (start && self?.isHost) {
+      const guestsReady = room.players.filter((player) => !player.isHost).every((player) => player.ready);
+      start.disabled = room.players.length < 2 || !guestsReady;
+      start.textContent = room.players.length < 2 ? "WAITING FOR PLAYERS" : guestsReady ? "START MATCH" : "WAITING FOR READY";
+    }
+    return;
+  }
+  if (room.phase === "playing") {
+    const self = onlineSelf(room);
+    const score = document.querySelector<HTMLElement>("#online-score");
+    const combo = document.querySelector<HTMLElement>("#online-combo");
+    const ranking = document.querySelector<HTMLElement>("#online-ranking");
+    const words = document.querySelector<HTMLElement>("#online-word-list");
+    const wordCount = document.querySelector<HTMLElement>("#online-word-count");
+    if (score && self) score.textContent = self.roundScore.toLocaleString();
+    if (combo && self) combo.textContent = `×${Math.max(1, self.combo + 1)}`;
+    if (ranking) ranking.innerHTML = onlineLeaderboard(room);
+    if (words) words.innerHTML = onlineWordList(room);
+    if (wordCount) wordCount.textContent = String(room.words.length);
+  }
+}
+
+function updateOnlineClock(): void {
+  const room = onlineRoom;
+  if (!room || room.phase !== "playing" || !room.startsAt || !room.endsAt) return;
+  const now = Date.now() + onlineClockOffset;
+  const beforeStart = room.startsAt - now;
+  const countdown = document.querySelector<HTMLElement>("#online-countdown");
+  const input = document.querySelector<HTMLInputElement>("#online-word-input");
+  const submit = document.querySelector<HTMLButtonElement>("#online-word-form button");
+  if (beforeStart > 0) {
+    const value = Math.max(1, Math.ceil(beforeStart / 1_000));
+    if (countdown) {
+      countdown.textContent = value > 3 ? "GET READY" : String(value);
+      countdown.classList.add("visible");
+    }
+    if (input) input.disabled = true;
+    if (submit) submit.disabled = true;
+    if (value !== onlineLastCountdown && value <= 3) audio.play("start", save.settings.sound);
+    onlineLastCountdown = value;
+  } else {
+    if (countdown?.classList.contains("visible") && onlineLastCountdown !== 0) {
+      countdown.textContent = "MAKE WORDS";
+      audio.play("go", save.settings.sound);
+      onlineLastCountdown = 0;
+      window.setTimeout(() => countdown.classList.remove("visible"), 650);
+      input?.focus({ preventScroll: true });
+    }
+    if (input) input.disabled = false;
+    if (submit) submit.disabled = false;
+  }
+  const remaining = Math.max(0, Math.ceil((room.endsAt - now) / 1_000));
+  const timer = document.querySelector<HTMLElement>("#online-time");
+  if (timer) {
+    timer.textContent = formatTime(remaining);
+    timer.classList.toggle("danger", remaining <= 10);
+  }
+}
+
+async function submitOnlineWord(): Promise<void> {
+  if (!onlineCredentials || !onlineRoom || onlineBusy) return;
+  const input = document.querySelector<HTMLInputElement>("#online-word-input");
+  const word = input?.value ?? "";
+  if (!word.trim()) return;
+  const priorWords = onlineRoom.words.length;
+  onlineBusy = true;
+  const response = await sendOnlineAction({ action: "submit", credentials: onlineCredentials, word });
+  onlineBusy = false;
+  if (!response.ok) {
+    audio.play("reject", save.settings.sound);
+    setOnlineMessage(response.error);
+    input?.classList.remove("shake");
+    if (input) void input.offsetWidth;
+    input?.classList.add("shake");
+    return;
+  }
+  if (input) input.value = "";
+  const newest = response.room.words.at(-1);
+  applyOnlineRoom(response.room);
+  audio.play("accept", save.settings.sound);
+  const feedback = document.querySelector<HTMLElement>("#online-feedback");
+  if (feedback && newest && response.room.words.length > priorWords) {
+    feedback.textContent = `${newest.word.toUpperCase()} · +${newest.points.toLocaleString()}`;
+    feedback.classList.remove("feedback--bad");
+    feedback.classList.add("feedback--good");
+    showScoreImpact(newest.word, newest.points, Math.max(1, (onlineSelf(response.room)?.combo ?? 0) + 1));
+  }
+  input?.focus({ preventScroll: true });
+}
+
+async function performOnlineAction(action: "ready" | "start" | "next-round" | "rematch"): Promise<void> {
+  if (!onlineCredentials || !onlineRoom || onlineBusy) return;
+  onlineBusy = true;
+  const self = onlineSelf();
+  const payload = action === "ready"
+    ? { action, credentials: onlineCredentials, ready: !self?.ready } as const
+    : { action, credentials: onlineCredentials } as const;
+  const response = await sendOnlineAction(payload);
+  onlineBusy = false;
+  if (!response.ok) return setOnlineMessage(response.error);
+  applyOnlineRoom(response.room);
+}
+
+async function kickOnlinePlayer(playerId: string): Promise<void> {
+  if (!onlineCredentials || !playerId || onlineBusy) return;
+  onlineBusy = true;
+  const response = await sendOnlineAction({ action: "kick", credentials: onlineCredentials, playerId });
+  onlineBusy = false;
+  if (!response.ok) return setOnlineMessage(response.error);
+  applyOnlineRoom(response.room);
+}
+
+async function shareOnlineRoom(button: HTMLElement): Promise<void> {
+  if (!onlineRoom) return;
+  const url = new URL(location.origin + location.pathname);
+  url.searchParams.set("room", onlineRoom.code);
+  const text = `Join my Make a Word room: ${onlineRoom.code}`;
+  try {
+    if (typeof navigator.share === "function") await navigator.share({ title: "Make a Word Room", text, url: url.toString() });
+    else await navigator.clipboard.writeText(url.toString());
+    button.textContent = typeof navigator.share === "function" ? "ROOM SHARED" : "LINK COPIED";
+  } catch (error) {
+    if ((error as DOMException).name === "AbortError") return;
+    await navigator.clipboard.writeText(url.toString()).catch(() => undefined);
+    button.textContent = "LINK COPIED";
+  }
+}
+
+async function leaveOnlineRoom(): Promise<void> {
+  const credentials = onlineCredentials;
+  stopOnlineSync();
+  onlineRoom = null;
+  onlineCredentials = null;
+  clearOnlineCredentials();
+  updateRoomUrl();
+  if (credentials) void sendOnlineAction({ action: "leave", credentials });
+  showMultiplayer();
 }
 
 function captureTogetherNames(): void {
@@ -1392,7 +1892,7 @@ function showStats(): void {
     { name: "Word Collector", detail: "Find 100 words", unlocked: save.totalWords >= 100 },
     { name: "Five Figures", detail: "Score 10,000 in one round", unlocked: bestScore >= 10_000 },
     { name: "Daily Habit", detail: "Reach a 3-day streak", unlocked: dailyStreak() >= 3 },
-    { name: "Party Starter", detail: "Finish a Play Together match", unlocked: save.partyMatches >= 1 },
+    { name: "Party Starter", detail: "Finish a Play Together match", unlocked: save.partyMatches + save.onlineMatches >= 1 },
     { name: "Challenge Won", detail: "Beat a shared score", unlocked: save.challengesCompleted >= 1 },
     { name: "Trial Runner", detail: "Earn 12 Trial medals", unlocked: medals >= 12 },
     { name: "Trial Master", detail: `Earn all ${availableMedals} Trial medals`, unlocked: medals >= availableMedals }
@@ -1406,6 +1906,7 @@ function showStats(): void {
       <div class="stat-tile"><span>LONGEST WORD</span><strong>${save.longestWord ? save.longestWord.toUpperCase() : "—"}</strong></div>
       <div class="stat-tile"><span>DAILY STREAK</span><strong>${dailyStreak()}</strong></div>
       <div class="stat-tile"><span>PARTY MATCHES</span><strong>${save.partyMatches.toLocaleString()}</strong></div>
+      <div class="stat-tile"><span>ONLINE MATCHES</span><strong>${save.onlineMatches.toLocaleString()}</strong></div>
       <div class="stat-tile"><span>CHALLENGES WON</span><strong>${save.challengesCompleted.toLocaleString()}</strong></div>
       <div class="stat-tile"><span>TRIAL MEDALS</span><strong>${medals} / ${availableMedals}</strong></div>
     </section>
@@ -1429,6 +1930,7 @@ function showHelp(): void {
       <article><span>05</span><div><h3>Take on Trials</h3><p>Each Trial has three score medals. Earn one to unlock the next challenge, then replay to collect all three.</p></div></article>
       <article><span>06</span><div><h3>Play together</h3><p>Add two to four names, choose a one-, three-, or five-round match, then share one device for Word Relay, Pass &amp; Play, or Last Word.</p></div></article>
       <article><span>07</span><div><h3>Challenge a friend</h3><p>After a Classic or Blitz run, share your exact phrase and score. Your friend plays by the same rules and tries to beat it.</p></div></article>
+      <article><span>08</span><div><h3>Race online</h3><p>Create a private room for up to eight players. Everyone receives the same phrase and timer, while scores update live across every device.</p></div></article>
     </section>
     <button class="primary-button" data-nav data-action="modes">CHOOSE A MODE</button>
   `, { back: "menu" }));
@@ -1436,6 +1938,7 @@ function showHelp(): void {
 
 function showSettings(returnTo?: ScreenId): void {
   const current = screens.getCurrent();
+  if (current === "online-room") stopOnlineSync();
   if (current !== "settings") settingsReturnScreen = returnTo ?? current;
   screens.show("settings", shell("SETTINGS", `
     <section class="settings-list">
@@ -1454,6 +1957,8 @@ function settingsReturn(): void {
   else if (settingsReturnScreen === "multiplayer") showMultiplayer();
   else if (settingsReturnScreen === "multiplayer-round") showTogetherRoundResults();
   else if (settingsReturnScreen === "multiplayer-results") showTogetherResults();
+  else if (settingsReturnScreen === "online") showOnlineHome(cleanRoomCode(new URLSearchParams(location.search).get("room") ?? ""));
+  else if (settingsReturnScreen === "online-room" && onlineRoom) { renderOnlineRoom(); startOnlineSync(); }
   else if (settingsReturnScreen === "challenge") showChallengeLanding();
   else if (settingsReturnScreen === "stats") showStats();
   else if (settingsReturnScreen === "help") showHelp();
@@ -1506,6 +2011,17 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "modes") showModes();
   else if (action === "journey") showJourney();
   else if (action === "multiplayer") showMultiplayer();
+  else if (action === "online") { updateRoomUrl(); showOnlineHome(); }
+  else if (action === "online-cancel") { onlineCredentials = null; showOnlineHome(cleanRoomCode(new URLSearchParams(location.search).get("room") ?? "")); }
+  else if (action === "online-create") void createOnlineRoom();
+  else if (action === "online-join") void joinOnlineRoom();
+  else if (action === "online-ready") void performOnlineAction("ready");
+  else if (action === "online-start") void performOnlineAction("start");
+  else if (action === "online-kick") void kickOnlinePlayer(target.dataset.playerId ?? "");
+  else if (action === "online-next") void performOnlineAction("next-round");
+  else if (action === "online-rematch") void performOnlineAction("rematch");
+  else if (action === "online-share") void shareOnlineRoom(target);
+  else if (action === "online-leave") void leaveOnlineRoom();
   else if (action === "play-challenge") startPendingChallenge();
   else if (action === "dismiss-challenge") dismissChallenge();
   else if (action === "stats") showStats();
@@ -1548,6 +2064,21 @@ appRoot.addEventListener("click", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
+  if (screens.getCurrent() === "online") {
+    if (event.key === "Enter" && (event.target as HTMLElement).closest("#online-host-name, #online-rounds, #online-duration, #online-capacity")) {
+      event.preventDefault();
+      void createOnlineRoom();
+    } else if (event.key === "Enter" && (event.target as HTMLElement).closest("#online-join-name, #online-code")) {
+      event.preventDefault();
+      void joinOnlineRoom();
+    }
+    return;
+  }
+  if (screens.getCurrent() === "online-room" && onlineRoom?.phase === "playing") {
+    const onlineInput = document.querySelector<HTMLInputElement>("#online-word-input");
+    if (/^[a-zA-Z]$/.test(event.key) && onlineInput && document.activeElement !== onlineInput && !event.metaKey && !event.ctrlKey && !event.altKey) onlineInput.focus();
+    return;
+  }
   if (screens.getCurrent() === "multiplayer-game" && together) {
     if (event.key === "Escape" && document.querySelector("#pause-layer")) {
       event.preventDefault();
@@ -1578,8 +2109,11 @@ window.addEventListener("visibilitychange", () => {
 });
 
 document.documentElement.classList.toggle("reduce-motion", save.settings.reducedMotion);
-pendingChallenge = decodeChallenge(new URLSearchParams(location.search).get("challenge"));
-if (pendingChallenge) showChallengeLanding();
+const initialQuery = new URLSearchParams(location.search);
+const initialRoomCode = cleanRoomCode(initialQuery.get("room") ?? "");
+pendingChallenge = decodeChallenge(initialQuery.get("challenge"));
+if (initialRoomCode.length === 6) void resumeOnlineRoom(initialRoomCode);
+else if (pendingChallenge) showChallengeLanding();
 else showTitle();
 
 // Keep content referenced so future phrase-doctor tooling can inspect the bank from this bundle.

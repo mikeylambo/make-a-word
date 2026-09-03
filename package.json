@@ -8,12 +8,17 @@
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit",
     "dictionary:build": "node scripts/derive-inflections.mjs --write",
+    "dictionary:server": "node scripts/build-server-dictionary.mjs",
+    "dictionary:server:check": "node scripts/build-server-dictionary.mjs --check",
     "phrases:build": "node scripts/build-expanded-phrases.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
-    "verify": "npm run doctor && npm run build"
+    "verify": "npm run dictionary:server:check && npm run doctor && npm run build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@upstash/redis": "^1.38.3"
+  },
   "devDependencies": {
+    "@types/node": "^24.13.3",
     "an-array-of-english-words": "^2.0.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.0"
