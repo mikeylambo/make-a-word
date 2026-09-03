@@ -143,11 +143,17 @@ body::before {
 .player-count > div { display:flex; gap:7px; }
 .player-count button { width:48px; height:48px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.035); color:var(--muted); font:700 17px "Space Grotesk"; cursor:pointer; }
 .player-count button.selected { border-color:var(--lime); background:var(--lime); color:#0b0f13; box-shadow:0 0 28px rgba(201,255,85,.14); }
-.multiplayer-modes { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.match-options { display:flex; gap:22px; align-items:flex-end; }
+.player-names { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:0 0 16px; }
+.player-names label { padding:12px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.025); }
+.player-names span { display:block; margin:0 0 7px; color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.13em; }
+.player-names input { width:100%; height:38px; padding:0 10px; border:1px solid var(--line); border-radius:9px; background:#0c111d; color:#fff; font:700 13px "Space Grotesk"; }
+.multiplayer-modes { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 .multiplayer-mode { min-height:270px; position:relative; padding:28px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.025); text-align:left; cursor:pointer; overflow:hidden; transition:.18s ease; }
 .multiplayer-mode::after { content:""; position:absolute; width:220px; height:220px; right:-100px; bottom:-120px; border-radius:50%; opacity:.1; filter:blur(5px); }
 .multiplayer-mode--relay::after { background:var(--orange); }
 .multiplayer-mode--pass::after { background:var(--violet); }
+.multiplayer-mode--last::after { background:var(--lime); }
 .multiplayer-mode:hover { transform:translateY(-3px); border-color:rgba(255,255,255,.3); }
 .multiplayer-mode > span { color:var(--lime); font:700 9px "Space Grotesk"; letter-spacing:.16em; }
 .multiplayer-mode > strong { display:block; margin:44px 0 10px; font:700 34px "Space Grotesk"; letter-spacing:-.04em; }
@@ -169,8 +175,10 @@ body::before {
 .together-player { min-height:70px; padding:13px 15px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.025); }
 .together-player span { display:block; color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.1em; text-transform:uppercase; }
 .together-player strong { display:block; margin-top:5px; font:700 20px "Space Grotesk"; }
+.together-player small { display:block; margin-top:5px; color:#697186; font:700 7px "Space Grotesk"; letter-spacing:.09em; }
 .together-player.active { border-color:rgba(201,255,85,.42); background:rgba(201,255,85,.065); box-shadow:0 0 28px rgba(201,255,85,.06); }
 .together-player.active span, .together-player.active strong { color:var(--lime); }
+.together-player.eliminated { opacity:.38; filter:grayscale(.7); }
 .pass-turn { display:block; min-height:40px; margin:0 auto 18px; padding:0 22px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--muted); font:700 9px "Space Grotesk"; letter-spacing:.12em; cursor:pointer; }
 .together-found { margin-top:22px; }
 .together-results-hero h2 { margin:14px 0 5px; font:700 clamp(38px,7vw,68px)/1 "Space Grotesk"; letter-spacing:-.055em; }
@@ -182,6 +190,9 @@ body::before {
 .together-ranking span { font:700 16px "Space Grotesk"; }
 .together-ranking small { color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.1em; }
 .together-ranking strong { min-width:85px; color:var(--lime); text-align:right; font:700 20px "Space Grotesk"; }
+.round-winner { padding:30px 0 36px; text-align:center; }
+.round-winner h2 { margin:12px 0 6px; font:700 clamp(42px,8vw,78px)/1 "Space Grotesk"; letter-spacing:-.06em; }
+.round-winner p { margin:0; color:var(--muted); }
 
 .game-screen { min-height: 100dvh; padding-bottom: max(24px, env(safe-area-inset-bottom)); transition:background .35s ease; }
 .game-screen::before { content:""; position:fixed; inset:72px 0 0; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 42%, rgba(255,92,117,.1), transparent 56%); transition:opacity .35s ease; }
@@ -301,6 +312,8 @@ body::before {
 .results-score { margin-top:12px; font:700 clamp(70px,12vw,130px)/1 "Space Grotesk"; letter-spacing:-.07em; text-shadow:0 0 55px rgba(255,255,255,.09); animation:result-score-in .8s cubic-bezier(.2,1.2,.3,1) both; }
 @keyframes result-score-in { from { opacity:0; transform:scale(.72); } }
 .results-label { color:var(--lime); font:700 10px "Space Grotesk"; letter-spacing:.2em; }
+.results-label--close { color:var(--orange); }
+.results-label--won { color:var(--lime); text-shadow:0 0 24px rgba(201,255,85,.28); }
 .result-stats { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:18px; overflow:hidden; }
 .result-stats, .result-words, .result-actions { animation:result-row-in .48s .35s ease both; }
 .result-words { animation-delay:.48s; }
@@ -324,11 +337,30 @@ body::before {
 .stat-tile--wide { grid-column:1/-1; min-height:210px; background:linear-gradient(145deg,rgba(201,255,85,.1),rgba(255,255,255,.02)); }
 .stat-tile span { color:var(--muted); font:700 9px "Space Grotesk"; letter-spacing:.15em; }
 .stat-tile strong { font:700 clamp(30px,6vw,65px) "Space Grotesk"; letter-spacing:-.05em; }
+.stat-tile small { color:var(--muted); }
 .best-list { margin-top:14px; border:1px solid var(--line); border-radius:18px; overflow:hidden; }
 .best-list div { min-height:62px; padding:0 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
 .best-list div:last-child { border:0; }
 .best-list span { color:var(--muted); }
 .best-list strong { font:700 17px "Space Grotesk"; }
+.achievement-section { margin-top:22px; padding-bottom:24px; }
+.achievement-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:9px; margin-top:14px; }
+.achievement-grid article { min-height:82px; display:flex; align-items:center; gap:14px; padding:16px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.02); opacity:.42; }
+.achievement-grid article.unlocked { opacity:1; border-color:rgba(201,255,85,.22); background:rgba(201,255,85,.045); }
+.achievement-grid b { color:var(--lime); font-size:19px; }
+.achievement-grid strong, .achievement-grid small { display:block; }
+.achievement-grid strong { font:700 13px "Space Grotesk"; }
+.achievement-grid small { margin-top:5px; color:var(--muted); }
+
+.challenge-hero { min-height:calc(100dvh - 130px); display:grid; align-content:center; justify-items:center; text-align:center; padding:20px 0 60px; }
+.challenge-hero h2 { margin:16px 0 12px; font:700 clamp(54px,10vw,108px)/.92 "Space Grotesk"; letter-spacing:-.07em; }
+.challenge-hero > p { max-width:520px; margin:0; color:var(--muted); line-height:1.55; }
+.challenge-preview { width:min(620px,100%); margin:34px 0 20px; padding:22px; border:1px solid rgba(147,119,255,.26); border-radius:18px; background:linear-gradient(145deg,rgba(147,119,255,.09),rgba(255,255,255,.02)); }
+.challenge-preview span, .challenge-preview strong, .challenge-preview small { display:block; }
+.challenge-preview span { color:var(--violet); font:700 8px "Space Grotesk"; letter-spacing:.16em; }
+.challenge-preview strong { margin:12px 0 7px; font:700 clamp(18px,4vw,30px) "Space Grotesk"; }
+.challenge-preview small { color:var(--muted); }
+.challenge-actions { display:flex; flex-direction:column; gap:8px; }
 
 .rule-stack { display:grid; gap:10px; margin-bottom:18px; }
 .rule-stack article { display:grid; grid-template-columns:70px 1fr; gap:20px; padding:24px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.02); }
@@ -362,6 +394,8 @@ body::before {
   .journey-list { grid-template-columns:1fr; }
   .multiplayer-header { grid-template-columns:1fr; padding:24px 20px; }
   .player-count { text-align:left; }
+  .match-options { align-items:flex-start; }
+  .player-names { grid-template-columns:repeat(2,1fr); }
   .multiplayer-modes { grid-template-columns:1fr; }
   .multiplayer-mode { min-height:235px; }
   .together-scoreboard { grid-template-columns:repeat(2,1fr); }
@@ -388,6 +422,7 @@ body::before {
   .result-stats div:nth-child(3), .result-stats div:nth-child(4) { border-bottom:0; }
   .stats-grid { grid-template-columns:1fr; }
   .stat-tile--wide { grid-column:auto; }
+  .achievement-grid { grid-template-columns:1fr; }
   .rule-stack article { grid-template-columns:42px 1fr; padding:18px 14px; gap:10px; }
 }
 
