@@ -2,7 +2,8 @@ import { createHash, randomBytes, randomInt } from "node:crypto";
 import { Redis } from "@upstash/redis";
 import dictionary from "../content/server-dictionary.json" with { type: "json" };
 import blockedWords from "../content/dictionary-blocklist.json" with { type: "json" };
-import { PHRASES, type PhraseEntry } from "../src/phrases";
+import phraseData from "../content/phrases.json" with { type: "json" };
+import expandedPhraseData from "../content/expanded-phrases.json" with { type: "json" };
 import type {
   OnlineAction,
   OnlineCredentials,
@@ -11,8 +12,47 @@ import type {
   OnlineResponse,
   OnlineRoomView,
   OnlineSettings
-} from "../src/online-types";
-import { canSpell, countsForText, normalizeWord, scoreWord } from "../src/word-rules";
+} from "../src/online-types.js";
+
+type PhraseEntry = {
+  id: string;
+  text: string;
+  label: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  burnSolution?: string[];
+  journeyOrder?: number;
+  medals?: [number, number, number];
+};
+
+const PHRASES = [...phraseData, ...expandedPhraseData] as PhraseEntry[];
+
+function normalizeWord(input: string): string {
+  return input.trim().toLowerCase().replace(/[^a-z]/g, "");
+}
+
+function countsForText(text: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const char of text.toLowerCase()) {
+    if (!/[a-z]/.test(char)) continue;
+    counts.set(char, (counts.get(char) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function canSpell(word: string, counts: Map<string, number>): boolean {
+  const used = new Map<string, number>();
+  for (const char of word) {
+    const next = (used.get(char) ?? 0) + 1;
+    if (next > (counts.get(char) ?? 0)) return false;
+    used.set(char, next);
+  }
+  return true;
+}
+
+function scoreWord(length: number, combo: number): number {
+  const base = length === 3 ? 100 : length === 4 ? 180 : length === 5 ? 300 : length === 6 ? 480 : length === 7 ? 720 : 900 + (length - 8) * 180;
+  return Math.round(base * (1 + Math.min(combo, 8) * 0.1));
+}
 
 type ApiRequest = {
   method?: string;
@@ -398,7 +438,7 @@ async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ ro
       if (!WORDS.has(word)) throw new RoomError("That word is not in the word list.", 422, "NOT_WORD");
       player.combo = player.lastValidAt && now - player.lastValidAt <= 5_000 ? Math.min(9, player.combo + 1) : 0;
       player.lastValidAt = now;
-      const points = scoreWord(word.length, player.combo, false);
+      const points = scoreWord(word.length, player.combo);
       player.score += points;
       player.roundScore += points;
       player.submitted.push(word);
