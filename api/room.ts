@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import { Redis } from "@upstash/redis";
-import dictionary from "../content/server-dictionary.json";
-import blockedWords from "../content/dictionary-blocklist.json";
+import dictionary from "../content/server-dictionary.json" with { type: "json" };
+import blockedWords from "../content/dictionary-blocklist.json" with { type: "json" };
 import { PHRASES, type PhraseEntry } from "../src/phrases";
 import type {
   OnlineAction,
