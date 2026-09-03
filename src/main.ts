@@ -512,10 +512,10 @@ function showTogetherResults(): void {
       <span class="eyebrow">${together.mode === "relay" ? "WORD RELAY" : "PASS & PLAY"}</span>
       <div class="winner-number">${winner?.originalIndex === undefined ? "★" : winner.originalIndex + 1}</div>
       <h2>${escapeHtml(winner?.name ?? "Great game")} wins!</h2>
-      <p>${winner?.score.toLocaleString() ?? 0} points · ${winner?.found.length ?? 0} words</p>
+      <p>${winner?.score.toLocaleString() ?? 0} points · ${winner?.found.length ?? 0} ${(winner?.found.length ?? 0) === 1 ? "word" : "words"}</p>
     </section>
     <section class="together-ranking">
-      ${ranked.map((player, index) => `<div class="${index === 0 ? "winner" : ""}"><b>${index + 1}</b><span>${escapeHtml(player.name)}</span><small>${player.found.length} WORDS</small><strong>${player.score.toLocaleString()}</strong></div>`).join("")}
+      ${ranked.map((player, index) => `<div class="${index === 0 ? "winner" : ""}"><b>${index + 1}</b><span>${escapeHtml(player.name)}</span><small>${player.found.length} ${player.found.length === 1 ? "WORD" : "WORDS"}</small><strong>${player.score.toLocaleString()}</strong></div>`).join("")}
     </section>
     <section class="result-actions">
       <button class="primary-button" data-nav data-action="again-together">PLAY AGAIN</button>
