@@ -96,6 +96,7 @@ body::before {
 .menu-card--feature { grid-row: span 2; min-height: 314px; background: linear-gradient(155deg, rgba(201,255,85,.13), rgba(201,255,85,.02)); }
 .menu-card--daily { background: linear-gradient(155deg, rgba(87,217,255,.11), rgba(87,217,255,.02)); }
 .menu-card--journey { background: linear-gradient(155deg, rgba(147,119,255,.14), rgba(147,119,255,.025)); }
+.menu-card--together { background: linear-gradient(155deg, rgba(255,147,87,.13), rgba(147,119,255,.035)); }
 .menu-card__tag { display: block; margin-bottom: 36px; color: var(--muted); font: 700 10px "Space Grotesk"; letter-spacing: .17em; }
 .menu-card--feature .menu-card__tag { margin-bottom: 120px; color: var(--lime); }
 .menu-card strong { display: block; font: 700 21px "Space Grotesk"; }
@@ -133,6 +134,54 @@ body::before {
 .journey-stage__body b.earned { color:var(--lime); text-shadow:0 0 12px rgba(201,255,85,.35); }
 .journey-stage__score { color:var(--muted); font:700 11px "Space Grotesk"; }
 .journey-stage--locked { opacity:.42; cursor:not-allowed; }
+
+.multiplayer-header { display:grid; grid-template-columns:1fr auto; align-items:end; gap:28px; margin-bottom:16px; padding:30px; border:1px solid var(--line); border-radius:24px; background:linear-gradient(145deg,rgba(255,147,87,.11),rgba(147,119,255,.07)); }
+.multiplayer-header h2 { margin:10px 0 8px; font:700 clamp(32px,5vw,54px)/1 "Space Grotesk"; letter-spacing:-.05em; }
+.multiplayer-header p { max-width:600px; margin:0; color:var(--muted); line-height:1.55; }
+.player-count { text-align:right; }
+.player-count > span { display:block; margin-bottom:9px; color:var(--muted); font:700 9px "Space Grotesk"; letter-spacing:.15em; }
+.player-count > div { display:flex; gap:7px; }
+.player-count button { width:48px; height:48px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.035); color:var(--muted); font:700 17px "Space Grotesk"; cursor:pointer; }
+.player-count button.selected { border-color:var(--lime); background:var(--lime); color:#0b0f13; box-shadow:0 0 28px rgba(201,255,85,.14); }
+.multiplayer-modes { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.multiplayer-mode { min-height:270px; position:relative; padding:28px; border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.025); text-align:left; cursor:pointer; overflow:hidden; transition:.18s ease; }
+.multiplayer-mode::after { content:""; position:absolute; width:220px; height:220px; right:-100px; bottom:-120px; border-radius:50%; opacity:.1; filter:blur(5px); }
+.multiplayer-mode--relay::after { background:var(--orange); }
+.multiplayer-mode--pass::after { background:var(--violet); }
+.multiplayer-mode:hover { transform:translateY(-3px); border-color:rgba(255,255,255,.3); }
+.multiplayer-mode > span { color:var(--lime); font:700 9px "Space Grotesk"; letter-spacing:.16em; }
+.multiplayer-mode > strong { display:block; margin:44px 0 10px; font:700 34px "Space Grotesk"; letter-spacing:-.04em; }
+.multiplayer-mode p { max-width:440px; margin:0 0 26px; color:#9ba3b6; line-height:1.5; }
+.multiplayer-mode small { color:#646d80; font:700 9px "Space Grotesk"; letter-spacing:.1em; }
+.multiplayer-mode b { position:absolute; top:26px; right:27px; color:var(--muted); font-size:22px; }
+.multiplayer-note { margin:18px auto; max-width:620px; color:#5d667a; text-align:center; font-size:12px; }
+
+.handoff-screen { min-height:100dvh; display:grid; place-items:center; padding:24px; }
+.handoff-card { width:min(470px,100%); padding:42px 34px; border:1px solid var(--line); border-radius:28px; background:linear-gradient(150deg,rgba(147,119,255,.13),rgba(255,147,87,.06)); text-align:center; display:grid; justify-items:center; gap:14px; }
+.handoff-player, .winner-number { width:94px; height:94px; display:grid; place-items:center; margin:12px 0 2px; border:1px solid rgba(201,255,85,.28); border-radius:25px; background:rgba(201,255,85,.08); color:var(--lime); font:700 48px "Space Grotesk"; box-shadow:0 0 42px rgba(201,255,85,.09); }
+.handoff-card h2 { margin:0; font:700 40px "Space Grotesk"; letter-spacing:-.045em; }
+.handoff-card p { max-width:330px; margin:0 0 12px; color:var(--muted); line-height:1.55; }
+.together-hud { min-height:78px; padding:max(12px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 10px max(18px,env(safe-area-inset-left)); display:grid; grid-template-columns:48px 1fr auto; align-items:center; gap:16px; border-bottom:1px solid var(--line); background:rgba(8,11,20,.92); position:sticky; top:0; z-index:10; }
+.together-hud > div:nth-child(2) span { display:block; color:var(--orange); font:700 8px "Space Grotesk"; letter-spacing:.15em; }
+.together-hud > div:nth-child(2) strong { display:block; margin-top:4px; font:700 17px "Space Grotesk"; }
+.together-playfield { padding-top:24px; }
+.together-scoreboard { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:26px; }
+.together-player { min-height:70px; padding:13px 15px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.025); }
+.together-player span { display:block; color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.1em; text-transform:uppercase; }
+.together-player strong { display:block; margin-top:5px; font:700 20px "Space Grotesk"; }
+.together-player.active { border-color:rgba(201,255,85,.42); background:rgba(201,255,85,.065); box-shadow:0 0 28px rgba(201,255,85,.06); }
+.together-player.active span, .together-player.active strong { color:var(--lime); }
+.pass-turn { display:block; min-height:40px; margin:0 auto 18px; padding:0 22px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--muted); font:700 9px "Space Grotesk"; letter-spacing:.12em; cursor:pointer; }
+.together-found { margin-top:22px; }
+.together-results-hero h2 { margin:14px 0 5px; font:700 clamp(38px,7vw,68px)/1 "Space Grotesk"; letter-spacing:-.055em; }
+.together-results-hero p { margin:0; color:var(--muted); }
+.together-ranking { display:grid; gap:8px; }
+.together-ranking > div { min-height:72px; display:grid; grid-template-columns:38px 1fr auto auto; align-items:center; gap:14px; padding:0 20px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.025); }
+.together-ranking > div.winner { border-color:rgba(201,255,85,.35); background:rgba(201,255,85,.055); }
+.together-ranking b { color:var(--muted); font:700 20px "Space Grotesk"; }
+.together-ranking span { font:700 16px "Space Grotesk"; }
+.together-ranking small { color:var(--muted); font:700 8px "Space Grotesk"; letter-spacing:.1em; }
+.together-ranking strong { min-width:85px; color:var(--lime); text-align:right; font:700 20px "Space Grotesk"; }
 
 .game-screen { min-height: 100dvh; padding-bottom: max(24px, env(safe-area-inset-bottom)); transition:background .35s ease; }
 .game-screen::before { content:""; position:fixed; inset:72px 0 0; pointer-events:none; opacity:0; background:radial-gradient(circle at 50% 42%, rgba(255,92,117,.1), transparent 56%); transition:opacity .35s ease; }
@@ -311,6 +360,11 @@ body::before {
   .journey-header { grid-template-columns:1fr; padding:24px 20px; }
   .journey-header > div:last-child { text-align:left; }
   .journey-list { grid-template-columns:1fr; }
+  .multiplayer-header { grid-template-columns:1fr; padding:24px 20px; }
+  .player-count { text-align:left; }
+  .multiplayer-modes { grid-template-columns:1fr; }
+  .multiplayer-mode { min-height:235px; }
+  .together-scoreboard { grid-template-columns:repeat(2,1fr); }
   .game-hud { grid-template-columns:42px repeat(3,1fr); gap:3px; }
   .game-hud .hud-stat:first-of-type { display:none; }
   .hud-stat { padding-left:8px; }
@@ -349,4 +403,6 @@ body::before {
   .hud-stat span { font-size:7px; }
   .hud-stat strong { font-size:13px; }
   .hud-stat--time { padding-right:0; }
+  .together-ranking > div { grid-template-columns:30px 1fr auto; gap:8px; padding:0 12px; }
+  .together-ranking small { display:none; }
 }

@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit",
+    "dictionary:build": "node scripts/derive-inflections.mjs --write",
+    "phrases:build": "node scripts/build-expanded-phrases.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "verify": "npm run doctor && npm run build"
   },
   "dependencies": {},
   "devDependencies": {
+    "an-array-of-english-words": "^2.0.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.0"
   }

@@ -1,0 +1,3944 @@
+[
+  {
+    "id": "classroom-1-1",
+    "text": "CURIOUS STUDENTS SHARE GREAT IDEAS",
+    "label": "Classroom",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "students",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-1-2",
+    "text": "CURIOUS STUDENTS FIND HIDDEN ANSWERS",
+    "label": "Classroom",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "students",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-1-3",
+    "text": "CURIOUS STUDENTS BUILD NEW SKILLS",
+    "label": "Classroom",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "students",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-1-4",
+    "text": "CURIOUS STUDENTS SOLVE EVERY PUZZLE",
+    "label": "Classroom",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "students",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-1-5",
+    "text": "CURIOUS STUDENTS MAKE LEARNING FUN",
+    "label": "Classroom",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "students",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-1-6",
+    "text": "CURIOUS STUDENTS HELP FRIENDS GROW",
+    "label": "Classroom",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "students",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-1-7",
+    "text": "CURIOUS STUDENTS ASK BETTER QUESTIONS",
+    "label": "Classroom",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "students",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-1-8",
+    "text": "CURIOUS STUDENTS DISCOVER NEW STORIES",
+    "label": "Classroom",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "students",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-1-9",
+    "text": "CURIOUS STUDENTS TURN PAGES TOGETHER",
+    "label": "Classroom",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "students",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-1-10",
+    "text": "CURIOUS STUDENTS LEARN SOMETHING DAILY",
+    "label": "Classroom",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "students",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "classroom-2-1",
+    "text": "BRIGHT THINKERS SHARE GREAT IDEAS",
+    "label": "Learning",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-2-2",
+    "text": "BRIGHT THINKERS FIND HIDDEN ANSWERS",
+    "label": "Learning",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-2-3",
+    "text": "BRIGHT THINKERS BUILD NEW SKILLS",
+    "label": "Learning",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-2-4",
+    "text": "BRIGHT THINKERS SOLVE EVERY PUZZLE",
+    "label": "Learning",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-2-5",
+    "text": "BRIGHT THINKERS MAKE LEARNING FUN",
+    "label": "Learning",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-2-6",
+    "text": "BRIGHT THINKERS HELP FRIENDS GROW",
+    "label": "Learning",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-2-7",
+    "text": "BRIGHT THINKERS ASK BETTER QUESTIONS",
+    "label": "Learning",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-2-8",
+    "text": "BRIGHT THINKERS DISCOVER NEW STORIES",
+    "label": "Learning",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-2-9",
+    "text": "BRIGHT THINKERS TURN PAGES TOGETHER",
+    "label": "Learning",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-2-10",
+    "text": "BRIGHT THINKERS LEARN SOMETHING DAILY",
+    "label": "Learning",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "thinkers",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "classroom-3-1",
+    "text": "YOUNG READERS SHARE GREAT IDEAS",
+    "label": "Ideas",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "readers",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-3-2",
+    "text": "YOUNG READERS FIND HIDDEN ANSWERS",
+    "label": "Ideas",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "readers",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-3-3",
+    "text": "YOUNG READERS BUILD NEW SKILLS",
+    "label": "Ideas",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "readers",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-3-4",
+    "text": "YOUNG READERS SOLVE EVERY PUZZLE",
+    "label": "Ideas",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "readers",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-3-5",
+    "text": "YOUNG READERS MAKE LEARNING FUN",
+    "label": "Ideas",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "readers",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-3-6",
+    "text": "YOUNG READERS HELP FRIENDS GROW",
+    "label": "Ideas",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "readers",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-3-7",
+    "text": "YOUNG READERS ASK BETTER QUESTIONS",
+    "label": "Ideas",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "readers",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-3-8",
+    "text": "YOUNG READERS DISCOVER NEW STORIES",
+    "label": "Ideas",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "readers",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-3-9",
+    "text": "YOUNG READERS TURN PAGES TOGETHER",
+    "label": "Ideas",
+    "difficulty": 4,
+    "burnSolution": [
+      "young",
+      "readers",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-3-10",
+    "text": "YOUNG READERS LEARN SOMETHING DAILY",
+    "label": "Ideas",
+    "difficulty": 4,
+    "burnSolution": [
+      "young",
+      "readers",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "classroom-4-1",
+    "text": "KIND CLASSMATES SHARE GREAT IDEAS",
+    "label": "Friends",
+    "difficulty": 2,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-4-2",
+    "text": "KIND CLASSMATES FIND HIDDEN ANSWERS",
+    "label": "Friends",
+    "difficulty": 2,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-4-3",
+    "text": "KIND CLASSMATES BUILD NEW SKILLS",
+    "label": "Friends",
+    "difficulty": 3,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-4-4",
+    "text": "KIND CLASSMATES SOLVE EVERY PUZZLE",
+    "label": "Friends",
+    "difficulty": 3,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-4-5",
+    "text": "KIND CLASSMATES MAKE LEARNING FUN",
+    "label": "Friends",
+    "difficulty": 3,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-4-6",
+    "text": "KIND CLASSMATES HELP FRIENDS GROW",
+    "label": "Friends",
+    "difficulty": 3,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-4-7",
+    "text": "KIND CLASSMATES ASK BETTER QUESTIONS",
+    "label": "Friends",
+    "difficulty": 3,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-4-8",
+    "text": "KIND CLASSMATES DISCOVER NEW STORIES",
+    "label": "Friends",
+    "difficulty": 4,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-4-9",
+    "text": "KIND CLASSMATES TURN PAGES TOGETHER",
+    "label": "Friends",
+    "difficulty": 4,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-4-10",
+    "text": "KIND CLASSMATES LEARN SOMETHING DAILY",
+    "label": "Friends",
+    "difficulty": 4,
+    "burnSolution": [
+      "kind",
+      "classmates",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "classroom-5-1",
+    "text": "EAGER LEARNERS SHARE GREAT IDEAS",
+    "label": "Discovery",
+    "difficulty": 2,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-5-2",
+    "text": "EAGER LEARNERS FIND HIDDEN ANSWERS",
+    "label": "Discovery",
+    "difficulty": 3,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-5-3",
+    "text": "EAGER LEARNERS BUILD NEW SKILLS",
+    "label": "Discovery",
+    "difficulty": 3,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-5-4",
+    "text": "EAGER LEARNERS SOLVE EVERY PUZZLE",
+    "label": "Discovery",
+    "difficulty": 3,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-5-5",
+    "text": "EAGER LEARNERS MAKE LEARNING FUN",
+    "label": "Discovery",
+    "difficulty": 3,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-5-6",
+    "text": "EAGER LEARNERS HELP FRIENDS GROW",
+    "label": "Discovery",
+    "difficulty": 3,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-5-7",
+    "text": "EAGER LEARNERS ASK BETTER QUESTIONS",
+    "label": "Discovery",
+    "difficulty": 4,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-5-8",
+    "text": "EAGER LEARNERS DISCOVER NEW STORIES",
+    "label": "Discovery",
+    "difficulty": 4,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-5-9",
+    "text": "EAGER LEARNERS TURN PAGES TOGETHER",
+    "label": "Discovery",
+    "difficulty": 4,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-5-10",
+    "text": "EAGER LEARNERS LEARN SOMETHING DAILY",
+    "label": "Discovery",
+    "difficulty": 4,
+    "burnSolution": [
+      "eager",
+      "learners",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "classroom-6-1",
+    "text": "CREATIVE TEAMS SHARE GREAT IDEAS",
+    "label": "Teamwork",
+    "difficulty": 3,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "share",
+      "great",
+      "ideas"
+    ]
+  },
+  {
+    "id": "classroom-6-2",
+    "text": "CREATIVE TEAMS FIND HIDDEN ANSWERS",
+    "label": "Teamwork",
+    "difficulty": 3,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "find",
+      "hidden",
+      "answers"
+    ]
+  },
+  {
+    "id": "classroom-6-3",
+    "text": "CREATIVE TEAMS BUILD NEW SKILLS",
+    "label": "Teamwork",
+    "difficulty": 3,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "build",
+      "new",
+      "skills"
+    ]
+  },
+  {
+    "id": "classroom-6-4",
+    "text": "CREATIVE TEAMS SOLVE EVERY PUZZLE",
+    "label": "Teamwork",
+    "difficulty": 3,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "solve",
+      "every",
+      "puzzle"
+    ]
+  },
+  {
+    "id": "classroom-6-5",
+    "text": "CREATIVE TEAMS MAKE LEARNING FUN",
+    "label": "Teamwork",
+    "difficulty": 3,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "make",
+      "learning",
+      "fun"
+    ]
+  },
+  {
+    "id": "classroom-6-6",
+    "text": "CREATIVE TEAMS HELP FRIENDS GROW",
+    "label": "Teamwork",
+    "difficulty": 4,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "help",
+      "friends",
+      "grow"
+    ]
+  },
+  {
+    "id": "classroom-6-7",
+    "text": "CREATIVE TEAMS ASK BETTER QUESTIONS",
+    "label": "Teamwork",
+    "difficulty": 4,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "ask",
+      "better",
+      "questions"
+    ]
+  },
+  {
+    "id": "classroom-6-8",
+    "text": "CREATIVE TEAMS DISCOVER NEW STORIES",
+    "label": "Teamwork",
+    "difficulty": 4,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "discover",
+      "new",
+      "stories"
+    ]
+  },
+  {
+    "id": "classroom-6-9",
+    "text": "CREATIVE TEAMS TURN PAGES TOGETHER",
+    "label": "Teamwork",
+    "difficulty": 4,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "turn",
+      "pages",
+      "together"
+    ]
+  },
+  {
+    "id": "classroom-6-10",
+    "text": "CREATIVE TEAMS LEARN SOMETHING DAILY",
+    "label": "Teamwork",
+    "difficulty": 4,
+    "burnSolution": [
+      "creative",
+      "teams",
+      "learn",
+      "something",
+      "daily"
+    ]
+  },
+  {
+    "id": "nature-1-1",
+    "text": "BRIGHT FIREFLIES FILL THE EVENING",
+    "label": "Wild Places",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-1-2",
+    "text": "BRIGHT FIREFLIES FOLLOW THE VALLEY",
+    "label": "Wild Places",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-1-3",
+    "text": "BRIGHT FIREFLIES WAKE THE GARDEN",
+    "label": "Wild Places",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-1-4",
+    "text": "BRIGHT FIREFLIES MOVE UNDER STARS",
+    "label": "Wild Places",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-1-5",
+    "text": "BRIGHT FIREFLIES BRING FRESH COLORS",
+    "label": "Wild Places",
+    "difficulty": 2,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-1-6",
+    "text": "BRIGHT FIREFLIES CROSS OPEN FIELDS",
+    "label": "Wild Places",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-1-7",
+    "text": "BRIGHT FIREFLIES GLOW AFTER RAIN",
+    "label": "Wild Places",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-1-8",
+    "text": "BRIGHT FIREFLIES MAKE SHADOWS DANCE",
+    "label": "Wild Places",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-1-9",
+    "text": "BRIGHT FIREFLIES WELCOME EVERY SEASON",
+    "label": "Wild Places",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-1-10",
+    "text": "BRIGHT FIREFLIES GUIDE TRAVELERS HOME",
+    "label": "Wild Places",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "fireflies",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "nature-2-1",
+    "text": "TALL FORESTS FILL THE EVENING",
+    "label": "Open Air",
+    "difficulty": 2,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-2-2",
+    "text": "TALL FORESTS FOLLOW THE VALLEY",
+    "label": "Open Air",
+    "difficulty": 2,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-2-3",
+    "text": "TALL FORESTS WAKE THE GARDEN",
+    "label": "Open Air",
+    "difficulty": 2,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-2-4",
+    "text": "TALL FORESTS MOVE UNDER STARS",
+    "label": "Open Air",
+    "difficulty": 2,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-2-5",
+    "text": "TALL FORESTS BRING FRESH COLORS",
+    "label": "Open Air",
+    "difficulty": 3,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-2-6",
+    "text": "TALL FORESTS CROSS OPEN FIELDS",
+    "label": "Open Air",
+    "difficulty": 3,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-2-7",
+    "text": "TALL FORESTS GLOW AFTER RAIN",
+    "label": "Open Air",
+    "difficulty": 3,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-2-8",
+    "text": "TALL FORESTS MAKE SHADOWS DANCE",
+    "label": "Open Air",
+    "difficulty": 3,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-2-9",
+    "text": "TALL FORESTS WELCOME EVERY SEASON",
+    "label": "Open Air",
+    "difficulty": 3,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-2-10",
+    "text": "TALL FORESTS GUIDE TRAVELERS HOME",
+    "label": "Open Air",
+    "difficulty": 4,
+    "burnSolution": [
+      "tall",
+      "forests",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "nature-3-1",
+    "text": "QUIET RIVERS FILL THE EVENING",
+    "label": "Seasons",
+    "difficulty": 2,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-3-2",
+    "text": "QUIET RIVERS FOLLOW THE VALLEY",
+    "label": "Seasons",
+    "difficulty": 2,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-3-3",
+    "text": "QUIET RIVERS WAKE THE GARDEN",
+    "label": "Seasons",
+    "difficulty": 2,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-3-4",
+    "text": "QUIET RIVERS MOVE UNDER STARS",
+    "label": "Seasons",
+    "difficulty": 3,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-3-5",
+    "text": "QUIET RIVERS BRING FRESH COLORS",
+    "label": "Seasons",
+    "difficulty": 3,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-3-6",
+    "text": "QUIET RIVERS CROSS OPEN FIELDS",
+    "label": "Seasons",
+    "difficulty": 3,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-3-7",
+    "text": "QUIET RIVERS GLOW AFTER RAIN",
+    "label": "Seasons",
+    "difficulty": 3,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-3-8",
+    "text": "QUIET RIVERS MAKE SHADOWS DANCE",
+    "label": "Seasons",
+    "difficulty": 3,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-3-9",
+    "text": "QUIET RIVERS WELCOME EVERY SEASON",
+    "label": "Seasons",
+    "difficulty": 4,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-3-10",
+    "text": "QUIET RIVERS GUIDE TRAVELERS HOME",
+    "label": "Seasons",
+    "difficulty": 4,
+    "burnSolution": [
+      "quiet",
+      "rivers",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "nature-4-1",
+    "text": "GENTLE BREEZES FILL THE EVENING",
+    "label": "Small Wonders",
+    "difficulty": 2,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-4-2",
+    "text": "GENTLE BREEZES FOLLOW THE VALLEY",
+    "label": "Small Wonders",
+    "difficulty": 2,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-4-3",
+    "text": "GENTLE BREEZES WAKE THE GARDEN",
+    "label": "Small Wonders",
+    "difficulty": 3,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-4-4",
+    "text": "GENTLE BREEZES MOVE UNDER STARS",
+    "label": "Small Wonders",
+    "difficulty": 3,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-4-5",
+    "text": "GENTLE BREEZES BRING FRESH COLORS",
+    "label": "Small Wonders",
+    "difficulty": 3,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-4-6",
+    "text": "GENTLE BREEZES CROSS OPEN FIELDS",
+    "label": "Small Wonders",
+    "difficulty": 3,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-4-7",
+    "text": "GENTLE BREEZES GLOW AFTER RAIN",
+    "label": "Small Wonders",
+    "difficulty": 3,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-4-8",
+    "text": "GENTLE BREEZES MAKE SHADOWS DANCE",
+    "label": "Small Wonders",
+    "difficulty": 4,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-4-9",
+    "text": "GENTLE BREEZES WELCOME EVERY SEASON",
+    "label": "Small Wonders",
+    "difficulty": 4,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-4-10",
+    "text": "GENTLE BREEZES GUIDE TRAVELERS HOME",
+    "label": "Small Wonders",
+    "difficulty": 4,
+    "burnSolution": [
+      "gentle",
+      "breezes",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "nature-5-1",
+    "text": "GOLDEN SUNSETS FILL THE EVENING",
+    "label": "Green World",
+    "difficulty": 2,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-5-2",
+    "text": "GOLDEN SUNSETS FOLLOW THE VALLEY",
+    "label": "Green World",
+    "difficulty": 3,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-5-3",
+    "text": "GOLDEN SUNSETS WAKE THE GARDEN",
+    "label": "Green World",
+    "difficulty": 3,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-5-4",
+    "text": "GOLDEN SUNSETS MOVE UNDER STARS",
+    "label": "Green World",
+    "difficulty": 3,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-5-5",
+    "text": "GOLDEN SUNSETS BRING FRESH COLORS",
+    "label": "Green World",
+    "difficulty": 3,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-5-6",
+    "text": "GOLDEN SUNSETS CROSS OPEN FIELDS",
+    "label": "Green World",
+    "difficulty": 3,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-5-7",
+    "text": "GOLDEN SUNSETS GLOW AFTER RAIN",
+    "label": "Green World",
+    "difficulty": 4,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-5-8",
+    "text": "GOLDEN SUNSETS MAKE SHADOWS DANCE",
+    "label": "Green World",
+    "difficulty": 4,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-5-9",
+    "text": "GOLDEN SUNSETS WELCOME EVERY SEASON",
+    "label": "Green World",
+    "difficulty": 4,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-5-10",
+    "text": "GOLDEN SUNSETS GUIDE TRAVELERS HOME",
+    "label": "Green World",
+    "difficulty": 4,
+    "burnSolution": [
+      "golden",
+      "sunsets",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "nature-6-1",
+    "text": "MORNING BIRDS FILL THE EVENING",
+    "label": "Outdoors",
+    "difficulty": 3,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "fill",
+      "the",
+      "evening"
+    ]
+  },
+  {
+    "id": "nature-6-2",
+    "text": "MORNING BIRDS FOLLOW THE VALLEY",
+    "label": "Outdoors",
+    "difficulty": 3,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "follow",
+      "the",
+      "valley"
+    ]
+  },
+  {
+    "id": "nature-6-3",
+    "text": "MORNING BIRDS WAKE THE GARDEN",
+    "label": "Outdoors",
+    "difficulty": 3,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "wake",
+      "the",
+      "garden"
+    ]
+  },
+  {
+    "id": "nature-6-4",
+    "text": "MORNING BIRDS MOVE UNDER STARS",
+    "label": "Outdoors",
+    "difficulty": 3,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "move",
+      "under",
+      "stars"
+    ]
+  },
+  {
+    "id": "nature-6-5",
+    "text": "MORNING BIRDS BRING FRESH COLORS",
+    "label": "Outdoors",
+    "difficulty": 3,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "bring",
+      "fresh",
+      "colors"
+    ]
+  },
+  {
+    "id": "nature-6-6",
+    "text": "MORNING BIRDS CROSS OPEN FIELDS",
+    "label": "Outdoors",
+    "difficulty": 4,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "cross",
+      "open",
+      "fields"
+    ]
+  },
+  {
+    "id": "nature-6-7",
+    "text": "MORNING BIRDS GLOW AFTER RAIN",
+    "label": "Outdoors",
+    "difficulty": 4,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "glow",
+      "after",
+      "rain"
+    ]
+  },
+  {
+    "id": "nature-6-8",
+    "text": "MORNING BIRDS MAKE SHADOWS DANCE",
+    "label": "Outdoors",
+    "difficulty": 4,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "make",
+      "shadows",
+      "dance"
+    ]
+  },
+  {
+    "id": "nature-6-9",
+    "text": "MORNING BIRDS WELCOME EVERY SEASON",
+    "label": "Outdoors",
+    "difficulty": 4,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "welcome",
+      "every",
+      "season"
+    ]
+  },
+  {
+    "id": "nature-6-10",
+    "text": "MORNING BIRDS GUIDE TRAVELERS HOME",
+    "label": "Outdoors",
+    "difficulty": 4,
+    "burnSolution": [
+      "morning",
+      "birds",
+      "guide",
+      "travelers",
+      "home"
+    ]
+  },
+  {
+    "id": "play-1-1",
+    "text": "QUICK RUNNERS CHASE THE FINISH",
+    "label": "Game Day",
+    "difficulty": 2,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-1-2",
+    "text": "QUICK RUNNERS CHEER EACH OTHER",
+    "label": "Game Day",
+    "difficulty": 2,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-1-3",
+    "text": "QUICK RUNNERS PLAY THE NEXT ROUND",
+    "label": "Game Day",
+    "difficulty": 2,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-1-4",
+    "text": "QUICK RUNNERS SHARE EVERY VICTORY",
+    "label": "Game Day",
+    "difficulty": 2,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-1-5",
+    "text": "QUICK RUNNERS TURN SPEED INTO POINTS",
+    "label": "Game Day",
+    "difficulty": 2,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-1-6",
+    "text": "QUICK RUNNERS MAKE THE CROWD ROAR",
+    "label": "Game Day",
+    "difficulty": 3,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-1-7",
+    "text": "QUICK RUNNERS KEEP THE GAME MOVING",
+    "label": "Game Day",
+    "difficulty": 3,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-1-8",
+    "text": "QUICK RUNNERS TRY ONE MORE TIME",
+    "label": "Game Day",
+    "difficulty": 3,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-1-9",
+    "text": "QUICK RUNNERS BRING THEIR BEST",
+    "label": "Game Day",
+    "difficulty": 3,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-1-10",
+    "text": "QUICK RUNNERS CELEBRATE TOGETHER TODAY",
+    "label": "Game Day",
+    "difficulty": 3,
+    "burnSolution": [
+      "quick",
+      "runners",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "play-2-1",
+    "text": "BRAVE PLAYERS CHASE THE FINISH",
+    "label": "Play",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "players",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-2-2",
+    "text": "BRAVE PLAYERS CHEER EACH OTHER",
+    "label": "Play",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "players",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-2-3",
+    "text": "BRAVE PLAYERS PLAY THE NEXT ROUND",
+    "label": "Play",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "players",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-2-4",
+    "text": "BRAVE PLAYERS SHARE EVERY VICTORY",
+    "label": "Play",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "players",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-2-5",
+    "text": "BRAVE PLAYERS TURN SPEED INTO POINTS",
+    "label": "Play",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "players",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-2-6",
+    "text": "BRAVE PLAYERS MAKE THE CROWD ROAR",
+    "label": "Play",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "players",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-2-7",
+    "text": "BRAVE PLAYERS KEEP THE GAME MOVING",
+    "label": "Play",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "players",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-2-8",
+    "text": "BRAVE PLAYERS TRY ONE MORE TIME",
+    "label": "Play",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "players",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-2-9",
+    "text": "BRAVE PLAYERS BRING THEIR BEST",
+    "label": "Play",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "players",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-2-10",
+    "text": "BRAVE PLAYERS CELEBRATE TOGETHER TODAY",
+    "label": "Play",
+    "difficulty": 4,
+    "burnSolution": [
+      "brave",
+      "players",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "play-3-1",
+    "text": "STRONG TEAMS CHASE THE FINISH",
+    "label": "Team Spirit",
+    "difficulty": 2,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-3-2",
+    "text": "STRONG TEAMS CHEER EACH OTHER",
+    "label": "Team Spirit",
+    "difficulty": 2,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-3-3",
+    "text": "STRONG TEAMS PLAY THE NEXT ROUND",
+    "label": "Team Spirit",
+    "difficulty": 2,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-3-4",
+    "text": "STRONG TEAMS SHARE EVERY VICTORY",
+    "label": "Team Spirit",
+    "difficulty": 3,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-3-5",
+    "text": "STRONG TEAMS TURN SPEED INTO POINTS",
+    "label": "Team Spirit",
+    "difficulty": 3,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-3-6",
+    "text": "STRONG TEAMS MAKE THE CROWD ROAR",
+    "label": "Team Spirit",
+    "difficulty": 3,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-3-7",
+    "text": "STRONG TEAMS KEEP THE GAME MOVING",
+    "label": "Team Spirit",
+    "difficulty": 3,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-3-8",
+    "text": "STRONG TEAMS TRY ONE MORE TIME",
+    "label": "Team Spirit",
+    "difficulty": 3,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-3-9",
+    "text": "STRONG TEAMS BRING THEIR BEST",
+    "label": "Team Spirit",
+    "difficulty": 4,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-3-10",
+    "text": "STRONG TEAMS CELEBRATE TOGETHER TODAY",
+    "label": "Team Spirit",
+    "difficulty": 4,
+    "burnSolution": [
+      "strong",
+      "teams",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "play-4-1",
+    "text": "HAPPY CAMPERS CHASE THE FINISH",
+    "label": "The Crowd",
+    "difficulty": 2,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-4-2",
+    "text": "HAPPY CAMPERS CHEER EACH OTHER",
+    "label": "The Crowd",
+    "difficulty": 2,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-4-3",
+    "text": "HAPPY CAMPERS PLAY THE NEXT ROUND",
+    "label": "The Crowd",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-4-4",
+    "text": "HAPPY CAMPERS SHARE EVERY VICTORY",
+    "label": "The Crowd",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-4-5",
+    "text": "HAPPY CAMPERS TURN SPEED INTO POINTS",
+    "label": "The Crowd",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-4-6",
+    "text": "HAPPY CAMPERS MAKE THE CROWD ROAR",
+    "label": "The Crowd",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-4-7",
+    "text": "HAPPY CAMPERS KEEP THE GAME MOVING",
+    "label": "The Crowd",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-4-8",
+    "text": "HAPPY CAMPERS TRY ONE MORE TIME",
+    "label": "The Crowd",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-4-9",
+    "text": "HAPPY CAMPERS BRING THEIR BEST",
+    "label": "The Crowd",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-4-10",
+    "text": "HAPPY CAMPERS CELEBRATE TOGETHER TODAY",
+    "label": "The Crowd",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "campers",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "play-5-1",
+    "text": "SKILLED SKATERS CHASE THE FINISH",
+    "label": "Big Finish",
+    "difficulty": 2,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-5-2",
+    "text": "SKILLED SKATERS CHEER EACH OTHER",
+    "label": "Big Finish",
+    "difficulty": 3,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-5-3",
+    "text": "SKILLED SKATERS PLAY THE NEXT ROUND",
+    "label": "Big Finish",
+    "difficulty": 3,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-5-4",
+    "text": "SKILLED SKATERS SHARE EVERY VICTORY",
+    "label": "Big Finish",
+    "difficulty": 3,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-5-5",
+    "text": "SKILLED SKATERS TURN SPEED INTO POINTS",
+    "label": "Big Finish",
+    "difficulty": 3,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-5-6",
+    "text": "SKILLED SKATERS MAKE THE CROWD ROAR",
+    "label": "Big Finish",
+    "difficulty": 3,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-5-7",
+    "text": "SKILLED SKATERS KEEP THE GAME MOVING",
+    "label": "Big Finish",
+    "difficulty": 4,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-5-8",
+    "text": "SKILLED SKATERS TRY ONE MORE TIME",
+    "label": "Big Finish",
+    "difficulty": 4,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-5-9",
+    "text": "SKILLED SKATERS BRING THEIR BEST",
+    "label": "Big Finish",
+    "difficulty": 4,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-5-10",
+    "text": "SKILLED SKATERS CELEBRATE TOGETHER TODAY",
+    "label": "Big Finish",
+    "difficulty": 4,
+    "burnSolution": [
+      "skilled",
+      "skaters",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "play-6-1",
+    "text": "FAST RACERS CHASE THE FINISH",
+    "label": "Good Sport",
+    "difficulty": 3,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "chase",
+      "the",
+      "finish"
+    ]
+  },
+  {
+    "id": "play-6-2",
+    "text": "FAST RACERS CHEER EACH OTHER",
+    "label": "Good Sport",
+    "difficulty": 3,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "cheer",
+      "each",
+      "other"
+    ]
+  },
+  {
+    "id": "play-6-3",
+    "text": "FAST RACERS PLAY THE NEXT ROUND",
+    "label": "Good Sport",
+    "difficulty": 3,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "play",
+      "the",
+      "next",
+      "round"
+    ]
+  },
+  {
+    "id": "play-6-4",
+    "text": "FAST RACERS SHARE EVERY VICTORY",
+    "label": "Good Sport",
+    "difficulty": 3,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "share",
+      "every",
+      "victory"
+    ]
+  },
+  {
+    "id": "play-6-5",
+    "text": "FAST RACERS TURN SPEED INTO POINTS",
+    "label": "Good Sport",
+    "difficulty": 3,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "turn",
+      "speed",
+      "into",
+      "points"
+    ]
+  },
+  {
+    "id": "play-6-6",
+    "text": "FAST RACERS MAKE THE CROWD ROAR",
+    "label": "Good Sport",
+    "difficulty": 4,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "make",
+      "the",
+      "crowd",
+      "roar"
+    ]
+  },
+  {
+    "id": "play-6-7",
+    "text": "FAST RACERS KEEP THE GAME MOVING",
+    "label": "Good Sport",
+    "difficulty": 4,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "keep",
+      "the",
+      "game",
+      "moving"
+    ]
+  },
+  {
+    "id": "play-6-8",
+    "text": "FAST RACERS TRY ONE MORE TIME",
+    "label": "Good Sport",
+    "difficulty": 4,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "try",
+      "one",
+      "more",
+      "time"
+    ]
+  },
+  {
+    "id": "play-6-9",
+    "text": "FAST RACERS BRING THEIR BEST",
+    "label": "Good Sport",
+    "difficulty": 4,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "bring",
+      "their",
+      "best"
+    ]
+  },
+  {
+    "id": "play-6-10",
+    "text": "FAST RACERS CELEBRATE TOGETHER TODAY",
+    "label": "Good Sport",
+    "difficulty": 4,
+    "burnSolution": [
+      "fast",
+      "racers",
+      "celebrate",
+      "together",
+      "today"
+    ]
+  },
+  {
+    "id": "arts-1-1",
+    "text": "BOLD ARTISTS CREATE SOMETHING NEW",
+    "label": "Music",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-1-2",
+    "text": "BOLD ARTISTS FILL THE STAGE",
+    "label": "Music",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-1-3",
+    "text": "BOLD ARTISTS TELL AMAZING STORIES",
+    "label": "Music",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-1-4",
+    "text": "BOLD ARTISTS MAKE COLORS SING",
+    "label": "Music",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-1-5",
+    "text": "BOLD ARTISTS TURN IDEAS INTO ART",
+    "label": "Music",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-1-6",
+    "text": "BOLD ARTISTS SHARE THEIR VOICES",
+    "label": "Music",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-1-7",
+    "text": "BOLD ARTISTS FOLLOW EVERY RHYTHM",
+    "label": "Music",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-1-8",
+    "text": "BOLD ARTISTS BRING CHARACTERS ALIVE",
+    "label": "Music",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-1-9",
+    "text": "BOLD ARTISTS BUILD WORLDS TOGETHER",
+    "label": "Music",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-1-10",
+    "text": "BOLD ARTISTS START WITH WONDER",
+    "label": "Music",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "artists",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "arts-2-1",
+    "text": "YOUNG WRITERS CREATE SOMETHING NEW",
+    "label": "Color",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "writers",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-2-2",
+    "text": "YOUNG WRITERS FILL THE STAGE",
+    "label": "Color",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "writers",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-2-3",
+    "text": "YOUNG WRITERS TELL AMAZING STORIES",
+    "label": "Color",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "writers",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-2-4",
+    "text": "YOUNG WRITERS MAKE COLORS SING",
+    "label": "Color",
+    "difficulty": 2,
+    "burnSolution": [
+      "young",
+      "writers",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-2-5",
+    "text": "YOUNG WRITERS TURN IDEAS INTO ART",
+    "label": "Color",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "writers",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-2-6",
+    "text": "YOUNG WRITERS SHARE THEIR VOICES",
+    "label": "Color",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "writers",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-2-7",
+    "text": "YOUNG WRITERS FOLLOW EVERY RHYTHM",
+    "label": "Color",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "writers",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-2-8",
+    "text": "YOUNG WRITERS BRING CHARACTERS ALIVE",
+    "label": "Color",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "writers",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-2-9",
+    "text": "YOUNG WRITERS BUILD WORLDS TOGETHER",
+    "label": "Color",
+    "difficulty": 3,
+    "burnSolution": [
+      "young",
+      "writers",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-2-10",
+    "text": "YOUNG WRITERS START WITH WONDER",
+    "label": "Color",
+    "difficulty": 4,
+    "burnSolution": [
+      "young",
+      "writers",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "arts-3-1",
+    "text": "LIVE MUSICIANS CREATE SOMETHING NEW",
+    "label": "The Stage",
+    "difficulty": 2,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-3-2",
+    "text": "LIVE MUSICIANS FILL THE STAGE",
+    "label": "The Stage",
+    "difficulty": 2,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-3-3",
+    "text": "LIVE MUSICIANS TELL AMAZING STORIES",
+    "label": "The Stage",
+    "difficulty": 2,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-3-4",
+    "text": "LIVE MUSICIANS MAKE COLORS SING",
+    "label": "The Stage",
+    "difficulty": 3,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-3-5",
+    "text": "LIVE MUSICIANS TURN IDEAS INTO ART",
+    "label": "The Stage",
+    "difficulty": 3,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-3-6",
+    "text": "LIVE MUSICIANS SHARE THEIR VOICES",
+    "label": "The Stage",
+    "difficulty": 3,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-3-7",
+    "text": "LIVE MUSICIANS FOLLOW EVERY RHYTHM",
+    "label": "The Stage",
+    "difficulty": 3,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-3-8",
+    "text": "LIVE MUSICIANS BRING CHARACTERS ALIVE",
+    "label": "The Stage",
+    "difficulty": 3,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-3-9",
+    "text": "LIVE MUSICIANS BUILD WORLDS TOGETHER",
+    "label": "The Stage",
+    "difficulty": 4,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-3-10",
+    "text": "LIVE MUSICIANS START WITH WONDER",
+    "label": "The Stage",
+    "difficulty": 4,
+    "burnSolution": [
+      "live",
+      "musicians",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "arts-4-1",
+    "text": "GREAT DANCERS CREATE SOMETHING NEW",
+    "label": "Imagination",
+    "difficulty": 2,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-4-2",
+    "text": "GREAT DANCERS FILL THE STAGE",
+    "label": "Imagination",
+    "difficulty": 2,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-4-3",
+    "text": "GREAT DANCERS TELL AMAZING STORIES",
+    "label": "Imagination",
+    "difficulty": 3,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-4-4",
+    "text": "GREAT DANCERS MAKE COLORS SING",
+    "label": "Imagination",
+    "difficulty": 3,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-4-5",
+    "text": "GREAT DANCERS TURN IDEAS INTO ART",
+    "label": "Imagination",
+    "difficulty": 3,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-4-6",
+    "text": "GREAT DANCERS SHARE THEIR VOICES",
+    "label": "Imagination",
+    "difficulty": 3,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-4-7",
+    "text": "GREAT DANCERS FOLLOW EVERY RHYTHM",
+    "label": "Imagination",
+    "difficulty": 3,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-4-8",
+    "text": "GREAT DANCERS BRING CHARACTERS ALIVE",
+    "label": "Imagination",
+    "difficulty": 4,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-4-9",
+    "text": "GREAT DANCERS BUILD WORLDS TOGETHER",
+    "label": "Imagination",
+    "difficulty": 4,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-4-10",
+    "text": "GREAT DANCERS START WITH WONDER",
+    "label": "Imagination",
+    "difficulty": 4,
+    "burnSolution": [
+      "great",
+      "dancers",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "arts-5-1",
+    "text": "CLEVER MAKERS CREATE SOMETHING NEW",
+    "label": "Stories",
+    "difficulty": 2,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-5-2",
+    "text": "CLEVER MAKERS FILL THE STAGE",
+    "label": "Stories",
+    "difficulty": 3,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-5-3",
+    "text": "CLEVER MAKERS TELL AMAZING STORIES",
+    "label": "Stories",
+    "difficulty": 3,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-5-4",
+    "text": "CLEVER MAKERS MAKE COLORS SING",
+    "label": "Stories",
+    "difficulty": 3,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-5-5",
+    "text": "CLEVER MAKERS TURN IDEAS INTO ART",
+    "label": "Stories",
+    "difficulty": 3,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-5-6",
+    "text": "CLEVER MAKERS SHARE THEIR VOICES",
+    "label": "Stories",
+    "difficulty": 3,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-5-7",
+    "text": "CLEVER MAKERS FOLLOW EVERY RHYTHM",
+    "label": "Stories",
+    "difficulty": 4,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-5-8",
+    "text": "CLEVER MAKERS BRING CHARACTERS ALIVE",
+    "label": "Stories",
+    "difficulty": 4,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-5-9",
+    "text": "CLEVER MAKERS BUILD WORLDS TOGETHER",
+    "label": "Stories",
+    "difficulty": 4,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-5-10",
+    "text": "CLEVER MAKERS START WITH WONDER",
+    "label": "Stories",
+    "difficulty": 4,
+    "burnSolution": [
+      "clever",
+      "makers",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "arts-6-1",
+    "text": "BRIGHT DREAMERS CREATE SOMETHING NEW",
+    "label": "Creative Spark",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "create",
+      "something",
+      "new"
+    ]
+  },
+  {
+    "id": "arts-6-2",
+    "text": "BRIGHT DREAMERS FILL THE STAGE",
+    "label": "Creative Spark",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "fill",
+      "the",
+      "stage"
+    ]
+  },
+  {
+    "id": "arts-6-3",
+    "text": "BRIGHT DREAMERS TELL AMAZING STORIES",
+    "label": "Creative Spark",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "tell",
+      "amazing",
+      "stories"
+    ]
+  },
+  {
+    "id": "arts-6-4",
+    "text": "BRIGHT DREAMERS MAKE COLORS SING",
+    "label": "Creative Spark",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "make",
+      "colors",
+      "sing"
+    ]
+  },
+  {
+    "id": "arts-6-5",
+    "text": "BRIGHT DREAMERS TURN IDEAS INTO ART",
+    "label": "Creative Spark",
+    "difficulty": 3,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "turn",
+      "ideas",
+      "into",
+      "art"
+    ]
+  },
+  {
+    "id": "arts-6-6",
+    "text": "BRIGHT DREAMERS SHARE THEIR VOICES",
+    "label": "Creative Spark",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "share",
+      "their",
+      "voices"
+    ]
+  },
+  {
+    "id": "arts-6-7",
+    "text": "BRIGHT DREAMERS FOLLOW EVERY RHYTHM",
+    "label": "Creative Spark",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "follow",
+      "every",
+      "rhythm"
+    ]
+  },
+  {
+    "id": "arts-6-8",
+    "text": "BRIGHT DREAMERS BRING CHARACTERS ALIVE",
+    "label": "Creative Spark",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "bring",
+      "characters",
+      "alive"
+    ]
+  },
+  {
+    "id": "arts-6-9",
+    "text": "BRIGHT DREAMERS BUILD WORLDS TOGETHER",
+    "label": "Creative Spark",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "build",
+      "worlds",
+      "together"
+    ]
+  },
+  {
+    "id": "arts-6-10",
+    "text": "BRIGHT DREAMERS START WITH WONDER",
+    "label": "Creative Spark",
+    "difficulty": 4,
+    "burnSolution": [
+      "bright",
+      "dreamers",
+      "start",
+      "with",
+      "wonder"
+    ]
+  },
+  {
+    "id": "adventure-1-1",
+    "text": "BOLD EXPLORERS FIND THE NEXT PATH",
+    "label": "Adventure",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-1-2",
+    "text": "BOLD EXPLORERS FOLLOW TRUE NORTH",
+    "label": "Adventure",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-1-3",
+    "text": "BOLD EXPLORERS CROSS EVERY BRIDGE",
+    "label": "Adventure",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-1-4",
+    "text": "BOLD EXPLORERS REACH HIGHER GROUND",
+    "label": "Adventure",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-1-5",
+    "text": "BOLD EXPLORERS WELCOME NEW ADVENTURES",
+    "label": "Adventure",
+    "difficulty": 2,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-1-6",
+    "text": "BOLD EXPLORERS MAKE MEMORIES TOGETHER",
+    "label": "Adventure",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-1-7",
+    "text": "BOLD EXPLORERS TRAVEL BEYOND HOME",
+    "label": "Adventure",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-1-8",
+    "text": "BOLD EXPLORERS CLIMB TOWARD SUNRISE",
+    "label": "Adventure",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-1-9",
+    "text": "BOLD EXPLORERS DISCOVER HIDDEN PLACES",
+    "label": "Adventure",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-1-10",
+    "text": "BOLD EXPLORERS KEEP MOVING FORWARD",
+    "label": "Adventure",
+    "difficulty": 3,
+    "burnSolution": [
+      "bold",
+      "explorers",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  },
+  {
+    "id": "adventure-2-1",
+    "text": "READY TRAVELERS FIND THE NEXT PATH",
+    "label": "New Roads",
+    "difficulty": 2,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-2-2",
+    "text": "READY TRAVELERS FOLLOW TRUE NORTH",
+    "label": "New Roads",
+    "difficulty": 2,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-2-3",
+    "text": "READY TRAVELERS CROSS EVERY BRIDGE",
+    "label": "New Roads",
+    "difficulty": 2,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-2-4",
+    "text": "READY TRAVELERS REACH HIGHER GROUND",
+    "label": "New Roads",
+    "difficulty": 2,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-2-5",
+    "text": "READY TRAVELERS WELCOME NEW ADVENTURES",
+    "label": "New Roads",
+    "difficulty": 3,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-2-6",
+    "text": "READY TRAVELERS MAKE MEMORIES TOGETHER",
+    "label": "New Roads",
+    "difficulty": 3,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-2-7",
+    "text": "READY TRAVELERS TRAVEL BEYOND HOME",
+    "label": "New Roads",
+    "difficulty": 3,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-2-8",
+    "text": "READY TRAVELERS CLIMB TOWARD SUNRISE",
+    "label": "New Roads",
+    "difficulty": 3,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-2-9",
+    "text": "READY TRAVELERS DISCOVER HIDDEN PLACES",
+    "label": "New Roads",
+    "difficulty": 3,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-2-10",
+    "text": "READY TRAVELERS KEEP MOVING FORWARD",
+    "label": "New Roads",
+    "difficulty": 4,
+    "burnSolution": [
+      "ready",
+      "travelers",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  },
+  {
+    "id": "adventure-3-1",
+    "text": "BRAVE CLIMBERS FIND THE NEXT PATH",
+    "label": "The Summit",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-3-2",
+    "text": "BRAVE CLIMBERS FOLLOW TRUE NORTH",
+    "label": "The Summit",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-3-3",
+    "text": "BRAVE CLIMBERS CROSS EVERY BRIDGE",
+    "label": "The Summit",
+    "difficulty": 2,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-3-4",
+    "text": "BRAVE CLIMBERS REACH HIGHER GROUND",
+    "label": "The Summit",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-3-5",
+    "text": "BRAVE CLIMBERS WELCOME NEW ADVENTURES",
+    "label": "The Summit",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-3-6",
+    "text": "BRAVE CLIMBERS MAKE MEMORIES TOGETHER",
+    "label": "The Summit",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-3-7",
+    "text": "BRAVE CLIMBERS TRAVEL BEYOND HOME",
+    "label": "The Summit",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-3-8",
+    "text": "BRAVE CLIMBERS CLIMB TOWARD SUNRISE",
+    "label": "The Summit",
+    "difficulty": 3,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-3-9",
+    "text": "BRAVE CLIMBERS DISCOVER HIDDEN PLACES",
+    "label": "The Summit",
+    "difficulty": 4,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-3-10",
+    "text": "BRAVE CLIMBERS KEEP MOVING FORWARD",
+    "label": "The Summit",
+    "difficulty": 4,
+    "burnSolution": [
+      "brave",
+      "climbers",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  },
+  {
+    "id": "adventure-4-1",
+    "text": "HAPPY HIKERS FIND THE NEXT PATH",
+    "label": "Exploration",
+    "difficulty": 2,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-4-2",
+    "text": "HAPPY HIKERS FOLLOW TRUE NORTH",
+    "label": "Exploration",
+    "difficulty": 2,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-4-3",
+    "text": "HAPPY HIKERS CROSS EVERY BRIDGE",
+    "label": "Exploration",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-4-4",
+    "text": "HAPPY HIKERS REACH HIGHER GROUND",
+    "label": "Exploration",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-4-5",
+    "text": "HAPPY HIKERS WELCOME NEW ADVENTURES",
+    "label": "Exploration",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-4-6",
+    "text": "HAPPY HIKERS MAKE MEMORIES TOGETHER",
+    "label": "Exploration",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-4-7",
+    "text": "HAPPY HIKERS TRAVEL BEYOND HOME",
+    "label": "Exploration",
+    "difficulty": 3,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-4-8",
+    "text": "HAPPY HIKERS CLIMB TOWARD SUNRISE",
+    "label": "Exploration",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-4-9",
+    "text": "HAPPY HIKERS DISCOVER HIDDEN PLACES",
+    "label": "Exploration",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-4-10",
+    "text": "HAPPY HIKERS KEEP MOVING FORWARD",
+    "label": "Exploration",
+    "difficulty": 4,
+    "burnSolution": [
+      "happy",
+      "hikers",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  },
+  {
+    "id": "adventure-5-1",
+    "text": "CURIOUS FRIENDS FIND THE NEXT PATH",
+    "label": "Moving Forward",
+    "difficulty": 2,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-5-2",
+    "text": "CURIOUS FRIENDS FOLLOW TRUE NORTH",
+    "label": "Moving Forward",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-5-3",
+    "text": "CURIOUS FRIENDS CROSS EVERY BRIDGE",
+    "label": "Moving Forward",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-5-4",
+    "text": "CURIOUS FRIENDS REACH HIGHER GROUND",
+    "label": "Moving Forward",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-5-5",
+    "text": "CURIOUS FRIENDS WELCOME NEW ADVENTURES",
+    "label": "Moving Forward",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-5-6",
+    "text": "CURIOUS FRIENDS MAKE MEMORIES TOGETHER",
+    "label": "Moving Forward",
+    "difficulty": 3,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-5-7",
+    "text": "CURIOUS FRIENDS TRAVEL BEYOND HOME",
+    "label": "Moving Forward",
+    "difficulty": 4,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-5-8",
+    "text": "CURIOUS FRIENDS CLIMB TOWARD SUNRISE",
+    "label": "Moving Forward",
+    "difficulty": 4,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-5-9",
+    "text": "CURIOUS FRIENDS DISCOVER HIDDEN PLACES",
+    "label": "Moving Forward",
+    "difficulty": 4,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-5-10",
+    "text": "CURIOUS FRIENDS KEEP MOVING FORWARD",
+    "label": "Moving Forward",
+    "difficulty": 4,
+    "burnSolution": [
+      "curious",
+      "friends",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  },
+  {
+    "id": "adventure-6-1",
+    "text": "STEADY WALKERS FIND THE NEXT PATH",
+    "label": "New Horizons",
+    "difficulty": 3,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "find",
+      "the",
+      "next",
+      "path"
+    ]
+  },
+  {
+    "id": "adventure-6-2",
+    "text": "STEADY WALKERS FOLLOW TRUE NORTH",
+    "label": "New Horizons",
+    "difficulty": 3,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "follow",
+      "true",
+      "north"
+    ]
+  },
+  {
+    "id": "adventure-6-3",
+    "text": "STEADY WALKERS CROSS EVERY BRIDGE",
+    "label": "New Horizons",
+    "difficulty": 3,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "cross",
+      "every",
+      "bridge"
+    ]
+  },
+  {
+    "id": "adventure-6-4",
+    "text": "STEADY WALKERS REACH HIGHER GROUND",
+    "label": "New Horizons",
+    "difficulty": 3,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "reach",
+      "higher",
+      "ground"
+    ]
+  },
+  {
+    "id": "adventure-6-5",
+    "text": "STEADY WALKERS WELCOME NEW ADVENTURES",
+    "label": "New Horizons",
+    "difficulty": 3,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "welcome",
+      "new",
+      "adventures"
+    ]
+  },
+  {
+    "id": "adventure-6-6",
+    "text": "STEADY WALKERS MAKE MEMORIES TOGETHER",
+    "label": "New Horizons",
+    "difficulty": 4,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "make",
+      "memories",
+      "together"
+    ]
+  },
+  {
+    "id": "adventure-6-7",
+    "text": "STEADY WALKERS TRAVEL BEYOND HOME",
+    "label": "New Horizons",
+    "difficulty": 4,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "travel",
+      "beyond",
+      "home"
+    ]
+  },
+  {
+    "id": "adventure-6-8",
+    "text": "STEADY WALKERS CLIMB TOWARD SUNRISE",
+    "label": "New Horizons",
+    "difficulty": 4,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "climb",
+      "toward",
+      "sunrise"
+    ]
+  },
+  {
+    "id": "adventure-6-9",
+    "text": "STEADY WALKERS DISCOVER HIDDEN PLACES",
+    "label": "New Horizons",
+    "difficulty": 4,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "discover",
+      "hidden",
+      "places"
+    ]
+  },
+  {
+    "id": "adventure-6-10",
+    "text": "STEADY WALKERS KEEP MOVING FORWARD",
+    "label": "New Horizons",
+    "difficulty": 4,
+    "burnSolution": [
+      "steady",
+      "walkers",
+      "keep",
+      "moving",
+      "forward"
+    ]
+  }
+]

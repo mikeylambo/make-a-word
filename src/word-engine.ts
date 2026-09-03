@@ -1,10 +1,11 @@
 import commonWords from "./common-words.txt?raw";
+import inflectedWords from "./inflected-words.txt?raw";
 import blockedWords from "../content/dictionary-blocklist.json";
 import dictionaryAdditions from "../content/dictionary-additions.json";
 
 const BLOCKED_WORDS = new Set(blockedWords);
 const WORDS = new Set(
-  commonWords
+  `${commonWords}\n${inflectedWords}`
     .split(/\s+/)
     .map((word) => word.toLowerCase())
     .filter((word) => word.length >= 3 && !BLOCKED_WORDS.has(word))

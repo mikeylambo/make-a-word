@@ -18,6 +18,26 @@ type FoundWord = {
   points: number;
 };
 
+type TogetherMode = "relay" | "pass-play";
+
+type TogetherPlayer = {
+  name: string;
+  score: number;
+  found: FoundWord[];
+  submitted: Set<string>;
+};
+
+type TogetherState = {
+  mode: TogetherMode;
+  phrase: PhraseEntry;
+  players: TogetherPlayer[];
+  currentPlayer: number;
+  sharedSubmitted: Set<string>;
+  timeLeft: number;
+  paused: boolean;
+  ended: boolean;
+};
+
 type RoundState = {
   mode: ModeId;
   phrase: PhraseEntry;
@@ -44,32 +64,32 @@ type RoundState = {
 const MODE_META: Record<ModeId, { name: string; kicker: string; description: string; duration: number }> = {
   classic: {
     name: "Classic",
-    kicker: "Mine the phrase",
+    kicker: "Make as many words as you can",
     description: "Letters return after every word. Find as many words as you can.",
     duration: 120
   },
   burn: {
     name: "Burn",
-    kicker: "Spend every letter wisely",
-    description: "Spend a phrase, clear the board, then keep scoring from the next deal.",
+    kicker: "Every letter counts",
+    description: "Used letters disappear. Clear the board, then keep scoring with a new phrase.",
     duration: 150
   },
   blitz: {
     name: "Blitz",
-    kicker: "Speed over perfection",
-    description: "Sixty seconds. Reusable letters. Chain fast answers for bigger combos.",
+    kicker: "Make words quickly",
+    description: "You have 60 seconds. Make words quickly to build bigger combos.",
     duration: 60
   },
   daily: {
     name: "Daily Phrase",
     kicker: "One phrase. One score.",
-    description: "The same phrase for everyone today. Your best score is saved locally.",
+    description: "A new phrase every day. Everyone gets the same challenge.",
     duration: 120
   },
   journey: {
-    name: "Journey",
-    kicker: "Master every phrase",
-    description: "A curated path of phrases with three score medals on every stage.",
+    name: "Trials",
+    kicker: "Take on each challenge",
+    description: "Play a series of phrases and earn up to three medals on each one.",
     duration: 120
   }
 };
@@ -90,6 +110,9 @@ let lastPhraseText = "";
 let flowToken = 0;
 let settingsReturnScreen: ScreenId = "menu";
 let comboMeterFrame: number | null = null;
+let together: TogetherState | null = null;
+let togetherPlayerCount = 2;
+let togetherTimerId: number | null = null;
 
 function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -128,14 +151,15 @@ function shell(title: string, content: string, options: { back?: string; compact
 
 function showTitle(): void {
   stopTimer();
+  stopTogetherTimer();
   flowToken += 1;
   screens.show("title", `
     <main class="title-screen">
       <div class="title-orbit" aria-hidden="true"><span>A</span><span>R</span><span>T</span><span>E</span></div>
       <section class="title-lockup">
-        <div class="eyebrow">SLU WORD GAME</div>
+        <div class="eyebrow">THE PHRASE WORD GAME</div>
         <h1>MAKE<br><em>A</em> WORD</h1>
-        <p>Mine a phrase. Build everything hiding inside it.</p>
+        <p>Use the letters in the phrase. Make as many words as you can.</p>
         <button class="primary-button primary-button--wide" data-nav data-action="enter-menu">START</button>
       </section>
       <div class="title-footer">v0.1 • WORDS ARE HIDING EVERYWHERE</div>
@@ -145,15 +169,16 @@ function showTitle(): void {
 
 function showMenu(): void {
   stopTimer();
+  stopTogetherTimer();
   flowToken += 1;
   const dailyDone = save.daily[todayKey()] ?? 0;
   const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
   screens.show("menu", shell("MAKE A WORD", `
     <section class="hero-panel">
       <div>
-        <div class="eyebrow">PHRASE MINING</div>
-        <h2>Every sentence is<br>a field of possibilities.</h2>
-        <p>Use only the letters you can see. Longer words score more. Fast answers build combo.</p>
+        <div class="eyebrow">HOW MANY CAN YOU FIND?</div>
+        <h2>Words are hiding<br>inside every phrase.</h2>
+        <p>Use only the letters you can see. Longer words score more. Quick answers build your combo.</p>
       </div>
       <div class="hero-score">
         <span>BEST SCORE</span>
@@ -175,9 +200,15 @@ function showMenu(): void {
         <span class="arrow">→</span>
       </button>
       <button class="menu-card menu-card--journey" data-nav data-action="journey">
-        <span class="menu-card__tag">JOURNEY</span>
-        <strong>Phrase Road</strong>
+        <span class="menu-card__tag">CHALLENGES</span>
+        <strong>Trials</strong>
         <small>${journeyMedals} / ${JOURNEY_PHRASES.length * 3} medals</small>
+        <span class="arrow">→</span>
+      </button>
+      <button class="menu-card menu-card--together" data-nav data-action="multiplayer">
+        <span class="menu-card__tag">2–4 PLAYERS</span>
+        <strong>Play Together</strong>
+        <small>Word Relay • Pass &amp; Play</small>
         <span class="arrow">→</span>
       </button>
       <button class="menu-card" data-nav data-action="stats">
@@ -241,13 +272,257 @@ function showJourney(): void {
       </button>`;
   }).join("");
 
-  screens.show("journey", shell("PHRASE ROAD", `
+  screens.show("journey", shell("TRIALS", `
     <section class="journey-header">
-      <div><span class="eyebrow">CLASSIC JOURNEY</span><h2>Master the phrase.</h2><p>Earn one medal to open the next stage. Return for all three.</p></div>
+      <div><span class="eyebrow">24 WORD TRIALS</span><h2>Put your word skills to the test.</h2><p>Earn one medal to unlock the next trial. Replay any trial to earn all three.</p></div>
       <div><strong>${totalMedals}</strong><span>OF ${JOURNEY_PHRASES.length * 3} MEDALS</span></div>
     </section>
     <section class="journey-list">${stages}</section>
   `, { back: "menu" }));
+}
+
+function showMultiplayer(): void {
+  stopTogetherTimer();
+  screens.show("multiplayer", shell("PLAY TOGETHER", `
+    <section class="multiplayer-header">
+      <div><span class="eyebrow">ONE DEVICE · 2–4 PLAYERS</span><h2>Bring the classroom game back.</h2><p>Gather around one screen, choose your players, and compete with the same phrase.</p></div>
+      <div class="player-count" role="group" aria-label="Number of players">
+        <span>PLAYERS</span>
+        <div>${[2, 3, 4].map((count) => `<button class="${count === togetherPlayerCount ? "selected" : ""}" data-nav data-player-count="${count}">${count}</button>`).join("")}</div>
+      </div>
+    </section>
+    <section class="multiplayer-modes">
+      <button class="multiplayer-mode multiplayer-mode--relay" data-nav data-together-mode="relay">
+        <span>QUICK TURNS</span><strong>Word Relay</strong>
+        <p>Everyone shares one phrase and one timer. Find a word, then the turn moves to the next player.</p>
+        <small>2 MINUTES · SHARED WORD LIST</small><b>→</b>
+      </button>
+      <button class="multiplayer-mode multiplayer-mode--pass" data-nav data-together-mode="pass-play">
+        <span>HEAD TO HEAD</span><strong>Pass &amp; Play</strong>
+        <p>Each player gets 60 seconds with the same phrase. Pass the device between turns. Highest score wins.</p>
+        <small>60 SECONDS EACH · PRIVATE WORD LISTS</small><b>→</b>
+      </button>
+    </section>
+    <p class="multiplayer-note">Made for family game nights, classrooms, and friendly competition.</p>
+  `, { back: "menu" }));
+}
+
+function startMultiplayer(mode: TogetherMode): void {
+  stopTimer();
+  stopTogetherTimer();
+  flowToken += 1;
+  together = {
+    mode,
+    phrase: randomPhrase(lastPhraseText),
+    players: Array.from({ length: togetherPlayerCount }, (_, index) => ({
+      name: `Player ${index + 1}`,
+      score: 0,
+      found: [],
+      submitted: new Set<string>()
+    })),
+    currentPlayer: 0,
+    sharedSubmitted: new Set<string>(),
+    timeLeft: mode === "relay" ? 120 : 60,
+    paused: true,
+    ended: false
+  };
+  lastPhraseText = together.phrase.text;
+  showTogetherHandoff(true);
+}
+
+function showTogetherHandoff(firstTurn = false): void {
+  if (!together) return;
+  stopTogetherTimer();
+  const player = together.players[together.currentPlayer];
+  screens.show("multiplayer-game", `
+    <main class="handoff-screen">
+      <section class="handoff-card">
+        <span class="eyebrow">${together.mode === "relay" ? "WORD RELAY" : firstTurn ? "PASS & PLAY" : "PASS THE DEVICE"}</span>
+        <div class="handoff-player">${together.currentPlayer + 1}</div>
+        <h2>${escapeHtml(player?.name ?? "Next player")}</h2>
+        <p>${together.mode === "relay" ? "Find a word, then hand the turn to the next player." : "Your word list stays private until the final results."}</p>
+        <button class="primary-button primary-button--wide" data-nav data-action="begin-together">${firstTurn ? "START MATCH" : "START TURN"}</button>
+        <button class="text-button" data-nav data-action="quit-together">QUIT TO MENU</button>
+      </section>
+    </main>
+  `);
+}
+
+function beginTogetherTurn(): void {
+  if (!together || together.ended) return;
+  together.paused = false;
+  renderTogetherGame();
+  stopTogetherTimer();
+  togetherTimerId = window.setInterval(togetherTick, 1000);
+}
+
+function togetherScoreboard(state: TogetherState): string {
+  return state.players.map((player, index) => `
+    <div class="together-player ${index === state.currentPlayer ? "active" : ""}">
+      <span>${escapeHtml(player.name)}</span><strong>${player.score.toLocaleString()}</strong>
+    </div>`).join("");
+}
+
+function togetherFound(state: TogetherState): string {
+  const player = state.players[state.currentPlayer];
+  const list = state.mode === "relay"
+    ? state.players.flatMap((entry) => entry.found)
+    : player?.found ?? [];
+  if (!list.length) return `<div class="empty-found">Words will appear here.</div>`;
+  return list.slice().reverse().map((item, index) => `
+    <div class="found-word ${index === 0 ? "found-word--new" : ""}"><span>${item.word.toUpperCase()}</span><strong>+${item.points}</strong></div>
+  `).join("");
+}
+
+function renderTogetherGame(): void {
+  if (!together) return;
+  const state = together;
+  const player = state.players[state.currentPlayer];
+  screens.show("multiplayer-game", `
+    <main class="game-screen game-screen--together">
+      <header class="together-hud">
+        <button class="icon-button" data-nav data-action="pause-together" aria-label="Pause">Ⅱ</button>
+        <div><span>${state.mode === "relay" ? "WORD RELAY" : "PASS & PLAY"}</span><strong id="together-turn">${escapeHtml(player?.name ?? "Player")}'S TURN</strong></div>
+        <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="together-time">${formatTime(state.timeLeft)}</strong></div>
+      </header>
+      <section class="playfield together-playfield">
+        <div class="together-scoreboard" id="together-scoreboard">${togetherScoreboard(state)}</div>
+        <div class="phrase-header"><span>MAKE WORDS FROM THIS PHRASE</span><small>${state.phrase.label}</small></div>
+        <div class="phrase-display">${renderPhraseText(state.phrase.text)}</div>
+        <form class="word-entry" id="together-form" autocomplete="off">
+          <input id="together-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter a word" placeholder="TYPE A WORD" />
+          <button class="submit-word" type="submit">ENTER</button>
+        </form>
+        <div class="feedback" id="together-feedback">${state.mode === "relay" ? "Find one word to pass the turn" : "3+ letters · ENTER to submit"}</div>
+        ${state.mode === "relay" ? `<button class="pass-turn" data-nav data-action="pass-turn">PASS TURN</button>` : ""}
+        <div class="found-panel together-found">
+          <div class="found-panel__header"><span>${state.mode === "relay" ? "MATCH WORDS" : `${escapeHtml(player?.name ?? "Player").toUpperCase()}'S WORDS`}</span><strong id="together-word-count">${state.mode === "relay" ? state.sharedSubmitted.size : player?.found.length ?? 0}</strong></div>
+          <div class="found-list" id="together-found-list">${togetherFound(state)}</div>
+        </div>
+      </section>
+      <div id="pause-layer"></div>
+    </main>
+  `);
+  const form = document.querySelector<HTMLFormElement>("#together-form");
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    submitTogetherWord();
+  });
+  requestAnimationFrame(() => document.querySelector<HTMLInputElement>("#together-input")?.focus({ preventScroll: true }));
+}
+
+function submitTogetherWord(): void {
+  if (!together || together.paused || together.ended) return;
+  const state = together;
+  const player = state.players[state.currentPlayer];
+  const input = document.querySelector<HTMLInputElement>("#together-input");
+  const feedback = document.querySelector<HTMLElement>("#together-feedback");
+  if (!player || !input) return;
+  const submitted = state.mode === "relay" ? state.sharedSubmitted : player.submitted;
+  const result = validateWord(input.value, countsForText(state.phrase.text), submitted);
+  if (!result.ok) {
+    audio.play("reject", save.settings.sound);
+    feedback?.classList.remove("feedback--good");
+    feedback?.classList.add("feedback--bad");
+    if (feedback) feedback.textContent = humanReason(result.reason);
+    input.classList.remove("shake");
+    void input.offsetWidth;
+    input.classList.add("shake");
+    return;
+  }
+
+  const points = scoreWord(result.word.length, 0, false);
+  player.score += points;
+  player.found.push({ word: result.word, points });
+  player.submitted.add(result.word);
+  state.sharedSubmitted.add(result.word);
+  input.value = "";
+  audio.play("accept", save.settings.sound);
+  if (state.mode === "relay") state.currentPlayer = (state.currentPlayer + 1) % state.players.length;
+  renderTogetherGame();
+}
+
+function passTogetherTurn(): void {
+  if (!together || together.mode !== "relay" || together.paused) return;
+  together.currentPlayer = (together.currentPlayer + 1) % together.players.length;
+  renderTogetherGame();
+}
+
+function togetherTick(): void {
+  if (!together || together.paused || together.ended) return;
+  together.timeLeft -= 1;
+  const time = document.querySelector<HTMLElement>("#together-time");
+  if (time) {
+    time.textContent = formatTime(together.timeLeft);
+    time.classList.toggle("danger", together.timeLeft <= 10);
+  }
+  if (together.timeLeft > 0) return;
+
+  if (together.mode === "pass-play" && together.currentPlayer + 1 < together.players.length) {
+    together.currentPlayer += 1;
+    together.timeLeft = 60;
+    together.paused = true;
+    showTogetherHandoff();
+  } else {
+    endTogetherMatch();
+  }
+}
+
+function toggleTogetherPause(paused: boolean): void {
+  if (!together || together.ended) return;
+  together.paused = paused;
+  const layer = document.querySelector<HTMLElement>("#pause-layer");
+  if (!layer) return;
+  if (!paused) {
+    layer.innerHTML = "";
+    document.querySelector<HTMLInputElement>("#together-input")?.focus({ preventScroll: true });
+    return;
+  }
+  layer.innerHTML = `<div class="pause-overlay"><div class="pause-card"><span class="eyebrow">MATCH PAUSED</span><h2>Play Together</h2><button class="primary-button" data-nav data-action="resume-together">RESUME</button><button class="secondary-button secondary-button--danger" data-nav data-action="end-together">END MATCH</button><button class="text-button" data-nav data-action="quit-together">QUIT TO MENU</button></div></div>`;
+  screens.focusFirst();
+}
+
+function stopTogetherTimer(): void {
+  if (togetherTimerId !== null) window.clearInterval(togetherTimerId);
+  togetherTimerId = null;
+}
+
+function endTogetherMatch(): void {
+  if (!together || together.ended) return;
+  together.ended = true;
+  stopTogetherTimer();
+  audio.play("end", save.settings.sound);
+  const words = together.players.reduce((sum, player) => sum + player.found.length, 0);
+  const score = together.players.reduce((sum, player) => sum + player.score, 0);
+  save.totalWords += words;
+  save.totalScore += score;
+  save.roundsPlayed += 1;
+  store.save(save);
+  showTogetherResults();
+}
+
+function showTogetherResults(): void {
+  if (!together) return showMenu();
+  const ranked = together.players
+    .map((player, index) => ({ ...player, originalIndex: index }))
+    .sort((a, b) => b.score - a.score || b.found.length - a.found.length);
+  const winner = ranked[0];
+  screens.show("multiplayer-results", shell("MATCH COMPLETE", `
+    <section class="results-hero together-results-hero">
+      <span class="eyebrow">${together.mode === "relay" ? "WORD RELAY" : "PASS & PLAY"}</span>
+      <div class="winner-number">${winner?.originalIndex === undefined ? "★" : winner.originalIndex + 1}</div>
+      <h2>${escapeHtml(winner?.name ?? "Great game")} wins!</h2>
+      <p>${winner?.score.toLocaleString() ?? 0} points · ${winner?.found.length ?? 0} words</p>
+    </section>
+    <section class="together-ranking">
+      ${ranked.map((player, index) => `<div class="${index === 0 ? "winner" : ""}"><b>${index + 1}</b><span>${escapeHtml(player.name)}</span><small>${player.found.length} WORDS</small><strong>${player.score.toLocaleString()}</strong></div>`).join("")}
+    </section>
+    <section class="result-actions">
+      <button class="primary-button" data-nav data-action="again-together">PLAY AGAIN</button>
+      <button class="secondary-button" data-nav data-action="multiplayer">CHANGE MATCH</button>
+      <button class="text-button" data-nav data-action="menu">MAIN MENU</button>
+    </section>
+  `, { back: "multiplayer" }));
 }
 
 function choosePhrase(mode: ModeId): PhraseEntry {
@@ -259,6 +534,7 @@ function choosePhrase(mode: ModeId): PhraseEntry {
 
 function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: number): void {
   stopTimer();
+  stopTogetherTimer();
   const token = ++flowToken;
   const phrase = phraseOverride ?? choosePhrase(mode);
   round = {
@@ -306,20 +582,24 @@ async function runRoundCountdown(token: number): Promise<void> {
   timerId = window.setInterval(tick, 1000);
 }
 
-function renderPhrase(state: RoundState): string {
+function renderPhraseText(text: string, burned = new Set<number>()): string {
   let wordIndex = 0;
-  const words = state.phrase.text.split(" ");
+  const words = text.split(" ");
   return words.map((word) => {
     const letters = [...word].map((char) => {
-      while (state.phrase.text[wordIndex] === " ") wordIndex += 1;
+      while (text[wordIndex] === " ") wordIndex += 1;
       const index = wordIndex;
       wordIndex += 1;
-      const burned = state.burned.has(index);
-      return `<span class="phrase-letter ${burned ? "phrase-letter--burned" : ""}" data-letter-index="${index}">${escapeHtml(char)}</span>`;
+      const isBurned = burned.has(index);
+      return `<span class="phrase-letter ${isBurned ? "phrase-letter--burned" : ""}" data-letter-index="${index}">${escapeHtml(char)}</span>`;
     }).join("");
     wordIndex += 1;
     return `<span class="phrase-word">${letters}</span>`;
   }).join(" ");
+}
+
+function renderPhrase(state: RoundState): string {
+  return renderPhraseText(state.phrase.text, state.burned);
 }
 
 function renderFound(state: RoundState): string {
@@ -351,7 +631,7 @@ function renderGame(): void {
 
       <section class="playfield">
         <div class="phrase-header">
-          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · SPEND THESE LETTERS` : state.mode === "journey" ? `STAGE ${String((state.journeyStage ?? 0) + 1).padStart(2, "0")} · PHRASE ROAD` : "MINE THIS PHRASE"}</span>
+          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · USE EVERY LETTER` : state.mode === "journey" ? `TRIAL ${String((state.journeyStage ?? 0) + 1).padStart(2, "0")}` : "MAKE WORDS FROM THIS PHRASE"}</span>
           <small>${state.phrase.label} • DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}</small>
         </div>
         ${state.mode === "burn" ? `
@@ -380,14 +660,14 @@ function renderGame(): void {
               <p>Spend every letter for a +1,000 Board Clear bonus. Deal early for a 5-second penalty.</p>
               <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
             ` : state.mode === "journey" ? `
-              <span>STAGE MEDALS</span>
+              <span>TRIAL MEDALS</span>
               <div class="journey-targets">
                 ${(state.phrase.medals ?? []).map((target, index) => `<div><b>${"◆".repeat(index + 1)}</b><strong>${target.toLocaleString()}</strong></div>`).join("")}
               </div>
-              <p>Earn one medal to unlock the next phrase. Return later and master all three targets.</p>
+              <p>Earn one medal to unlock the next trial. Replay it later to reach all three targets.</p>
             ` : `
               <span>SCORING</span>
-              <p>Length beats volume. Keep answers flowing to increase your combo multiplier.</p>
+              <p>Longer words score more. Watch the combo bar and answer before it runs out.</p>
             `}
           </aside>
         </div>
@@ -817,7 +1097,7 @@ function showResults(): void {
     <section class="results-hero">
       <span class="eyebrow">${MODE_META[result.mode].name.toUpperCase()} • ${result.phrase.label.toUpperCase()}</span>
       <div class="results-score" id="results-score" data-final-score="${result.score}">0</div>
-      <div class="results-label">${result.mode === "journey" ? `${journeyMedals} / 3 MEDALS${journeyMedals ? " · STAGE CLEARED" : ""}` : newBest ? "PERSONAL BEST" : `BEST ${best.toLocaleString()}`}</div>
+      <div class="results-label">${result.mode === "journey" ? `${journeyMedals} / 3 MEDALS${journeyMedals ? " · TRIAL COMPLETE" : ""}` : newBest ? "PERSONAL BEST" : `BEST ${best.toLocaleString()}`}</div>
     </section>
     <section class="result-stats">
       <div><span>WORDS</span><strong>${result.found.length}</strong></div>
@@ -833,9 +1113,9 @@ function showResults(): void {
     </section>
     <section class="result-actions">
       ${result.mode === "journey" ? `
-        ${hasNextJourneyStage && journeyMedals ? `<button class="primary-button" data-nav data-action="journey-next">NEXT STAGE</button>` : `<button class="primary-button" data-nav data-action="again">REPLAY STAGE</button>`}
-        ${hasNextJourneyStage && journeyMedals ? `<button class="secondary-button" data-nav data-action="again">REPLAY STAGE</button>` : ""}
-        <button class="text-button" data-nav data-action="journey">PHRASE ROAD</button>
+        ${hasNextJourneyStage && journeyMedals ? `<button class="primary-button" data-nav data-action="journey-next">NEXT TRIAL</button>` : `<button class="primary-button" data-nav data-action="again">REPLAY TRIAL</button>`}
+        ${hasNextJourneyStage && journeyMedals ? `<button class="secondary-button" data-nav data-action="again">REPLAY TRIAL</button>` : ""}
+        <button class="text-button" data-nav data-action="journey">BACK TO TRIALS</button>
       ` : `
         <button class="primary-button" data-nav data-action="again">PLAY AGAIN</button>
         <button class="secondary-button" data-nav data-action="modes">CHANGE MODE</button>
@@ -872,7 +1152,7 @@ function showHelp(): void {
       <article><span>02</span><div><h3>Make words</h3><p>Words must be at least three letters. Longer answers are worth dramatically more points.</p></div></article>
       <article><span>03</span><div><h3>Keep the chain alive</h3><p>Submit another valid word within five seconds to raise your combo and increase the score.</p></div></article>
       <article><span>04</span><div><h3>Burn changes everything</h3><p>In Burn, letters do not return after a word. A huge answer can be valuable—or destroy several future possibilities.</p></div></article>
-      <article><span>05</span><div><h3>Master Phrase Road</h3><p>Journey gives every curated phrase three score medals. Earn one to open the next stage, then return for mastery.</p></div></article>
+      <article><span>05</span><div><h3>Take on Trials</h3><p>Each Trial has three score medals. Earn one to unlock the next challenge, then replay to collect all three.</p></div></article>
     </section>
     <button class="primary-button" data-nav data-action="modes">CHOOSE A MODE</button>
   `, { back: "menu" }));
@@ -886,7 +1166,7 @@ function showSettings(returnTo?: ScreenId): void {
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
     </section>
-    <p class="settings-note">Progress is stored locally on this device in this prototype.</p>
+    <p class="settings-note">Progress is saved on this device.</p>
   `, { back: "settings-back" }));
 }
 
@@ -895,6 +1175,8 @@ function settingsReturn(): void {
   else if (settingsReturnScreen === "results") showResults();
   else if (settingsReturnScreen === "modes") showModes();
   else if (settingsReturnScreen === "journey") showJourney();
+  else if (settingsReturnScreen === "multiplayer") showMultiplayer();
+  else if (settingsReturnScreen === "multiplayer-results") showTogetherResults();
   else if (settingsReturnScreen === "stats") showStats();
   else if (settingsReturnScreen === "help") showHelp();
   else if (settingsReturnScreen === "title") showTitle();
@@ -902,8 +1184,16 @@ function settingsReturn(): void {
 }
 
 appRoot.addEventListener("click", (event) => {
-  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-journey-stage]");
+  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-journey-stage], [data-player-count], [data-together-mode]");
   if (!target) return;
+  const playerCount = target.dataset.playerCount;
+  if (playerCount !== undefined) {
+    togetherPlayerCount = Number(playerCount);
+    showMultiplayer();
+    return;
+  }
+  const togetherMode = target.dataset.togetherMode as TogetherMode | undefined;
+  if (togetherMode) return startMultiplayer(togetherMode);
   const journeyStage = target.dataset.journeyStage;
   if (journeyStage !== undefined) {
     const stage = Number(journeyStage);
@@ -919,6 +1209,7 @@ appRoot.addEventListener("click", (event) => {
   if (action === "enter-menu" || action === "menu") showMenu();
   else if (action === "modes") showModes();
   else if (action === "journey") showJourney();
+  else if (action === "multiplayer") showMultiplayer();
   else if (action === "stats") showStats();
   else if (action === "help") showHelp();
   else if (action === "settings") showSettings();
@@ -928,6 +1219,13 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "restart" && round) startRound(round.mode, round.mode === "journey" ? round.phrase : undefined, round.journeyStage);
   else if (action === "end-run") endRound();
   else if (action === "next-board") void advanceBurnBoard(false);
+  else if (action === "begin-together") beginTogetherTurn();
+  else if (action === "pass-turn") passTogetherTurn();
+  else if (action === "pause-together") toggleTogetherPause(true);
+  else if (action === "resume-together") toggleTogetherPause(false);
+  else if (action === "end-together") endTogetherMatch();
+  else if (action === "quit-together") { together = null; showMenu(); }
+  else if (action === "again-together" && together) startMultiplayer(together.mode);
   else if (action === "quit") { round = null; showMenu(); }
   else if (action === "again" && lastResult) startRound(lastResult.mode, lastResult.mode === "journey" ? lastResult.phrase : undefined, lastResult.journeyStage);
   else if (action === "journey-next" && lastResult?.journeyStage !== undefined) {
@@ -949,6 +1247,16 @@ appRoot.addEventListener("click", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
+  if (screens.getCurrent() === "multiplayer-game" && together) {
+    if (event.key === "Escape" && document.querySelector("#pause-layer")) {
+      event.preventDefault();
+      toggleTogetherPause(!together.paused);
+      return;
+    }
+    const togetherInput = document.querySelector<HTMLInputElement>("#together-input");
+    if (/^[a-zA-Z]$/.test(event.key) && togetherInput && document.activeElement !== togetherInput && !event.metaKey && !event.ctrlKey && !event.altKey) togetherInput.focus();
+    return;
+  }
   if (screens.getCurrent() !== "game" || !round) return;
   if (event.key === "Escape") {
     event.preventDefault();
@@ -965,6 +1273,7 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("visibilitychange", () => {
   if (document.hidden && round && !round.ended && !round.paused) togglePause(true);
+  if (document.hidden && together && !together.ended && !together.paused) toggleTogetherPause(true);
 });
 
 document.documentElement.classList.toggle("reduce-motion", save.settings.reducedMotion);

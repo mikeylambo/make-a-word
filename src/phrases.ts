@@ -1,4 +1,5 @@
 import phraseData from "../content/phrases.json";
+import expandedPhraseData from "../content/expanded-phrases.json";
 
 export type PhraseEntry = {
   id: string;
@@ -10,7 +11,7 @@ export type PhraseEntry = {
   medals?: [number, number, number];
 };
 
-export const PHRASES = phraseData as PhraseEntry[];
+export const PHRASES = [...phraseData, ...expandedPhraseData] as PhraseEntry[];
 export const BURN_PHRASES = PHRASES.filter((entry) => entry.burnSolution?.length);
 export const JOURNEY_PHRASES = PHRASES
   .filter((entry) => entry.journeyOrder && entry.medals)

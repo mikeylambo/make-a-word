@@ -16,7 +16,7 @@
   {"id":"dream-bigger","text":"DREAM BIGGER THAN YESTERDAY","label":"Bigger","difficulty":4,"burnSolution":["dream","bigger","than","yesterday"],"journeyOrder":15,"medals":[9000,17000,26500]},
   {"id":"magic-making","text":"THERE LIVES MAGIC WITHIN MAKING","label":"Making","difficulty":4,"burnSolution":["there","lives","magic","within","making"],"journeyOrder":16,"medals":[9500,18000,28000]},
   {"id":"bright-momentum","text":"MOMENTUM CHANGES EVERYTHING","label":"Momentum","difficulty":4,"burnSolution":["momentum","changes","everything"],"journeyOrder":17,"medals":[10000,19000,29500]},
-  {"id":"venture-gain","text":"NOTHING VENTURED BRINGS NOTHING GAINED","label":"Venture","difficulty":5,"journeyOrder":18,"medals":[10500,20000,31000]},
+  {"id":"venture-gain","text":"RACING HEATS BRING FAST ACTION","label":"Race Day","difficulty":4,"burnSolution":["racing","heats","bring","fast","action"],"journeyOrder":18,"medals":[10500,20000,31000]},
   {"id":"thousand-miles","text":"A JOURNEY OF A THOUSAND MILES","label":"Long Road","difficulty":4,"journeyOrder":19,"medals":[11000,21000,32500]},
   {"id":"quick-fox","text":"THE QUICK BROWN FOX","label":"Quick Fox","difficulty":3,"burnSolution":["the","quick","brown","fox"],"journeyOrder":20,"medals":[11500,22000,34000]},
   {"id":"daily-progress","text":"A LITTLE PROGRESS EACH DAY","label":"Progress","difficulty":3,"journeyOrder":21,"medals":[12000,23000,35500]},

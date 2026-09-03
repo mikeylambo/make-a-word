@@ -1,4 +1,4 @@
-export type ScreenId = "title" | "menu" | "modes" | "journey" | "game" | "results" | "stats" | "settings" | "help";
+export type ScreenId = "title" | "menu" | "modes" | "journey" | "multiplayer" | "multiplayer-game" | "multiplayer-results" | "game" | "results" | "stats" | "settings" | "help";
 
 export type SaveData = {
   bestScores: Record<string, number>;
