@@ -591,6 +591,7 @@ async function syncOnlineRoom(): Promise<void> {
 function applyOnlineRoom(next: OnlineRoomView): void {
   const previousPhase = onlineRoom?.phase;
   const previousPhrase = onlineRoom?.phrase?.id;
+  if (previousPhase && previousPhase !== next.phase) onlineError = "";
   onlineRoom = next;
   onlineClockOffset = next.serverNow - Date.now();
   if (screens.getCurrent() === "settings") return;
@@ -706,6 +707,7 @@ function onlineWordList(room: OnlineRoomView): string {
 function renderOnlineResults(room: OnlineRoomView): void {
   const self = onlineSelf(room);
   if (!self) return;
+  onlineError = "";
   const final = room.phase === "match-results";
   if (final && !save.completedOnlineMatchIds.includes(room.matchId)) {
     save.completedOnlineMatchIds.push(room.matchId);
