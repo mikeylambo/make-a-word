@@ -35,6 +35,7 @@ export type OnlineRoomView = {
   phrase?: {
     id: string;
     text: string;
+    display?: string;
     label: string;
     difficulty: number;
   };

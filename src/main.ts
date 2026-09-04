@@ -1,5 +1,5 @@
 import "./styles.css";
-import { JOURNEY_PHRASES, PHRASES, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
+import { JOURNEY_PHRASES, PHRASES, phraseDisplayText, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
 import {
   clearOnlineCredentials,
@@ -344,7 +344,7 @@ function showJourney(): void {
         <span class="journey-stage__number">${String(stage).padStart(2, "0")}</span>
         <span class="journey-stage__body">
           <small>${locked ? "LOCKED" : phrase.label.toUpperCase()}</small>
-          <strong>${locked ? "Complete the previous stage" : phrase.text}</strong>
+          <strong>${locked ? "Complete the previous stage" : phraseDisplayText(phrase)}</strong>
           <i aria-label="${earned} of 3 medals">${[0, 1, 2].map((medal) => `<b class="${medal < earned ? "earned" : ""}">◆</b>`).join("")}</i>
         </span>
         <span class="journey-stage__score">${locked ? "—" : score.toLocaleString()}</span>
@@ -678,7 +678,7 @@ function renderOnlineGame(room: OnlineRoomView): void {
       </header>
       <section class="playfield online-playfield">
         <div class="phrase-header"><span>WORD RACE · ROUND ${room.roundNumber}/${room.settings.rounds}</span><small>${escapeHtml(room.phrase.label)} · EVERYONE HAS THE SAME PHRASE</small></div>
-        <div class="phrase-display">${renderPhraseText(room.phrase.text)}</div>
+        <div class="phrase-display">${renderPhraseText(room.phrase.text, new Set(), room.phrase.display)}</div>
         <div class="online-countdown" id="online-countdown" aria-live="assertive"></div>
         <form class="word-entry" id="online-word-form" autocomplete="off">
           <input id="online-word-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter an online word" placeholder="TYPE A WORD" />
@@ -980,7 +980,7 @@ function renderTogetherGame(): void {
       <section class="playfield together-playfield">
         <div class="together-scoreboard" id="together-scoreboard">${togetherScoreboard(state)}</div>
         <div class="phrase-header"><span>MAKE WORDS FROM THIS PHRASE</span><small>${state.phrase.label}</small></div>
-        <div class="phrase-display">${renderPhraseText(state.phrase.text)}</div>
+        <div class="phrase-display">${renderPhraseText(state.phrase.text, new Set(), state.phrase.display)}</div>
         <form class="word-entry" id="together-form" autocomplete="off">
           <input id="together-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter a word" placeholder="TYPE A WORD" />
           <button class="submit-word" type="submit">ENTER</button>
@@ -1212,7 +1212,7 @@ function showChallengeLanding(): void {
       <span class="eyebrow">A PLAYER CHALLENGED YOU</span>
       <h2>Can you beat<br>${challenge.target.toLocaleString()}?</h2>
       <p>You will get the exact same phrase and ${challenge.mode === "blitz" ? "60-second Blitz" : "two-minute Classic"} rules.</p>
-      <div class="challenge-preview"><span>THE PHRASE</span><strong>${escapeHtml(phrase.text)}</strong><small>${escapeHtml(phrase.label)}</small></div>
+      <div class="challenge-preview"><span>THE PHRASE</span><strong>${escapeHtml(phraseDisplayText(phrase))}</strong><small>${escapeHtml(phrase.label)}</small></div>
       <div class="challenge-actions"><button class="primary-button primary-button--wide" data-nav data-action="play-challenge">PLAY CHALLENGE</button><button class="text-button" data-nav data-action="dismiss-challenge">NOT NOW</button></div>
     </section>
   `));
@@ -1324,24 +1324,24 @@ async function runRoundCountdown(token: number): Promise<void> {
   timerId = window.setInterval(tick, 1000);
 }
 
-function renderPhraseText(text: string, burned = new Set<number>()): string {
-  let wordIndex = 0;
-  const words = text.split(" ");
+function renderPhraseText(text: string, burned = new Set<number>(), display = text): string {
+  const sourceLetterIndexes = [...text].flatMap((char, index) => /[a-z]/i.test(char) ? [index] : []);
+  let letterOrdinal = 0;
+  const words = display.split(" ");
   return words.map((word) => {
     const letters = [...word].map((char) => {
-      while (text[wordIndex] === " ") wordIndex += 1;
-      const index = wordIndex;
-      wordIndex += 1;
+      if (!/[a-z]/i.test(char)) return `<span class="phrase-glyph" aria-hidden="true">${escapeHtml(char)}</span>`;
+      const index = sourceLetterIndexes[letterOrdinal] ?? -1;
+      letterOrdinal += 1;
       const isBurned = burned.has(index);
       return `<span class="phrase-letter ${isBurned ? "phrase-letter--burned" : ""}" data-letter-index="${index}">${escapeHtml(char)}</span>`;
     }).join("");
-    wordIndex += 1;
     return `<span class="phrase-word">${letters}</span>`;
   }).join(" ");
 }
 
 function renderPhrase(state: RoundState): string {
-  return renderPhraseText(state.phrase.text, state.burned);
+  return renderPhraseText(state.phrase.text, state.burned, state.phrase.display);
 }
 
 function renderFound(state: RoundState): string {

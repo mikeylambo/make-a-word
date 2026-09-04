@@ -3,7 +3,6 @@ import { Redis } from "@upstash/redis";
 import dictionary from "../content/server-dictionary.json" with { type: "json" };
 import blockedWords from "../content/dictionary-blocklist.json" with { type: "json" };
 import phraseData from "../content/phrases.json" with { type: "json" };
-import expandedPhraseData from "../content/expanded-phrases.json" with { type: "json" };
 import type {
   OnlineAction,
   OnlineCredentials,
@@ -17,6 +16,7 @@ import type {
 type PhraseEntry = {
   id: string;
   text: string;
+  display?: string;
   label: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   burnSolution?: string[];
@@ -24,7 +24,7 @@ type PhraseEntry = {
   medals?: [number, number, number];
 };
 
-const PHRASES = [...phraseData, ...expandedPhraseData] as PhraseEntry[];
+const PHRASES = phraseData as PhraseEntry[];
 
 function normalizeWord(input: string): string {
   return input.trim().toLowerCase().replace(/[^a-z]/g, "");
@@ -277,6 +277,7 @@ function roomView(room: StoredRoom, viewerId: string): OnlineRoomView {
     phrase: phrase && room.phase !== "lobby" ? {
       id: phrase.id,
       text: phrase.text,
+      display: phrase.display,
       label: phrase.label,
       difficulty: phrase.difficulty
     } : undefined,

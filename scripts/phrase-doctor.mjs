@@ -1,41 +1,12 @@
-import { readFile } from 'node:fs/promises';
+import { analyzePhrases, letterSignature, loadDictionary, loadPhraseBank, measuredDifficultyById, phraseVariety, wordsIn } from './phrase-analysis-lib.mjs';
 
-const root = new URL('../', import.meta.url);
-const phrases = JSON.parse(await readFile(new URL('content/phrases.json', root), 'utf8'));
-const expandedPhrases = JSON.parse(await readFile(new URL('content/expanded-phrases.json', root), 'utf8'));
-phrases.push(...expandedPhrases);
-const blocklist = new Set(JSON.parse(await readFile(new URL('content/dictionary-blocklist.json', root), 'utf8')));
-const additions = JSON.parse(await readFile(new URL('content/dictionary-additions.json', root), 'utf8'));
-const dictionary = new Set(
-  `${await readFile(new URL('src/common-words.txt', root), 'utf8')}\n${await readFile(new URL('src/inflected-words.txt', root), 'utf8')}`
-    .split(/\s+/)
-    .map((word) => word.toLowerCase())
-    .filter((word) => word.length >= 3 && !blocklist.has(word))
-);
-additions.forEach((word) => dictionary.add(word));
-
-function counts(text) {
-  const result = new Map();
-  for (const letter of text.toLowerCase()) {
-    if (!/[a-z]/.test(letter)) continue;
-    result.set(letter, (result.get(letter) ?? 0) + 1);
-  }
-  return result;
-}
-
-function canSpell(word, available) {
-  const used = new Map();
-  for (const letter of word) {
-    const next = (used.get(letter) ?? 0) + 1;
-    if (next > (available.get(letter) ?? 0)) return false;
-    used.set(letter, next);
-  }
-  return true;
-}
-
-function signature(text) {
-  return [...text.toLowerCase()].filter((letter) => /[a-z]/.test(letter)).sort().join('');
-}
+const phrases = await loadPhraseBank();
+const dictionaryWords = await loadDictionary();
+const dictionary = new Set(dictionaryWords);
+const measured = analyzePhrases(phrases, dictionaryWords);
+const analysisById = new Map(measured.map((analysis) => [analysis.id, analysis]));
+const currentAnalyses = measured.filter((analysis) => !analysis.legacy);
+const measuredDifficulty = measuredDifficultyById(currentAnalyses);
 
 const errors = [];
 const seenIds = new Set();
@@ -51,24 +22,46 @@ for (const phrase of phrases) {
   if (!Number.isInteger(phrase.difficulty) || phrase.difficulty < 1 || phrase.difficulty > 5) {
     errors.push(phrase.id + ': difficulty must be 1–5');
   }
+  if (phrase.legacy) errors.push(`${phrase.id}: legacy content is not allowed after Phase B`);
+  if (phrase.canonical !== undefined && typeof phrase.canonical !== 'boolean') errors.push(`${phrase.id}: canonical must be a boolean`);
+  if (phrase.display && letterSignature(phrase.display) !== letterSignature(phrase.text)) {
+    errors.push(`${phrase.id}: display text must contain exactly the same letters as text`);
+  }
 
-  const available = counts(phrase.text);
-  const phraseLength = signature(phrase.text).length;
-  const playable = [...dictionary].filter((word) => word.length <= phraseLength && canSpell(word, available));
+  const analysis = analysisById.get(phrase.id);
+  const phraseLength = analysis?.letterCount ?? 0;
+  const playableCount = analysis?.findableWordCount ?? 0;
   analyses.push({
     id: phrase.id,
-    playable: playable.length,
-    longest: playable.reduce((best, word) => word.length > best.length ? word : best, '')
+    playable: playableCount,
+    longest: analysis?.longestFindableWord ?? ''
   });
+
+  if (!phrase.legacy) {
+    const minimumWords = phrase.canonical ? 150 : 250;
+    const minimumLetters = phrase.canonical ? 12 : 15;
+    if (playableCount < minimumWords || playableCount > 900) {
+      errors.push(`${phrase.id}: SOLUTION_BAND requires ${minimumWords}–900 findable words; found ${playableCount}`);
+    }
+    if (phraseLength < minimumLetters || phraseLength > 22) {
+      errors.push(`${phrase.id}: LENGTH_BAND requires ${minimumLetters}–22 letters; found ${phraseLength}`);
+    }
+    const expectedDifficulty = measuredDifficulty.get(phrase.id);
+    if (expectedDifficulty && Math.abs(phrase.difficulty - expectedDifficulty) > 1) {
+      errors.push(`${phrase.id}: DIFFICULTY_TRUTH expected difficulty ${expectedDifficulty} ±1; found ${phrase.difficulty}`);
+    }
+  }
 
   if (phrase.burnSolution) {
     const normalized = phrase.burnSolution.map((word) => word.toLowerCase());
+    const phraseWords = new Set(wordsIn(phrase.text).filter((word) => word.length >= 3));
     if (new Set(normalized).size !== normalized.length) errors.push(phrase.id + ': Burn solution repeats a word');
     for (const word of normalized) {
       if (word.length < 3) errors.push(phrase.id + ': Burn solution contains a word shorter than 3 letters (' + word + ')');
       if (!dictionary.has(word)) errors.push(phrase.id + ': Burn solution word is outside the curated dictionary (' + word + ')');
+      if (phraseWords.has(word)) errors.push(phrase.id + ': Burn solution repeats a visible phrase word (' + word + ')');
     }
-    if (signature(normalized.join('')) !== signature(phrase.text)) {
+    if (letterSignature(normalized.join('')) !== letterSignature(phrase.text)) {
       errors.push(phrase.id + ': Burn solution does not spend every letter');
     }
   }
@@ -81,13 +74,23 @@ for (const phrase of phrases) {
   }
 }
 
+if (phrases.length !== 150) errors.push(`PHRASE_COUNT requires 150 phrases; found ${phrases.length}`);
+const canonicalCount = phrases.filter((phrase) => phrase.canonical).length;
+if (canonicalCount / phrases.length < 0.3) errors.push(`CANON_RATIO requires at least 30% canonical phrases; found ${(canonicalCount / phrases.length * 100).toFixed(1)}%`);
+const { wordUse, bigramUse } = phraseVariety(phrases);
+for (const [word, ids] of wordUse) {
+  if (ids.length > 3) errors.push(`VARIETY allows ${word.toUpperCase()} in at most 3 phrases; found ${ids.length} (${ids.join(', ')})`);
+}
+for (const [bigram, ids] of bigramUse) {
+  if (ids.length > 2) errors.push(`TEMPLATE allows "${bigram.toUpperCase()}" in at most 2 phrases; found ${ids.length} (${ids.join(', ')})`);
+}
+
 journey.sort((a, b) => a.journeyOrder - b.journeyOrder);
 journey.forEach((phrase, index) => {
   if (phrase.journeyOrder !== index + 1) errors.push(phrase.id + ': Trial order must be contiguous (expected ' + (index + 1) + ')');
 });
 
 const burnCount = phrases.filter((phrase) => phrase.burnSolution?.length).length;
-if (burnCount < 300) errors.push('Burn needs at least 300 verified phrases; found ' + burnCount);
 if (journey.length < 20) errors.push('Trials needs at least 20 stages; found ' + journey.length);
 if (!dictionary.has('heats')) errors.push('Validated inflection HEATS is missing from the dictionary');
 
@@ -98,7 +101,7 @@ if (errors.length) {
 } else {
   const average = Math.round(analyses.reduce((sum, item) => sum + item.playable, 0) / analyses.length);
   const smallest = analyses.reduce((best, item) => item.playable < best.playable ? item : best);
-  console.log('Phrase Doctor passed: ' + phrases.length + ' phrases · ' + burnCount + ' verified Burn boards · ' + journey.length + ' Trials');
+  console.log('Phrase Doctor passed: ' + phrases.length + ' phrases · ' + canonicalCount + ' canonical · ' + burnCount + ' verified Burn boards · ' + journey.length + ' Trials');
   console.log('Curated dictionary: ' + dictionary.size.toLocaleString() + ' words · average ' + average + ' playable words per phrase');
   console.log('Tightest phrase: ' + smallest.id + ' (' + smallest.playable + ' words) · longest ' + smallest.longest.toUpperCase());
 }

@@ -10,9 +10,13 @@
     "dictionary:build": "node scripts/derive-inflections.mjs --write",
     "dictionary:server": "node scripts/build-server-dictionary.mjs",
     "dictionary:server:check": "node scripts/build-server-dictionary.mjs --check",
-    "phrases:build": "node scripts/build-expanded-phrases.mjs",
+    "analyze": "node scripts/analyze-phrases.mjs",
+    "phrases:bank": "node scripts/build-phrase-bank.mjs",
+    "phrases:review": "node scripts/review-phrase-bank.mjs",
+    "burn:derive": "node scripts/derive-burn.mjs",
+    "trials:simulate": "node scripts/simulate-round.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
-    "verify": "npm run dictionary:server:check && npm run doctor && npm run build"
+    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3"
