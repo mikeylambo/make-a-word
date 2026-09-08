@@ -12,13 +12,16 @@ import type { OnlineCredentials, OnlinePlayerView, OnlineRoomView, OnlineSetting
 import { telemetry } from "./telemetry";
 import {
   burnLetters,
+  chainPayout,
   countsForText,
   hasPlayableWord,
   humanReason,
   remainingCounts,
+  rarityMultiplier,
   scoreWord,
   playableWords,
-  validateWord
+  validateWord,
+  wordRank
 } from "./word-engine";
 
 type ModeId = "classic" | "burn" | "blitz" | "daily" | "journey";
@@ -26,6 +29,7 @@ type ModeId = "classic" | "burn" | "blitz" | "daily" | "journey";
 type FoundWord = {
   word: string;
   points: number;
+  rarity?: 1 | 1.3 | 1.6;
 };
 
 type TogetherMode = "relay" | "pass-play" | "last-word";
@@ -56,21 +60,25 @@ type TogetherState = {
 };
 
 type ChallengePayload = {
-  version: 1;
+  version: 1 | 2;
   phraseId: string;
   target: number;
   mode: "classic" | "blitz";
+  duration?: 60 | 120 | 180;
 };
 
 type RoundState = {
   mode: ModeId;
   phrase: PhraseEntry;
   score: number;
+  duration: number;
   timeLeft: number;
   submitted: Set<string>;
   found: FoundWord[];
   burned: Set<number>;
   combo: number;
+  chainBank: number;
+  chainLength: number;
   bestCombo: number;
   lastValidAt: number;
   comboFrozenAt: number;
@@ -119,6 +127,13 @@ const MODE_META: Record<ModeId, { name: string; kicker: string; description: str
     duration: 120
   }
 };
+function modeDuration(mode: ModeId): number {
+  return mode === "classic" ? save.settings.classicDuration : MODE_META[mode].duration;
+}
+
+function scoreKey(mode: ModeId, duration: number): string {
+  return mode === "classic" ? `classic:${duration}` : mode;
+}
 
 const appRoot = document.querySelector<HTMLElement>("#app");
 if (!appRoot) throw new Error("Missing #app root");
@@ -207,7 +222,7 @@ function decodeChallenge(value: string | null): ChallengePayload | null {
   try {
     const padded = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
     const parsed = JSON.parse(atob(padded)) as Partial<ChallengePayload>;
-    if (parsed.version !== 1 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;
+    if (parsed.version !== 1 && parsed.version !== 2 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;
     if (!Number.isSafeInteger(parsed.target) || parsed.target < 0 || parsed.target > 10_000_000) return null;
     if (parsed.mode !== "classic" && parsed.mode !== "blitz") return null;
     if (!PHRASES.some((phrase) => phrase.id === parsed.phraseId)) return null;
@@ -309,9 +324,10 @@ function showMenu(): void {
 }
 
 function showModes(): void {
-  const cards = (["classic", "burn", "blitz"] as ModeId[]).map((id) => {
+  const cards = (["classic", "burn"] as ModeId[]).map((id) => {
     const meta = MODE_META[id];
-    const best = save.bestScores[id] ?? 0;
+    const duration = modeDuration(id);
+    const best = save.bestScores[scoreKey(id, duration)] ?? 0;
     return `
       <button class="mode-card mode-card--${id}" data-nav data-mode="${id}">
         <div class="mode-card__number">${id === "classic" ? "01" : id === "burn" ? "02" : "03"}</div>
@@ -319,13 +335,18 @@ function showModes(): void {
           <span>${meta.kicker}</span>
           <strong>${meta.name}</strong>
           <p>${meta.description}</p>
-          <small>${formatTime(meta.duration)} • BEST ${best.toLocaleString()}</small>
+          <small>${formatTime(duration)} • BEST ${best.toLocaleString()}</small>
         </div>
         <div class="mode-card__arrow">→</div>
       </button>`;
   }).join("");
 
-  screens.show("modes", shell("CHOOSE A MODE", `<section class="mode-list">${cards}</section>`, { back: "menu" }));
+  screens.show("modes", shell("CHOOSE A MODE", `
+    <section class="duration-picker" aria-label="Classic round time">
+      <span>CLASSIC ROUND</span>
+      ${([60, 120, 180] as const).map((seconds) => `<button data-nav data-classic-duration="${seconds}" class="${save.settings.classicDuration === seconds ? "selected" : ""}">${seconds / 60} MIN</button>`).join("")}
+    </section>
+    <section class="mode-list">${cards}</section>`, { back: "menu" }));
 }
 
 function medalCount(score: number, medals: [number, number, number] | undefined): number {
@@ -1215,7 +1236,7 @@ function showChallengeLanding(): void {
     <section class="challenge-hero">
       <span class="eyebrow">A PLAYER CHALLENGED YOU</span>
       <h2>Can you beat<br>${challenge.target.toLocaleString()}?</h2>
-      <p>You will get the exact same phrase and ${challenge.mode === "blitz" ? "60-second Blitz" : "two-minute Classic"} rules.</p>
+      <p>You will get the exact same phrase and ${challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120)}-second Classic rules.</p>
       <div class="challenge-preview"><span>THE PHRASE</span><strong>${escapeHtml(phraseDisplayText(phrase))}</strong><small>${escapeHtml(phrase.label)}</small></div>
       <div class="challenge-actions"><button class="primary-button primary-button--wide" data-nav data-action="play-challenge">PLAY CHALLENGE</button><button class="text-button" data-nav data-action="dismiss-challenge">NOT NOW</button></div>
     </section>
@@ -1227,7 +1248,7 @@ function startPendingChallenge(): void {
   const phrase = challenge ? PHRASES.find((entry) => entry.id === challenge.phraseId) : undefined;
   if (!challenge || !phrase) return showMenu();
   telemetry.increment("invite_accepted");
-  startRound(challenge.mode, phrase, undefined, challenge.target);
+  startRound(challenge.mode, phrase, undefined, challenge.target, challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120));
 }
 
 function dismissChallenge(): void {
@@ -1238,10 +1259,11 @@ function dismissChallenge(): void {
 
 function challengeUrlFor(result: RoundState): string {
   const payload: ChallengePayload = {
-    version: 1,
+    version: 2,
     phraseId: result.phrase.id,
     target: result.score,
-    mode: result.mode === "blitz" ? "blitz" : "classic"
+    mode: "classic",
+    duration: result.duration === 60 || result.duration === 180 ? result.duration : 120
   };
   const url = new URL(location.href);
   url.search = "";
@@ -1279,21 +1301,25 @@ function choosePhrase(mode: ModeId): PhraseEntry {
   return phrase;
 }
 
-function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: number, challengeTarget?: number): void {
+function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: number, challengeTarget?: number, durationOverride?: number): void {
   stopTimer();
   stopTogetherTimer();
   const token = ++flowToken;
   const phrase = phraseOverride ?? choosePhrase(mode);
   const phraseWords = new Set(phrase.text.toLowerCase().match(/[a-z]+/g)?.filter((word) => word.length >= 3) ?? []);
+  const duration = durationOverride ?? modeDuration(mode);
   round = {
     mode,
     phrase,
     score: 0,
-    timeLeft: MODE_META[mode].duration,
+    duration,
+    timeLeft: duration,
     submitted: new Set(),
     found: [],
     burned: new Set(),
     combo: 0,
+    chainBank: 0,
+    chainLength: 0,
     bestCombo: 0,
     lastValidAt: 0,
     comboFrozenAt: 0,
@@ -1359,7 +1385,7 @@ function renderFound(state: RoundState): string {
   if (!state.found.length) return `<div class="empty-found">Your words will collect here.</div>`;
   return state.found.slice().reverse().map((item, index) => `
     <div class="found-word ${index === 0 ? "found-word--new" : ""}">
-      <span>${item.word.toUpperCase()}</span><strong>+${item.points}</strong>
+      <span>${item.word.toUpperCase()}${item.rarity && item.rarity > 1 ? " <i>◆</i>" : ""}</span><strong>+${item.points}</strong>
     </div>`).join("");
 }
 
@@ -1376,8 +1402,9 @@ function renderGame(): void {
         <div class="hud-stat"><span>${state.mode === "burn" ? "BOARD" : "MODE"}</span><strong>${state.mode === "burn" ? String(state.boardNumber).padStart(2, "0") : meta.name.toUpperCase()}</strong></div>
         <div class="hud-stat hud-stat--score"><span>SCORE</span><strong id="score-value">${state.score.toLocaleString()}</strong></div>
         <div class="hud-stat hud-stat--combo">
-          <span>COMBO</span><strong id="combo-value">×${Math.max(1, state.combo + 1)}</strong>
+          <span>CHAIN</span><strong id="combo-value">×${Math.max(1, state.chainLength)}</strong>
           <div class="combo-meter" aria-hidden="true"><i id="combo-meter-fill"></i></div>
+          <button class="chain-cash" data-action="cash-chain" ${state.chainBank ? "" : "disabled"}>BANK <b id="chain-bank">${chainPayout(state.chainBank, state.chainLength).toLocaleString()}</b></button>
         </div>
         <div class="hud-stat hud-stat--time"><span>TIME</span><strong id="time-value">${formatTime(state.timeLeft)}</strong></div>
       </header>
@@ -1420,7 +1447,7 @@ function renderGame(): void {
               <p>Earn one medal to unlock the next trial. Replay it later to reach all three targets.</p>
             ` : `
               <span>SCORING</span>
-              <p>Longer words score more. Watch the combo bar and answer before it runs out.</p>
+              <p>Longer words score more. Chain answers to grow your bank, then cash out before the timer expires.</p>
             `}
           </aside>
         </div>
@@ -1506,29 +1533,33 @@ function submitCurrentWord(): void {
   }
 
   const now = performance.now();
-  round.combo = round.lastValidAt && now - round.lastValidAt <= 5000 ? round.combo + 1 : 0;
+  const chained = Boolean(round.lastValidAt && now - round.lastValidAt <= 5000);
+  if (!chained) round.chainBank = 0;
+  round.chainLength = chained ? round.chainLength + 1 : 1;
+  round.combo = round.chainLength - 1;
   round.bestCombo = Math.max(round.bestCombo, round.combo);
   round.lastValidAt = now;
   round.comboFrozenAt = 0;
-  const points = scoreWord(result.word.length, round.combo, round.mode === "burn");
+  const rarity = rarityMultiplier(wordRank(result.word));
+  const points = Math.round(scoreWord(result.word.length, 0, round.mode === "burn") * rarity);
   const previousScore = round.score;
-  round.score += points;
+  round.chainBank += points;
   round.submitted.add(result.word);
-  round.found.push({ word: result.word, points });
+  round.found.push({ word: result.word, points, rarity });
   telemetry.increment("words_submitted");
   round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
 
   input.value = "";
   audio.play("accept", save.settings.sound);
-  if (round.combo >= 2) audio.play("combo", save.settings.sound);
+  if (round.combo >= 2 || rarity > 1) audio.play("combo", save.settings.sound);
   if (feedback) {
     feedback.classList.remove("feedback--bad");
     feedback.classList.add("feedback--good");
-    feedback.textContent = `${result.word.toUpperCase()}  +${points}${round.combo ? `  •  COMBO ×${round.combo + 1}` : ""}`;
+    feedback.textContent = `${result.word.toUpperCase()}  +${points}${round.combo ? `  •  CHAIN ×${round.combo + 1}` : ""}${rarity > 1 ? "  ◆" : ""}`;
   }
   updateGameHud(previousScore);
-  showScoreImpact(result.word, points, round.combo + 1);
+  showScoreImpact(result.word, points, round.combo + 1, rarity > 1);
   startComboMeter();
 
   if (round.mode === "burn") {
@@ -1548,6 +1579,8 @@ function updateGameHud(previousScore?: number): void {
   if (!round) return;
   const score = document.querySelector<HTMLElement>("#score-value");
   const combo = document.querySelector<HTMLElement>("#combo-value");
+  const chainBank = document.querySelector<HTMLElement>("#chain-bank");
+  const cashButton = document.querySelector<HTMLButtonElement>("[data-action='cash-chain']");
   const count = document.querySelector<HTMLElement>("#word-count");
   const list = document.querySelector<HTMLElement>("#found-list");
   const phrase = document.querySelector<HTMLElement>("#phrase-display");
@@ -1558,7 +1591,9 @@ function updateGameHud(previousScore?: number): void {
     void score.offsetWidth;
     score.classList.add("hud-hit");
   }
-  if (combo) combo.textContent = `×${Math.max(1, round.combo + 1)}`;
+  if (combo) combo.textContent = `×${Math.max(1, round.chainLength)}`;
+  if (chainBank) chainBank.textContent = chainPayout(round.chainBank, round.chainLength).toLocaleString();
+  if (cashButton) cashButton.disabled = round.chainBank <= 0;
   if (count) count.textContent = String(round.found.length);
   if (list) list.innerHTML = renderFound(round);
   if (phrase && round.mode === "burn") {
@@ -1596,6 +1631,25 @@ function animateNumber(element: HTMLElement, from: number, to: number, duration:
   requestAnimationFrame(frame);
 }
 
+function cashChain(announce = true): number {
+  if (!round?.chainBank) return 0;
+  const payout = chainPayout(round.chainBank, round.chainLength);
+  const previousScore = round.score;
+  round.score += payout;
+  round.chainBank = 0;
+  round.chainLength = 0;
+  round.combo = 0;
+  round.lastValidAt = 0;
+  clearComboMeter();
+  updateGameHud(previousScore);
+  if (announce) {
+    showEvent(`+${payout.toLocaleString()}`, "CHAIN BANKED", "event-card--board");
+    audio.play("board", save.settings.sound);
+    window.setTimeout(clearEvent, 650);
+  }
+  return payout;
+}
+
 function freezeComboMeter(): void {
   if (!round?.lastValidAt || round.comboFrozenAt) return;
   round.comboFrozenAt = performance.now();
@@ -1631,11 +1685,20 @@ function startComboMeter(): void {
     fill.style.transform = `scaleX(${remaining})`;
     fill.classList.toggle("combo-meter__fill--low", remaining <= .28);
     if (remaining <= 0) {
+      const lost = state.chainBank;
+      state.chainBank = 0;
+      state.chainLength = 0;
       state.combo = 0;
       state.lastValidAt = 0;
       state.comboFrozenAt = 0;
       const combo = document.querySelector<HTMLElement>("#combo-value");
       if (combo) combo.textContent = "×1";
+      const bank = document.querySelector<HTMLElement>("#chain-bank");
+      const cash = document.querySelector<HTMLButtonElement>("[data-action='cash-chain']");
+      if (bank) bank.textContent = "0";
+      if (cash) cash.disabled = true;
+      const feedback = document.querySelector<HTMLElement>("#feedback");
+      if (lost && feedback) feedback.textContent = "CHAIN LOST · BANK EARLIER NEXT TIME";
       comboMeterFrame = null;
       return;
     }
@@ -1654,13 +1717,13 @@ function clearComboMeter(): void {
   }
 }
 
-function showScoreImpact(word: string, points: number, multiplier: number): void {
+function showScoreImpact(word: string, points: number, multiplier: number, distinctive = false): void {
   const stage = document.querySelector<HTMLElement>("#score-fx-stage");
   if (!stage) return;
   const tier = multiplier >= 5 ? "score-impact--major" : multiplier >= 3 ? "score-impact--combo" : "";
   stage.innerHTML = `
     <div class="score-impact ${tier}">
-      <strong>${escapeHtml(word.toUpperCase())}</strong>
+      <strong>${escapeHtml(word.toUpperCase())}${distinctive ? " ◆" : ""}</strong>
       <span>+${points.toLocaleString()}</span>
       ${multiplier > 1 ? `<b>COMBO ×${multiplier}</b>` : ""}
     </div>`;
@@ -1701,6 +1764,7 @@ async function advanceBurnBoard(manual: boolean): Promise<void> {
   freezeComboMeter();
   setGameControlsDisabled(true);
   document.querySelector<HTMLElement>("#phrase-display")?.classList.add("phrase-display--leaving");
+  cashChain(false);
 
   const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
   const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
@@ -1773,7 +1837,7 @@ function updateBurnBoardDisplay(state: RoundState): void {
     feedback.textContent = "NEW BOARD · 3+ letters · ENTER to submit";
   }
   if (cleared) cleared.textContent = String(state.boardsCleared);
-  if (combo) combo.textContent = `×${Math.max(1, state.combo + 1)}`;
+  if (combo) combo.textContent = `×${Math.max(1, state.chainLength)}`;
   if (input) input.value = "";
   updateBurnProgress(state);
 }
@@ -1812,13 +1876,14 @@ function stopTimer(): void {
 
 function endRound(): void {
   if (!round || round.ended) return;
+  cashChain(false);
   round.ended = true;
   flowToken += 1;
   stopTimer();
   audio.play("end", save.settings.sound);
   lastResult = round;
 
-  const modeKey = round.mode;
+  const modeKey = scoreKey(round.mode, round.duration);
   const previousBest = round.mode === "journey"
     ? save.journeyScores[round.phrase.id] ?? 0
     : save.bestScores[modeKey] ?? 0;
@@ -1854,7 +1919,7 @@ function showResults(): void {
   if (!result) return showMenu();
   const sorted = result.found.slice().sort((a, b) => b.word.length - a.word.length || b.points - a.points);
   const longest = sorted[0]?.word ?? "—";
-  const best = result.mode === "journey" ? save.journeyScores[result.phrase.id] ?? result.score : save.bestScores[result.mode] ?? result.score;
+  const best = result.mode === "journey" ? save.journeyScores[result.phrase.id] ?? result.score : save.bestScores[scoreKey(result.mode, result.duration)] ?? result.score;
   const newBest = result.newBest;
   const journeyMedals = result.mode === "journey" ? medalCount(result.score, result.phrase.medals) : 0;
   const hasNextJourneyStage = result.mode === "journey" && result.journeyStage !== undefined && result.journeyStage + 1 < JOURNEY_PHRASES.length;
@@ -1872,13 +1937,13 @@ function showResults(): void {
     <section class="result-stats">
       <div><span>WORDS</span><strong>${result.found.length}</strong></div>
       <div><span>LONGEST</span><strong>${longest.toUpperCase()}</strong></div>
-      <div><span>BEST COMBO</span><strong>×${result.bestCombo + 1}</strong></div>
+      <div><span>BEST CHAIN</span><strong>×${result.bestCombo + 1}</strong></div>
       <div><span>${result.mode === "burn" ? "BOARD CLEARS" : result.mode === "journey" ? "MEDALS" : "MODE"}</span><strong>${result.mode === "burn" ? result.boardsCleared : result.mode === "journey" ? `${journeyMedals} / 3` : MODE_META[result.mode].name.toUpperCase()}</strong></div>
     </section>
     <section class="result-words">
       <div class="section-heading"><span>YOUR WORDS</span><small>${result.found.length} FOUND</small></div>
       <div class="result-word-grid">
-        ${sorted.length ? sorted.map((item) => `<div><span>${item.word.toUpperCase()}</span><strong>${item.points}</strong></div>`).join("") : "<p>No words this round. The phrase gets another shot.</p>"}
+        ${sorted.length ? sorted.map((item) => `<div><span>${item.word.toUpperCase()}${item.rarity && item.rarity > 1 ? " <i>◆</i>" : ""}</span><strong>${item.points}</strong></div>`).join("") : "<p>No words this round. The phrase gets another shot.</p>"}
       </div>
     </section>
     <section class="result-actions">
@@ -1930,7 +1995,8 @@ function showStats(): void {
       <div class="stat-tile"><span>TRIAL MEDALS</span><strong>${medals} / ${availableMedals}</strong></div>
     </section>
     <section class="best-list">
-      ${(["classic", "burn", "blitz", "daily", "journey"] as ModeId[]).map((id) => `<div><span>${MODE_META[id].name}</span><strong>${(save.bestScores[id] ?? 0).toLocaleString()}</strong></div>`).join("")}
+      ${([60, 120, 180] as const).map((seconds) => `<div><span>Classic · ${seconds / 60} min</span><strong>${(save.bestScores[`classic:${seconds}`] ?? 0).toLocaleString()}</strong></div>`).join("")}
+      ${(["burn", "daily", "journey"] as ModeId[]).map((id) => `<div><span>${MODE_META[id].name}</span><strong>${(save.bestScores[id] ?? 0).toLocaleString()}</strong></div>`).join("")}
     </section>
     <section class="achievement-section">
       <div class="section-heading"><span>ACHIEVEMENTS</span><small>${achievements.filter((item) => item.unlocked).length} / ${achievements.length}</small></div>
@@ -1994,8 +2060,15 @@ appRoot.addEventListener("input", (event) => {
 });
 
 appRoot.addEventListener("click", (event) => {
-  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
+  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-classic-duration], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
   if (!target) return;
+  const classicDuration = Number(target.dataset.classicDuration);
+  if (classicDuration === 60 || classicDuration === 120 || classicDuration === 180) {
+    save.settings.classicDuration = classicDuration;
+    store.save(save);
+    showModes();
+    return;
+  }
   const playerCount = target.dataset.playerCount;
   if (playerCount !== undefined) {
     captureTogetherNames();
@@ -2050,9 +2123,10 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "settings-back") settingsReturn();
   else if (action === "pause") togglePause(true);
   else if (action === "resume") togglePause(false);
-  else if (action === "restart" && round) startRound(round.mode, round.mode === "journey" || round.challengeTarget !== undefined ? round.phrase : undefined, round.journeyStage, round.challengeTarget);
+  else if (action === "restart" && round) startRound(round.mode, round.mode === "journey" || round.challengeTarget !== undefined ? round.phrase : undefined, round.journeyStage, round.challengeTarget, round.duration);
   else if (action === "end-run") endRound();
   else if (action === "next-board") void advanceBurnBoard(true);
+  else if (action === "cash-chain") cashChain();
   else if (action === "begin-together") beginTogetherTurn();
   else if (action === "pass-turn") passTogetherTurn();
   else if (action === "pause-together") toggleTogetherPause(true);
@@ -2063,7 +2137,7 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "quit-together") { together = null; showMenu(); }
   else if (action === "again-together" && together) startMultiplayer(together.mode);
   else if (action === "quit") { round = null; showMenu(); }
-  else if (action === "again" && lastResult) { telemetry.increment("replay"); startRound(lastResult.mode, lastResult.mode === "journey" || lastResult.challengeTarget !== undefined ? lastResult.phrase : undefined, lastResult.journeyStage, lastResult.challengeTarget); }
+  else if (action === "again" && lastResult) { telemetry.increment("replay"); startRound(lastResult.mode, lastResult.mode === "journey" || lastResult.challengeTarget !== undefined ? lastResult.phrase : undefined, lastResult.journeyStage, lastResult.challengeTarget, lastResult.duration); }
   else if (action === "share-result") void shareLastResult(target);
   else if (action === "journey-next" && lastResult?.journeyStage !== undefined) {
     const nextStage = lastResult.journeyStage + 1;
@@ -2115,6 +2189,11 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (screens.getCurrent() !== "game" || !round) return;
+  if (event.key === "Tab" && !round.paused && round.chainBank) {
+    event.preventDefault();
+    cashChain();
+    return;
+  }
   if (event.key === "Escape") {
     event.preventDefault();
     togglePause();

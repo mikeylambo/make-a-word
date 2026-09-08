@@ -17,9 +17,10 @@
     "burn:derive": "node scripts/derive-burn.mjs",
     "burn:benchmark": "node scripts/benchmark-burn.mjs",
     "trials:simulate": "node scripts/simulate-round.mjs",
+    "scoring:verify": "node scripts/verify-scoring.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",
-    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run build"
+    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3"

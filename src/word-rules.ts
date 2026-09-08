@@ -28,6 +28,19 @@ export function scoreWord(length: number, combo: number, burnMode: boolean): num
   return Math.round(base * comboMultiplier * modeMultiplier);
 }
 
+export const CHAIN_PAYOUTS = [1, 1.2, 1.5, 2, 2.6, 3.4, 4.4, 5.6] as const;
+
+export function rarityMultiplier(rank: number | undefined): 1 | 1.3 | 1.6 {
+  if (rank === undefined || rank < 3_000) return 1;
+  if (rank < 10_000) return 1.3;
+  return 1.6;
+}
+
+export function chainPayout(bank: number, chainLength: number): number {
+  const multiplier = CHAIN_PAYOUTS[Math.min(Math.max(1, chainLength), CHAIN_PAYOUTS.length) - 1] ?? 1;
+  return Math.round(bank * multiplier);
+}
+
 export function burnLetters(phrase: string, word: string, burned: Set<number>): Set<number> {
   const next = new Set(burned);
   for (const letter of word) {

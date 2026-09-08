@@ -7,7 +7,7 @@ A phrase-based word game built from the SLU Web Game Shell flow with a DOM-nativ
 - Title → Main Menu → Mode Select → Game → Pause → Results
 - Classic: reusable phrase letters
 - Burn: submitted letters are permanently consumed
-- Blitz: 60-second combo-focused run
+- Classic: selectable 1-, 2-, or 3-minute rounds with separate best scores
 - Daily Phrase: deterministic phrase of the day with a saved local best
 - Trials: 24 Classic challenges with three medals per phrase
 - Play Together: named 2–4 player matches with 1, 3, or 5 rounds
@@ -16,9 +16,10 @@ A phrase-based word game built from the SLU Web Game Shell flow with a DOM-nativ
 - Server-authoritative online word validation, scoring, combos, timers, and round progression backed by Upstash Redis
 - Shareable score challenges that preserve the exact phrase and rules
 - 376 phrases across classroom, nature, play, arts, adventure, and original challenge themes
-- Offline validation against a frequency-filtered dictionary plus 5,800+ verified common inflections
-- Visible Burn letter progress and a +1,000 Board Clear reward
-- Length-weighted scoring and five-second combo chains
+- Offline validation against one shared 18,704-word client/server dictionary authority
+- Visible Burn letter progress, leftover costs, and a +1,000 Board Clear reward
+- Rank-weighted word values and a five-second bank-or-risk chain system
+- Aggregate, opt-out analytics with no submitted words, names, or cross-day identity
 - Player levels, achievements, Daily streaks, party/challenge stats, best scores, and local persistence
 - Settings, reduced motion, and background auto-pause
 - Keyboard-first desktop play plus touch/native mobile text input

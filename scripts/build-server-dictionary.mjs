@@ -27,10 +27,14 @@ const destination = new URL("../content/server-dictionary.json", import.meta.url
 const rendered = `${JSON.stringify([...words].sort())}\n`;
 const rankDestination = new URL("../content/word-rank.json", import.meta.url);
 const rankRendered = `${JSON.stringify(ranks)}\n`;
+const orderedWords = [...words].sort();
+const clientRankDestination = new URL("../content/word-ranks.json", import.meta.url);
+const clientRankRendered = `${JSON.stringify(orderedWords.map((word) => ranks[word]))}\n`;
 if (process.argv.includes("--check")) {
   const current = readFileSync(destination, "utf8");
   const currentRanks = readFileSync(rankDestination, "utf8");
-  if (current !== rendered || currentRanks !== rankRendered) {
+  const currentClientRanks = readFileSync(clientRankDestination, "utf8");
+  if (current !== rendered || currentRanks !== rankRendered || currentClientRanks !== clientRankRendered) {
     console.error("Server dictionary is stale. Run npm run dictionary:server.");
     process.exit(1);
   }
@@ -38,5 +42,6 @@ if (process.argv.includes("--check")) {
 } else {
   writeFileSync(destination, rendered);
   writeFileSync(rankDestination, rankRendered);
+  writeFileSync(clientRankDestination, clientRankRendered);
   console.log(`Server dictionary: ${words.size.toLocaleString()} words`);
 }

@@ -4,28 +4,32 @@ import { baseScore, canSpell, countsForText, loadDictionary, root } from './phra
 const phrasesUrl = new URL('content/phrases.json', root);
 const phrases = JSON.parse(await readFile(phrasesUrl, 'utf8'));
 const dictionary = await loadDictionary();
+const ranks = JSON.parse(await readFile(new URL('content/word-rank.json', root), 'utf8'));
 const WORDS_PER_MINUTE = 15;
 const ROUND_SECONDS = 120;
 const scriptedWords = Math.floor(WORDS_PER_MINUTE * ROUND_SECONDS / 60);
 const percentileCounts = [0.35, 0.65, 0.9].map((percentile) => Math.max(1, Math.round(scriptedWords * percentile)));
 
-function scoreWithCombo(length, combo) {
-  return Math.round(baseScore(length) * (1 + Math.min(combo, 8) * 0.1));
+const payouts = [1, 1.2, 1.5, 2, 2.6, 3.4, 4.4, 5.6];
+function wordValue(word) {
+  const rank = ranks[word];
+  const rarity = rank < 3000 ? 1 : rank < 10000 ? 1.3 : 1.6;
+  return Math.round(baseScore(word.length) * rarity);
 }
 
 function simulate(phrase) {
   const available = countsForText(phrase.text);
   const words = dictionary
     .filter((word) => canSpell(word, available))
-    .sort((a, b) => baseScore(b.length) - baseScore(a.length) || a.localeCompare(b))
+    .sort((a, b) => wordValue(b) - wordValue(a) || a.localeCompare(b))
     .slice(0, scriptedWords);
   const running = [];
-  let total = 0;
+  let bank = 0;
   words.forEach((word, index) => {
-    total += scoreWithCombo(word.length, index);
-    running.push(total);
+    bank += wordValue(word);
+    running.push(Math.round(bank * payouts[Math.min(index, payouts.length - 1)]));
   });
-  return percentileCounts.map((count) => running[Math.min(count, running.length) - 1] ?? total);
+  return percentileCounts.map((count) => running[Math.min(count, running.length) - 1] ?? bank);
 }
 
 const table = [];

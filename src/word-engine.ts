@@ -1,18 +1,23 @@
 import shippedWords from "../content/server-dictionary.json";
+import shippedRanks from "../content/word-ranks.json";
 import {
   burnLetters,
   canSpell,
   countsForText,
   normalizeWord,
   remainingCounts,
+  rarityMultiplier,
+  chainPayout,
   scoreWord
 } from "./word-rules";
 
-export { burnLetters, countsForText, remainingCounts, scoreWord } from "./word-rules";
+export { burnLetters, chainPayout, countsForText, rarityMultiplier, remainingCounts, scoreWord } from "./word-rules";
 
 const WORDS = new Set(shippedWords);
+const WORD_RANKS = new Map(shippedWords.map((word, index) => [word, shippedRanks[index]]));
 
 export const dictionarySize = WORDS.size;
+export function wordRank(word: string): number | undefined { return WORD_RANKS.get(word); }
 
 export type ValidationResult =
   | { ok: true; word: string }

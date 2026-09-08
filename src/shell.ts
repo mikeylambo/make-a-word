@@ -19,6 +19,7 @@ export type SaveData = {
     sound: boolean;
     reducedMotion: boolean;
     analytics: boolean;
+    classicDuration: 60 | 120 | 180;
   };
 };
 
@@ -37,7 +38,7 @@ const DEFAULT_SAVE: SaveData = {
   completedOnlineMatchIds: [],
   challengesCompleted: 0,
   completedChallengeIds: [],
-  settings: { sound: true, reducedMotion: false, analytics: true }
+  settings: { sound: true, reducedMotion: false, analytics: true, classicDuration: 120 }
 };
 
 export class SaveStore {
@@ -48,10 +49,12 @@ export class SaveStore {
       const raw = localStorage.getItem(this.key);
       if (!raw) return structuredClone(DEFAULT_SAVE);
       const parsed = JSON.parse(raw) as Partial<SaveData>;
+      const bestScores = { ...DEFAULT_SAVE.bestScores, ...(parsed.bestScores ?? {}) };
+      if (bestScores.blitz) bestScores["classic:60"] = Math.max(bestScores["classic:60"] ?? 0, bestScores.blitz);
       return {
         ...structuredClone(DEFAULT_SAVE),
         ...parsed,
-        bestScores: { ...DEFAULT_SAVE.bestScores, ...(parsed.bestScores ?? {}) },
+        bestScores,
         daily: { ...DEFAULT_SAVE.daily, ...(parsed.daily ?? {}) },
         journeyScores: { ...DEFAULT_SAVE.journeyScores, ...(parsed.journeyScores ?? {}) },
         journeyMedals: { ...DEFAULT_SAVE.journeyMedals, ...(parsed.journeyMedals ?? {}) },
