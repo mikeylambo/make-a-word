@@ -2,13 +2,14 @@ type MetricName =
   | "sessions" | "activation" | "round_started" | "round_completed" | "replay"
   | "words_submitted" | "reject_too_short" | "reject_not_in_dictionary" | "reject_not_in_phrase"
   | "reject_duplicate" | "reject_phrase_word" | "invite_created" | "invite_opened"
-  | "invite_accepted" | "daily_played" | "multiplayer_started";
+  | "invite_accepted" | "daily_played" | "multiplayer_started"
+  | "first_word_10s" | "first_word_30s" | "first_word_later";
 
 const ALLOWED = new Set<MetricName>([
   "sessions", "activation", "round_started", "round_completed", "replay", "words_submitted",
   "reject_too_short", "reject_not_in_dictionary", "reject_not_in_phrase", "reject_duplicate",
   "reject_phrase_word", "invite_created", "invite_opened", "invite_accepted", "daily_played",
-  "multiplayer_started"
+  "multiplayer_started", "first_word_10s", "first_word_30s", "first_word_later"
 ]);
 
 class AggregateTelemetry {

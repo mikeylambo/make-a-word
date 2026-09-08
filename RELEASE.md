@@ -1,5 +1,12 @@
 # Release log
 
+## Finishing pass — Phase J: Mobile journey
+
+- The title and menu are now one screen, with Classic, Daily Phrase, and Burn promoted as the three clear starting points.
+- The phrase board pins above the mobile keyboard, the found-word panel collapses, and the compact HUD is constrained for 390px and smaller screens.
+- Aggregate time-to-first-word buckets now measure whether new players find their footing within 10 or 30 seconds without collecting personal data.
+- Existing screen and board transitions remain motion-safe and carry players between each state without hard visual cuts.
+
 ## Finishing pass — Phase I: The board
 
 - The phrase is now the largest gameplay object, dealt as physical ivory split-flap tiles at 40ms intervals.

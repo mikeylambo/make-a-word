@@ -95,6 +95,8 @@ type RoundState = {
   paused: boolean;
   ended: boolean;
   newBest: boolean;
+  startedAt: number;
+  firstWordTracked: boolean;
 };
 
 const MODE_META: Record<ModeId, { name: string; kicker: string; description: string; duration: number }> = {
@@ -250,22 +252,7 @@ function shell(title: string, content: string, options: { back?: string; compact
 }
 
 function showTitle(): void {
-  stopTimer();
-  stopTogetherTimer();
-  stopOnlineSync();
-  flowToken += 1;
-  screens.show("title", `
-    <main class="title-screen">
-      <div class="title-orbit" aria-hidden="true"><span>A</span><span>R</span><span>T</span><span>E</span></div>
-      <section class="title-lockup">
-        <div class="eyebrow">THE PHRASE WORD GAME</div>
-        <h1>MAKE<br><em>A</em> WORD</h1>
-        <p>Use the letters in the phrase. Make as many words as you can.</p>
-        <button class="primary-button primary-button--wide" data-nav data-action="enter-menu">START</button>
-      </section>
-      <div class="title-footer">WORDS ARE HIDING EVERYWHERE</div>
-    </main>
-  `);
+  showMenu();
 }
 
 function showMenu(): void {
@@ -277,10 +264,11 @@ function showMenu(): void {
   const streak = dailyStreak();
   const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
   screens.show("menu", shell("MAKE A WORD", `
-    <section class="hero-panel">
+    <section class="hero-panel hero-panel--menu">
       <div>
-        <div class="eyebrow">HOW MANY CAN YOU FIND?</div>
-        <h2>Words are hiding<br>inside every phrase.</h2>
+        <div class="eyebrow">THE PHRASE WORD GAME</div>
+        <h1>MAKE <em>A</em> WORD</h1>
+        <h2>Words are hiding inside every phrase.</h2>
         <p>Use only the letters you can see. Longer words score more. Quick answers build your combo.</p>
       </div>
       <div class="hero-score">
@@ -290,16 +278,22 @@ function showMenu(): void {
     </section>
 
     <section class="menu-grid">
-      <button class="menu-card menu-card--feature" data-nav data-action="modes">
-        <span class="menu-card__tag">PLAY</span>
-        <strong>Choose a Mode</strong>
-        <small>Classic • Burn • Blitz</small>
+      <button class="menu-card menu-card--feature" data-nav data-mode="classic">
+        <span class="menu-card__tag">START HERE</span>
+        <strong>Classic</strong>
+        <small>${formatTime(modeDuration("classic"))} · Find as many words as you can</small>
         <span class="arrow">→</span>
       </button>
       <button class="menu-card menu-card--daily" data-nav data-mode="daily">
         <span class="menu-card__tag">TODAY</span>
         <strong>Daily Phrase</strong>
         <small>${dailyDone ? `Best today: ${dailyDone.toLocaleString()}` : "Unplayed"} · ${streak} day${streak === 1 ? "" : "s"} streak</small>
+        <span class="arrow">→</span>
+      </button>
+      <button class="menu-card menu-card--burn" data-nav data-mode="burn">
+        <span class="menu-card__tag">EVERY LETTER COUNTS</span>
+        <strong>Burn</strong>
+        <small>Clear each board before time runs out</small>
         <span class="arrow">→</span>
       </button>
       <button class="menu-card menu-card--journey" data-nav data-action="journey">
@@ -314,12 +308,17 @@ function showMenu(): void {
         <small>Room Codes • Word Relay • Last Word</small>
         <span class="arrow">→</span>
       </button>
-      <button class="menu-card" data-nav data-action="stats">
+      <button class="menu-card menu-card--secondary" data-nav data-action="modes">
+        <span class="menu-card__tag">MORE</span>
+        <strong>Round Options</strong>
+        <small>Choose a timer and mode</small>
+      </button>
+      <button class="menu-card menu-card--secondary" data-nav data-action="stats">
         <span class="menu-card__tag">PROFILE</span>
         <strong>Statistics</strong>
         <small>${save.totalWords.toLocaleString()} words found</small>
       </button>
-      <button class="menu-card" data-nav data-action="help">
+      <button class="menu-card menu-card--secondary" data-nav data-action="help">
         <span class="menu-card__tag">RULES</span>
         <strong>How to Play</strong>
         <small>Learn the phrase</small>
@@ -1339,7 +1338,9 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
     dealing: false,
     paused: false,
     ended: false,
-    newBest: false
+    newBest: false,
+    startedAt: 0,
+    firstWordTracked: false
   };
   telemetry.increment("round_started");
   if (save.roundsPlayed === 0) telemetry.increment("activation");
@@ -1359,6 +1360,7 @@ async function runRoundCountdown(token: number): Promise<void> {
   showEvent("MAKE WORDS", round.mode === "burn" ? "BOARD 01 · GO" : "GO", "event-card--go");
   audio.play("go", save.settings.sound);
   round.starting = false;
+  round.startedAt = performance.now();
   setGameControlsDisabled(false);
   focusWordInput();
   await delay(650);
@@ -1418,17 +1420,19 @@ function renderGame(): void {
       </header>
 
       <section class="playfield">
-        <div class="phrase-header">
-          <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · USE EVERY LETTER` : state.mode === "journey" ? `TRIAL ${String((state.journeyStage ?? 0) + 1).padStart(2, "0")}` : "MAKE WORDS FROM THIS PHRASE"}</span>
-          <small>${state.phrase.label} • DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}${state.challengeTarget !== undefined ? ` • BEAT ${state.challengeTarget.toLocaleString()}` : ""}</small>
+        <div class="board-stage">
+          <div class="phrase-header">
+            <span>${state.mode === "burn" ? `BOARD ${String(state.boardNumber).padStart(2, "0")} · USE EVERY LETTER` : state.mode === "journey" ? `TRIAL ${String((state.journeyStage ?? 0) + 1).padStart(2, "0")}` : "MAKE WORDS FROM THIS PHRASE"}</span>
+            <small>${state.phrase.label} • DIFFICULTY ${"◆".repeat(state.phrase.difficulty)}${"◇".repeat(5 - state.phrase.difficulty)}${state.challengeTarget !== undefined ? ` • BEAT ${state.challengeTarget.toLocaleString()}` : ""}</small>
+          </div>
+          ${state.mode === "burn" ? `
+            <div class="burn-progress" aria-label="${spentLetters} of ${totalLetters} letters spent">
+              <div><span>LETTERS SPENT</span><strong id="burn-progress-count">${spentLetters} / ${totalLetters}</strong></div>
+              <div class="burn-progress__track"><i id="burn-progress-fill" style="transform:scaleX(${totalLetters ? spentLetters / totalLetters : 0})"></i></div>
+              <b>BOARD CLEAR <small>+1,000</small></b>
+            </div>` : ""}
+          <div class="phrase-display" id="phrase-display">${renderPhrase(state)}</div>
         </div>
-        ${state.mode === "burn" ? `
-          <div class="burn-progress" aria-label="${spentLetters} of ${totalLetters} letters spent">
-            <div><span>LETTERS SPENT</span><strong id="burn-progress-count">${spentLetters} / ${totalLetters}</strong></div>
-            <div class="burn-progress__track"><i id="burn-progress-fill" style="transform:scaleX(${totalLetters ? spentLetters / totalLetters : 0})"></i></div>
-            <b>BOARD CLEAR <small>+1,000</small></b>
-          </div>` : ""}
-        <div class="phrase-display" id="phrase-display">${renderPhrase(state)}</div>
 
         <form class="word-entry" id="word-form" autocomplete="off">
           <input id="word-input" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="24" aria-label="Enter a word" placeholder="TYPE A WORD" ${state.starting || state.dealing ? "disabled" : ""} />
@@ -1437,8 +1441,8 @@ function renderGame(): void {
         <div class="feedback" id="feedback">3+ letters • ENTER to submit</div>
 
         <div class="round-lower">
-          <div class="found-panel">
-            <div class="found-panel__header"><span>FOUND</span><strong id="word-count">${state.found.length}</strong></div>
+          <div class="found-panel found-panel--collapsible">
+            <button class="found-panel__header" data-action="toggle-found" aria-expanded="false"><span>FOUND</span><strong id="word-count">${state.found.length}</strong><i aria-hidden="true">⌄</i></button>
             <div class="best-word" id="best-word">${state.found.length ? `<small>BEST</small><strong>${state.found.reduce((best, item) => item.word.length > best.length ? item.word : best, "").toUpperCase()}</strong>` : "<small>BEST</small><strong>—</strong>"}</div>
             <div class="found-list" id="found-list" data-found-count="${state.found.length}">${renderFound(state)}</div>
           </div>
@@ -1558,6 +1562,11 @@ function submitCurrentWord(): void {
   round.found.push({ word: result.word, points, rarity });
   for (const letter of result.word) round.usedLetters.add(letter);
   telemetry.increment("words_submitted");
+  if (!round.firstWordTracked) {
+    const seconds = round.startedAt ? (now - round.startedAt) / 1000 : 30;
+    telemetry.increment(seconds <= 10 ? "first_word_10s" : seconds <= 30 ? "first_word_30s" : "first_word_later");
+    round.firstWordTracked = true;
+  }
   round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
 
@@ -2198,6 +2207,11 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "end-run") endRound();
   else if (action === "next-board") void advanceBurnBoard(true);
   else if (action === "cash-chain") cashChain();
+  else if (action === "toggle-found") {
+    const panel = target.closest<HTMLElement>(".found-panel");
+    const expanded = panel?.classList.toggle("found-panel--expanded") ?? false;
+    target.setAttribute("aria-expanded", String(expanded));
+  }
   else if (action === "begin-together") beginTogetherTurn();
   else if (action === "pass-turn") passTogetherTurn();
   else if (action === "pause-together") toggleTogetherPause(true);

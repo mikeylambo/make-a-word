@@ -14,5 +14,7 @@ console.table({
   replay: ratio(n('replay'), n('round_completed')),
   inviteConversion: ratio(n('invite_accepted'), n('invite_opened')),
   wordsPerRound: n('round_completed') ? (n('words_submitted') / n('round_completed')).toFixed(1) : '—',
+  firstWordUnder10s: ratio(n('first_word_10s'), n('first_word_10s') + n('first_word_30s') + n('first_word_later')),
+  firstWordUnder30s: ratio(n('first_word_10s') + n('first_word_30s'), n('first_word_10s') + n('first_word_30s') + n('first_word_later')),
   rejectionRate: ratio(n('reject_too_short') + n('reject_not_in_dictionary') + n('reject_not_in_phrase') + n('reject_duplicate') + n('reject_phrase_word'), n('words_submitted'))
 });
