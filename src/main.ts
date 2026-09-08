@@ -17,6 +17,7 @@ import {
   humanReason,
   remainingCounts,
   scoreWord,
+  playableWords,
   validateWord
 } from "./word-engine";
 
@@ -76,6 +77,7 @@ type RoundState = {
   boardNumber: number;
   boardsCleared: number;
   boardWords: number;
+  boardCandidates: string[];
   journeyStage?: number;
   challengeTarget?: number;
   starting: boolean;
@@ -1282,6 +1284,7 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
   stopTogetherTimer();
   const token = ++flowToken;
   const phrase = phraseOverride ?? choosePhrase(mode);
+  const phraseWords = new Set(phrase.text.toLowerCase().match(/[a-z]+/g)?.filter((word) => word.length >= 3) ?? []);
   round = {
     mode,
     phrase,
@@ -1297,6 +1300,7 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
     boardNumber: 1,
     boardsCleared: 0,
     boardWords: 0,
+    boardCandidates: mode === "burn" ? playableWords(countsForText(phrase.text), phraseWords) : [],
     journeyStage,
     challengeTarget,
     starting: true,
@@ -1406,8 +1410,8 @@ function renderGame(): void {
             ${state.mode === "burn" ? `
               <span>BURN RUN</span>
               <div class="burn-board-stat"><strong id="boards-cleared">${state.boardsCleared}</strong><small>BOARDS CLEARED</small></div>
-              <p>Spend every letter for a +1,000 Board Clear bonus. Deal early for a 5-second penalty.</p>
-              <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small>−5 SEC</small></button>
+              <p>Spend every letter for a +1,000 Board Clear bonus. Leftover letters cost 60 points each.</p>
+              <button class="deal-button" data-nav data-action="next-board" ${state.starting || state.dealing ? "disabled" : ""}>DEAL NEXT <small id="leftover-cost">−${(totalLetters - spentLetters) * 60}</small></button>
             ` : state.mode === "journey" ? `
               <span>TRIAL MEDALS</span>
               <div class="journey-targets">
@@ -1476,11 +1480,21 @@ function submitCurrentWord(): void {
   const input = document.querySelector<HTMLInputElement>("#word-input");
   if (!input) return;
   const available = round.mode === "burn" ? remainingCounts(round.phrase.text, round.burned) : countsForText(round.phrase.text);
-  const result = validateWord(input.value, available, round.submitted);
+  const phraseWords = round.mode === "burn"
+    ? new Set(round.phrase.text.toLowerCase().match(/[a-z]+/g)?.filter((word) => word.length >= 3) ?? [])
+    : new Set<string>();
+  const result = validateWord(input.value, available, round.submitted, phraseWords);
   const feedback = document.querySelector<HTMLElement>("#feedback");
 
   if (!result.ok) {
-    telemetry.increment(`reject_${result.reason.replaceAll("-", "_")}` as Parameters<typeof telemetry.increment>[0]);
+    const rejectionMetric = {
+      "too-short": "reject_too_short",
+      "not-word": "reject_not_in_dictionary",
+      letters: "reject_not_in_phrase",
+      duplicate: "reject_duplicate",
+      "phrase-word": "reject_phrase_word"
+    } as const;
+    telemetry.increment(rejectionMetric[result.reason]);
     audio.play("reject", save.settings.sound);
     feedback?.classList.remove("feedback--good");
     feedback?.classList.add("feedback--bad");
@@ -1519,12 +1533,12 @@ function submitCurrentWord(): void {
 
   if (round.mode === "burn") {
     const availableAfterWord = remainingCounts(round.phrase.text, round.burned);
-    if (!hasPlayableWord(availableAfterWord, round.submitted)) {
+    if (!hasPlayableWord(round.boardCandidates, availableAfterWord, round.submitted)) {
       const token = flowToken;
       round.dealing = true;
       setGameControlsDisabled(true);
       window.setTimeout(() => {
-        if (token === flowToken && round?.mode === "burn" && !round.ended) void advanceBurnBoard(true);
+        if (token === flowToken && round?.mode === "burn" && !round.ended) void advanceBurnBoard(false);
       }, 500);
     }
   }
@@ -1558,11 +1572,13 @@ function updateBurnProgress(state: RoundState): void {
   const spent = state.burned.size;
   const count = document.querySelector<HTMLElement>("#burn-progress-count");
   const fill = document.querySelector<HTMLElement>("#burn-progress-fill");
+  const cost = document.querySelector<HTMLElement>("#leftover-cost");
   if (count) count.textContent = `${spent} / ${total}`;
   if (fill) {
     fill.style.transform = `scaleX(${total ? spent / total : 0})`;
     fill.classList.toggle("burn-progress__fill--complete", spent === total);
   }
+  if (cost) cost.textContent = spent === total ? "BOARD CLEAR" : `−${(total - spent) * 60}`;
 }
 
 function animateNumber(element: HTMLElement, from: number, to: number, duration: number): void {
@@ -1677,50 +1693,38 @@ function tick(): void {
   if (round.timeLeft <= 0) endRound();
 }
 
-async function advanceBurnBoard(cleared: boolean): Promise<void> {
+async function advanceBurnBoard(manual: boolean): Promise<void> {
   const state = round;
   if (!state || state.mode !== "burn" || state.ended || state.starting) return;
-  if (state.dealing && !cleared) return;
+  if (state.dealing && manual) return;
   state.dealing = true;
   freezeComboMeter();
   setGameControlsDisabled(true);
   document.querySelector<HTMLElement>("#phrase-display")?.classList.add("phrase-display--leaving");
 
-  let bonus = 0;
-  if (cleared) {
-    const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
-    const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
-    const boardClear = remaining === 0;
-    bonus = 250 + (total - remaining) * 35 + state.boardNumber * 50 + (boardClear ? 1000 : 0);
-    const previousScore = state.score;
-    state.score += bonus;
-    if (boardClear) state.boardsCleared += 1;
-    updateGameHud(previousScore);
-    showEvent(
-      boardClear ? "BOARD CLEAR" : `+${bonus.toLocaleString()}`,
-      boardClear ? `+${bonus.toLocaleString()} · ALL LETTERS` : `BOARD ${String(state.boardNumber).padStart(2, "0")} EXHAUSTED`,
-      boardClear ? "event-card--board event-card--board-clear" : "event-card--board"
-    );
-    audio.play("board", save.settings.sound);
-  } else {
-    state.timeLeft = Math.max(0, state.timeLeft - 5);
+  const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
+  const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
+  const boardClear = remaining === 0;
+  const bonus = 250 + (total - remaining) * 35 - remaining * 60 + (boardClear ? 1000 : 0);
+  const previousScore = state.score;
+  state.score = Math.max(0, state.score + bonus);
+  if (boardClear) state.boardsCleared += 1;
+  updateGameHud(previousScore);
+  showEvent(
+    boardClear ? "BOARD CLEAR" : bonus >= 0 ? `+${bonus.toLocaleString()}` : bonus.toLocaleString(),
+    boardClear ? `+${bonus.toLocaleString()} · ALL LETTERS` : `${remaining} LETTER${remaining === 1 ? "" : "S"} LEFT`,
+    boardClear ? "event-card--board event-card--board-clear" : "event-card--skip"
+  );
+  audio.play(boardClear ? "board" : "start", save.settings.sound);
+  if (manual) {
     state.combo = 0;
     state.lastValidAt = 0;
     state.comboFrozenAt = 0;
     clearComboMeter();
-    const time = document.querySelector<HTMLElement>("#time-value");
-    if (time) time.textContent = formatTime(state.timeLeft);
-    showEvent("NEW DEAL", "−5 SECONDS", "event-card--skip");
-    audio.play("start", save.settings.sound);
-    if (state.timeLeft <= 0) {
-      await delay(450);
-      endRound();
-      return;
-    }
   }
 
   const token = flowToken;
-  await delay(cleared ? 680 : 440);
+  await delay(boardClear ? 680 : 520);
   if (token !== flowToken || round !== state || state.ended) return;
 
   state.phrase = choosePhrase("burn");
@@ -1728,13 +1732,15 @@ async function advanceBurnBoard(cleared: boolean): Promise<void> {
   state.burned = new Set();
   state.submitted = new Set();
   state.boardWords = 0;
+  const nextPhraseWords = new Set(state.phrase.text.toLowerCase().match(/[a-z]+/g)?.filter((word) => word.length >= 3) ?? []);
+  state.boardCandidates = playableWords(countsForText(state.phrase.text), nextPhraseWords);
   updateBurnBoardDisplay(state);
   showEvent(`BOARD ${String(state.boardNumber).padStart(2, "0")}`, "NEW PHRASE", "event-card--deal");
   await delay(430);
   if (token !== flowToken || round !== state || state.ended) return;
   clearEvent();
   state.dealing = false;
-  if (cleared) {
+  if (!manual) {
     state.lastValidAt = performance.now();
     state.comboFrozenAt = 0;
     startComboMeter();
@@ -2046,7 +2052,7 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "resume") togglePause(false);
   else if (action === "restart" && round) startRound(round.mode, round.mode === "journey" || round.challengeTarget !== undefined ? round.phrase : undefined, round.journeyStage, round.challengeTarget);
   else if (action === "end-run") endRound();
-  else if (action === "next-board") void advanceBurnBoard(false);
+  else if (action === "next-board") void advanceBurnBoard(true);
   else if (action === "begin-together") beginTogetherTurn();
   else if (action === "pass-turn") passTogetherTurn();
   else if (action === "pause-together") toggleTogetherPause(true);
