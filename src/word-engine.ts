@@ -1,7 +1,4 @@
-import commonWords from "./common-words.txt?raw";
-import inflectedWords from "./inflected-words.txt?raw";
-import blockedWords from "../content/dictionary-blocklist.json";
-import dictionaryAdditions from "../content/dictionary-additions.json";
+import shippedWords from "../content/server-dictionary.json";
 import {
   burnLetters,
   canSpell,
@@ -13,14 +10,7 @@ import {
 
 export { burnLetters, countsForText, remainingCounts, scoreWord } from "./word-rules";
 
-const BLOCKED_WORDS = new Set(blockedWords);
-const WORDS = new Set(
-  `${commonWords}\n${inflectedWords}`
-    .split(/\s+/)
-    .map((word) => word.toLowerCase())
-    .filter((word) => word.length >= 3 && !BLOCKED_WORDS.has(word))
-);
-dictionaryAdditions.forEach((word) => WORDS.add(word));
+const WORDS = new Set(shippedWords);
 
 export const dictionarySize = WORDS.size;
 

@@ -1,5 +1,5 @@
-import { writeFile } from 'node:fs/promises';
-import { analyzePhrase, assertDailyLabelRotation, loadDictionary, measuredDifficultyById, root, STOP_WORDS, wordsIn } from './phrase-analysis-lib.mjs';
+import { readFile, writeFile } from 'node:fs/promises';
+import { analyzePhrase, assertDailyLabelRotation, loadDictionary, measuredDifficultyById, root, seededPhraseOrder, STOP_WORDS, wordsIn } from './phrase-analysis-lib.mjs';
 
 const sources = {
   Idioms: [
@@ -174,7 +174,7 @@ const addendumSources = {
     'THROUGH THICK AND THIN', 'RAINING CATS AND DOGS', 'LET SLEEPING DOGS LIE', 'COSTS A PRETTY PENNY'
   ],
   Proverbs: [
-    'WASTE NOT WANT NOT', 'SEEING IS BELIEVING', 'LIVE AND LET LIVE', 'NO NEWS IS GOOD NEWS',
+    'WHERE THERE IS A WILL', 'SEEING IS BELIEVING', 'LIVE AND LET LIVE', 'NO NEWS IS GOOD NEWS',
     'SILENCE IS GOLDEN', 'ALL IN GOOD TIME', 'OPPOSITES ATTRACT', 'IT TAKES ALL KINDS',
     'YOU LIVE AND LEARN', 'FIRST COME FIRST SERVED', 'MONEY TALKS LOUDLY', 'PATIENCE IS A VIRTUE'
   ],
@@ -183,7 +183,7 @@ const addendumSources = {
     'GREEN GLASS GLOBES GLOW', 'SIX SICK SEA SERPENTS'
   ],
   'Game Show': [
-    'TELL THEM WHAT THEY WON', 'RING THE BELL TWICE', 'NO WRONG ANSWERS HERE', 'SPIN THE WHEEL AGAIN'
+    'READY FOR THE NEXT ROUND', 'RING THE BELL TWICE', 'NO WRONG ANSWERS HERE', 'SPIN THE WHEEL AGAIN'
   ],
   Mischief: [
     'THAT WAS NOT THE PLAN', 'I SWEAR IT WAS RIGHT HERE', 'THE DOG ATE MY HOMEWORK',
@@ -229,6 +229,7 @@ function slug(text) {
 }
 
 const dictionary = await loadDictionary();
+const currentBank = JSON.parse(await readFile(new URL('content/phrases.json', root), 'utf8'));
 const measured = [];
 const allCandidates = [];
 for (const [label, texts] of Object.entries(sources)) {
@@ -324,6 +325,24 @@ const difficulty = measuredDifficultyById(orderedSelected.map((entry) => entry.a
 const bank = orderedSelected.map(({ phrase }) => ({ ...phrase, difficulty: difficulty.get(phrase.id) }));
 assertDailyLabelRotation(bank);
 await writeFile(new URL('content/phrases.json', root), `${JSON.stringify(bank, null, 2)}\n`);
+
+// Retired boards remain available to archived Daily dates. A new schedule version
+// activates explicitly; rebuilding the content bank never rewrites an older calendar.
+const scheduleUrl = new URL('content/daily-schedule.json', root);
+const archiveUrl = new URL('content/daily-archive.json', root);
+const schedule = JSON.parse(await readFile(scheduleUrl, 'utf8'));
+let archive = [];
+try { archive = JSON.parse(await readFile(archiveUrl, 'utf8')); } catch {}
+const activeIds = new Set(bank.map((phrase) => phrase.id));
+const scheduledIds = new Set(schedule.versions.flatMap((version) => version.phraseIds));
+for (const phrase of currentBank) {
+  if (!activeIds.has(phrase.id) && scheduledIds.has(phrase.id) && !archive.some((entry) => entry.id === phrase.id)) archive.push(phrase);
+}
+if (!schedule.versions.some((version) => version.id === 'v2')) {
+  schedule.versions.push({ id: 'v2', startsOn: '2026-09-09', phraseIds: seededPhraseOrder(bank).map((phrase) => phrase.id) });
+}
+await writeFile(archiveUrl, `${JSON.stringify(archive, null, 2)}\n`);
+await writeFile(scheduleUrl, `${JSON.stringify(schedule, null, 2)}\n`);
 
 const labels = [...new Set(bank.map((phrase) => phrase.label))];
 const grouped = labels.map((label) => {

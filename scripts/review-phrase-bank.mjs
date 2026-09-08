@@ -3,6 +3,8 @@ import { analyzePhrases, assertDailySchedule, letterSignature, loadDictionary, m
 
 const phrases = JSON.parse(await readFile(new URL('content/phrases.json', root), 'utf8'));
 const dailySchedule = JSON.parse(await readFile(new URL('content/daily-schedule.json', root), 'utf8'));
+const dailyArchive = JSON.parse(await readFile(new URL('content/daily-archive.json', root), 'utf8'));
+const profanity = new Set(JSON.parse(await readFile(new URL('content/dictionary-profanity.json', root), 'utf8')));
 const dictionaryWords = await loadDictionary();
 const dictionary = new Set(dictionaryWords);
 const analyses = analyzePhrases(phrases, dictionaryWords);
@@ -23,6 +25,7 @@ for (const [index, phrase] of phrases.entries()) {
     const phraseWords = new Set(wordsIn(phrase.text).filter((word) => word.length >= 3));
     for (const word of phrase.burnSolution) {
       if (!dictionary.has(word)) errors.push(`${phrase.id}: Burn word ${word} is outside the shipped dictionary`);
+      if (profanity.has(word)) errors.push(`${phrase.id}: Burn word ${word} violates the family-safe policy`);
       if (phraseWords.has(word)) errors.push(`${phrase.id}: Burn word ${word} appears on the board`);
     }
     if (letterSignature(phrase.burnSolution.join('')) !== letterSignature(phrase.text)) errors.push(`${phrase.id}: Burn solution is not an exact partition`);
@@ -36,7 +39,7 @@ for (const [word, ids] of wordUse) if (ids.length > 3) errors.push(`${word}: use
 for (const [bigram, ids] of bigramUse) if (ids.length > 2) errors.push(`${bigram}: repeated in ${ids.length} phrases`);
 
 try {
-  assertDailySchedule(phrases, dailySchedule);
+  assertDailySchedule([...dailyArchive, ...phrases], dailySchedule);
 } catch (error) {
   errors.push(error.message);
 }

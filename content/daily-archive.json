@@ -1,0 +1,369 @@
+[
+  {
+    "id": "waste-not-want-not",
+    "text": "WASTE NOT WANT NOT",
+    "label": "Proverbs",
+    "difficulty": 1,
+    "canonical": true,
+    "burnSolution": [
+      "anna",
+      "test",
+      "town",
+      "two"
+    ],
+    "journeyOrder": 2,
+    "medals": [
+      8892,
+      13752,
+      17532
+    ]
+  },
+  {
+    "id": "tell-them-what-they-won",
+    "text": "TELL THEM WHAT THEY WON",
+    "label": "Game Show",
+    "difficulty": 1,
+    "burnSolution": [
+      "twenty",
+      "whom",
+      "health",
+      "let"
+    ],
+    "journeyOrder": 23,
+    "medals": [
+      12222,
+      20430,
+      26478
+    ]
+  },
+  {
+    "id": "fill-up-before-we-go",
+    "text": "FILL UP BEFORE WE GO",
+    "label": "Road Trip",
+    "difficulty": 1,
+    "burnSolution": [
+      "group",
+      "bow",
+      "life",
+      "feel"
+    ]
+  },
+  {
+    "id": "your-move-before-the-bell",
+    "text": "YOUR MOVE BEFORE THE BELL",
+    "label": "Game Night",
+    "difficulty": 2,
+    "burnSolution": [
+      "forever",
+      "home",
+      "lot",
+      "blue",
+      "bye"
+    ]
+  },
+  {
+    "id": "save-room-for-the-cake",
+    "text": "SAVE ROOM FOR THE CAKE",
+    "label": "Food & Drink",
+    "difficulty": 5,
+    "burnSolution": [
+      "forever",
+      "makes",
+      "act",
+      "ooh"
+    ]
+  },
+  {
+    "id": "meet-me-out-after-dark",
+    "text": "MEET ME OUT AFTER DARK",
+    "label": "Weekend",
+    "difficulty": 1,
+    "burnSolution": [
+      "market",
+      "route",
+      "feet",
+      "mad"
+    ]
+  },
+  {
+    "id": "taxi-waits-outside",
+    "text": "TAXI WAITS OUTSIDE",
+    "label": "Travel",
+    "difficulty": 1,
+    "burnSolution": [
+      "exist",
+      "out",
+      "said",
+      "wait"
+    ]
+  },
+  {
+    "id": "next-stop-somewhere-new",
+    "text": "NEXT STOP SOMEWHERE NEW",
+    "label": "Road Trip",
+    "difficulty": 3,
+    "burnSolution": [
+      "express",
+      "women",
+      "teeth",
+      "now"
+    ]
+  },
+  {
+    "id": "turn-the-volume-up",
+    "text": "TURN THE VOLUME UP",
+    "label": "Music",
+    "difficulty": 1,
+    "burnSolution": [
+      "move",
+      "rule",
+      "hunt",
+      "put"
+    ]
+  },
+  {
+    "id": "one-more-hour-in-bed",
+    "text": "ONE MORE HOUR IN BED",
+    "label": "Weekend",
+    "difficulty": 1,
+    "burnSolution": [
+      "honour",
+      "erm",
+      "die",
+      "bone"
+    ]
+  },
+  {
+    "id": "pick-a-film-to-watch",
+    "text": "PICK A FILM TO WATCH",
+    "label": "Movie Night",
+    "difficulty": 1,
+    "burnSolution": [
+      "fail",
+      "pack",
+      "witch",
+      "tom"
+    ]
+  },
+  {
+    "id": "pass-the-hot-sauce",
+    "text": "PASS THE HOT SAUCE",
+    "label": "Food & Drink",
+    "difficulty": 2,
+    "burnSolution": [
+      "suspect",
+      "those",
+      "aah"
+    ]
+  },
+  {
+    "id": "photo-finish-at-the-line",
+    "text": "PHOTO FINISH AT THE LINE",
+    "label": "Sports",
+    "difficulty": 5,
+    "burnSolution": [
+      "fashion",
+      "phone",
+      "hit",
+      "title"
+    ]
+  },
+  {
+    "id": "whisk-until-smooth",
+    "text": "WHISK UNTIL SMOOTH",
+    "label": "Kitchen",
+    "difficulty": 2,
+    "burnSolution": [
+      "thinks",
+      "must",
+      "oil",
+      "how"
+    ]
+  },
+  {
+    "id": "one-backpack-two-weeks",
+    "text": "ONE BACKPACK TWO WEEKS",
+    "label": "Travel",
+    "difficulty": 2,
+    "burnSolution": [
+      "books",
+      "accept",
+      "wake",
+      "knew"
+    ]
+  },
+  {
+    "id": "a-table-set-for-four",
+    "text": "A TABLE SET FOR FOUR",
+    "label": "Food & Drink",
+    "difficulty": 3,
+    "burnSolution": [
+      "trouble",
+      "off",
+      "sea",
+      "art"
+    ]
+  },
+  {
+    "id": "wherever-the-road-leads",
+    "text": "WHEREVER THE ROAD LEADS",
+    "label": "Road Trip",
+    "difficulty": 5,
+    "burnSolution": [
+      "whatever",
+      "harder",
+      "old",
+      "see"
+    ]
+  },
+  {
+    "id": "the-price-of-everything",
+    "text": "THE PRICE OF EVERYTHING",
+    "label": "Money",
+    "difficulty": 4,
+    "burnSolution": [
+      "everyone",
+      "chef",
+      "right",
+      "tip"
+    ]
+  },
+  {
+    "id": "sunday-moves-too-fast",
+    "text": "SUNDAY MOVES TOO FAST",
+    "label": "Weekend",
+    "difficulty": 4,
+    "burnSolution": [
+      "saved",
+      "foot",
+      "sun",
+      "tom",
+      "say"
+    ]
+  },
+  {
+    "id": "the-cafe-opens-at-dawn",
+    "text": "THE CAFE OPENS AT DAWN",
+    "label": "Coffee",
+    "difficulty": 5,
+    "burnSolution": [
+      "defeat",
+      "space",
+      "than",
+      "now"
+    ]
+  },
+  {
+    "id": "take-the-long-way-home",
+    "text": "TAKE THE LONG WAY HOME",
+    "label": "Weekend",
+    "difficulty": 2,
+    "burnSolution": [
+      "gotten",
+      "whom",
+      "yeah",
+      "lake"
+    ]
+  },
+  {
+    "id": "latte-art-looks-perfect",
+    "text": "LATTE ART LOOKS PERFECT",
+    "label": "Coffee",
+    "difficulty": 5,
+    "burnSolution": [
+      "attack",
+      "prefer",
+      "stole",
+      "lot"
+    ]
+  },
+  {
+    "id": "catch-the-ferry-at-noon",
+    "text": "CATCH THE FERRY AT NOON",
+    "label": "Travel",
+    "difficulty": 2,
+    "burnSolution": [
+      "factory",
+      "other",
+      "then",
+      "can"
+    ]
+  },
+  {
+    "id": "a-quiet-afternoon-at-home",
+    "text": "A QUIET AFTERNOON AT HOME",
+    "label": "Weekend",
+    "difficulty": 4,
+    "burnSolution": [
+      "quite",
+      "after",
+      "aah",
+      "moon",
+      "note"
+    ]
+  },
+  {
+    "id": "a-stitch-in-time-saves-nine",
+    "text": "A STITCH IN TIME SAVES NINE",
+    "label": "Proverbs",
+    "difficulty": 4,
+    "canonical": true,
+    "burnSolution": [
+      "sensitive",
+      "ancient",
+      "him",
+      "sat"
+    ]
+  },
+  {
+    "id": "pull-yourself-together",
+    "text": "PULL YOURSELF TOGETHER",
+    "label": "Idioms",
+    "difficulty": 4,
+    "canonical": true,
+    "burnSolution": [
+      "surgery",
+      "full",
+      "pool",
+      "teeth"
+    ]
+  },
+  {
+    "id": "throw-caution-to-the-wind",
+    "text": "THROW CAUTION TO THE WIND",
+    "label": "Idioms",
+    "difficulty": 5,
+    "canonical": true,
+    "burnSolution": [
+      "introduce",
+      "with",
+      "what",
+      "onto"
+    ]
+  },
+  {
+    "id": "under-the-weather",
+    "text": "UNDER THE WEATHER",
+    "label": "Idioms",
+    "difficulty": 1,
+    "canonical": true,
+    "burnSolution": [
+      "thunder",
+      "where",
+      "eat"
+    ]
+  },
+  {
+    "id": "best-of-both-worlds",
+    "text": "BEST OF BOTH WORLDS",
+    "label": "Idioms",
+    "difficulty": 2,
+    "canonical": true,
+    "burnSolution": [
+      "left",
+      "bob",
+      "words",
+      "shot"
+    ]
+  }
+]

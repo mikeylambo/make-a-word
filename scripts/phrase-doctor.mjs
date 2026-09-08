@@ -1,8 +1,10 @@
-import { analyzePhrases, letterSignature, loadDictionary, loadPhraseBank, measuredDifficultyById, phraseVariety, wordsIn } from './phrase-analysis-lib.mjs';
+import { readFile } from 'node:fs/promises';
+import { analyzePhrases, letterSignature, loadDictionary, loadPhraseBank, measuredDifficultyById, phraseVariety, root, wordsIn } from './phrase-analysis-lib.mjs';
 
 const phrases = await loadPhraseBank();
 const dictionaryWords = await loadDictionary();
 const dictionary = new Set(dictionaryWords);
+const profanity = new Set(JSON.parse(await readFile(new URL('content/dictionary-profanity.json', root), 'utf8')));
 const measured = analyzePhrases(phrases, dictionaryWords);
 const analysisById = new Map(measured.map((analysis) => [analysis.id, analysis]));
 const currentAnalyses = measured.filter((analysis) => !analysis.legacy);
@@ -59,6 +61,7 @@ for (const phrase of phrases) {
     for (const word of normalized) {
       if (word.length < 3) errors.push(phrase.id + ': Burn solution contains a word shorter than 3 letters (' + word + ')');
       if (!dictionary.has(word)) errors.push(phrase.id + ': Burn solution word is outside the curated dictionary (' + word + ')');
+      if (profanity.has(word)) errors.push(phrase.id + ': Burn solution word violates the family-safe policy (' + word + ')');
       if (phraseWords.has(word)) errors.push(phrase.id + ': Burn solution repeats a visible phrase word (' + word + ')');
     }
     if (letterSignature(normalized.join('')) !== letterSignature(phrase.text)) {

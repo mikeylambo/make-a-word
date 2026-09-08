@@ -6,47 +6,47 @@
     "difficulty": 5,
     "canonical": true,
     "burnSolution": [
-      "bastard",
-      "oil",
-      "heh",
-      "did"
+      "bother",
+      "laid",
+      "his",
+      "dad"
     ],
     "journeyOrder": 1,
     "medals": [
-      15174,
-      26838,
-      35910
+      14850,
+      26514,
+      35586
     ]
   },
   {
-    "id": "waste-not-want-not",
-    "text": "WASTE NOT WANT NOT",
+    "id": "where-there-is-a-will",
+    "text": "WHERE THERE IS A WILL",
     "label": "Proverbs",
-    "difficulty": 1,
+    "difficulty": 2,
     "canonical": true,
     "burnSolution": [
-      "anna",
-      "test",
-      "town",
-      "two"
+      "whether",
+      "lies",
+      "lie",
+      "war"
     ],
     "journeyOrder": 2,
     "medals": [
-      8892,
-      13752,
-      17532
+      15408,
+      27720,
+      36792
     ]
   },
   {
     "id": "chasing-the-sunshine",
     "text": "CHASING THE SUNSHINE",
     "label": "Weather",
-    "difficulty": 4,
+    "difficulty": 3,
     "burnSolution": [
       "hunting",
-      "since",
-      "has",
-      "she"
+      "chase",
+      "she",
+      "sin"
     ],
     "journeyOrder": 3,
     "medals": [
@@ -88,26 +88,26 @@
     "journeyOrder": 5,
     "medals": [
       16290,
-      28278,
-      37350
+      27954,
+      37026
     ]
   },
   {
-    "id": "last-call-came-and-went",
-    "text": "LAST CALL CAME AND WENT",
+    "id": "after-hours-downtown",
+    "text": "AFTER HOURS DOWNTOWN",
     "label": "Late Night",
-    "difficulty": 3,
+    "difficulty": 5,
     "burnSolution": [
-      "called",
-      "castle",
-      "man",
-      "want"
+      "transfer",
+      "down",
+      "out",
+      "how"
     ],
     "journeyOrder": 6,
     "medals": [
-      13572,
-      25236,
-      34308
+      17766,
+      32346,
+      43686
     ]
   },
   {
@@ -117,9 +117,9 @@
     "difficulty": 4,
     "burnSolution": [
       "breaks",
-      "fast",
-      "loose",
-      "shh"
+      "self",
+      "has",
+      "shoot"
     ],
     "journeyOrder": 7,
     "medals": [
@@ -132,7 +132,7 @@
     "id": "money-doesnt-grow-on-trees",
     "text": "MONEY DOESNT GROW ON TREES",
     "label": "Money",
-    "difficulty": 4,
+    "difficulty": 3,
     "display": "MONEY DOESN'T GROW ON TREES",
     "burnSolution": [
       "destroy",
@@ -144,8 +144,8 @@
     "journeyOrder": 8,
     "medals": [
       18270,
-      33174,
-      44514
+      32850,
+      44190
     ]
   },
   {
@@ -170,7 +170,7 @@
     "id": "make-your-next-move-count",
     "text": "MAKE YOUR NEXT MOVE COUNT",
     "label": "Game Night",
-    "difficulty": 3,
+    "difficulty": 2,
     "burnSolution": [
       "text",
       "you",
@@ -182,15 +182,15 @@
     "journeyOrder": 10,
     "medals": [
       16182,
-      30762,
-      39834
+      30438,
+      39510
     ]
   },
   {
     "id": "catch-the-last-train",
     "text": "CATCH THE LAST TRAIN",
     "label": "City Life",
-    "difficulty": 4,
+    "difficulty": 3,
     "burnSolution": [
       "central",
       "cast",
@@ -199,28 +199,28 @@
     ],
     "journeyOrder": 11,
     "medals": [
-      17352,
-      31932,
-      41652
+      16524,
+      29808,
+      38880
     ]
   },
   {
     "id": "brunch-can-wait-until-noon",
     "text": "BRUNCH CAN WAIT UNTIL NOON",
     "label": "Weekend",
-    "difficulty": 3,
+    "difficulty": 2,
     "burnSolution": [
-      "button",
-      "council",
-      "nah",
+      "brain",
+      "launch",
+      "count",
       "win",
-      "ran"
+      "not"
     ],
     "journeyOrder": 12,
     "medals": [
-      17370,
-      31950,
-      42966
+      17082,
+      31014,
+      40086
     ]
   },
   {
@@ -236,9 +236,9 @@
     ],
     "journeyOrder": 13,
     "medals": [
-      12672,
-      24336,
-      33408
+      12438,
+      24102,
+      33174
     ]
   },
   {
@@ -249,15 +249,15 @@
     "burnSolution": [
       "size",
       "talked",
-      "bye",
       "yeah",
+      "bye",
       "lad"
     ],
     "journeyOrder": 14,
     "medals": [
-      15174,
-      28134,
-      37206
+      14760,
+      26748,
+      35820
     ]
   },
   {
@@ -276,14 +276,14 @@
     "medals": [
       15318,
       26982,
-      33462
+      33030
     ]
   },
   {
     "id": "save-me-a-seat-in-the-back",
     "text": "SAVE ME A SEAT IN THE BACK",
     "label": "Movie Night",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "massive",
       "beaten",
@@ -292,9 +292,9 @@
     ],
     "journeyOrder": 16,
     "medals": [
-      17370,
-      31950,
-      42318
+      16596,
+      31176,
+      40572
     ]
   },
   {
@@ -312,9 +312,9 @@
     ],
     "journeyOrder": 17,
     "medals": [
-      16848,
-      31428,
-      42768
+      16524,
+      31104,
+      41796
     ]
   },
   {
@@ -339,7 +339,7 @@
     "id": "extra-cheese-on-top",
     "text": "EXTRA CHEESE ON TOP",
     "label": "Food & Drink",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "expect",
       "sooner",
@@ -347,9 +347,9 @@
     ],
     "journeyOrder": 19,
     "medals": [
-      16110,
-      30690,
-      41706
+      15840,
+      30420,
+      40140
     ]
   },
   {
@@ -364,16 +364,16 @@
     ],
     "journeyOrder": 20,
     "medals": [
-      17028,
-      31608,
-      41976
+      16704,
+      31284,
+      41004
     ]
   },
   {
     "id": "one-point-left-on-the-clock",
     "text": "ONE POINT LEFT ON THE CLOCK",
     "label": "Sports",
-    "difficulty": 2,
+    "difficulty": 1,
     "burnSolution": [
       "chief",
       "lock",
@@ -386,7 +386,7 @@
     "medals": [
       17676,
       29988,
-      39060
+      36900
     ]
   },
   {
@@ -403,21 +403,21 @@
     ]
   },
   {
-    "id": "tell-them-what-they-won",
-    "text": "TELL THEM WHAT THEY WON",
+    "id": "ready-for-the-next-round",
+    "text": "READY FOR THE NEXT ROUND",
     "label": "Game Show",
-    "difficulty": 1,
+    "difficulty": 3,
     "burnSolution": [
-      "twenty",
-      "whom",
-      "health",
-      "let"
+      "extra",
+      "fortune",
+      "henry",
+      "odd"
     ],
     "journeyOrder": 23,
     "medals": [
-      12222,
-      20430,
-      26478
+      18090,
+      33318,
+      44658
     ]
   },
   {
@@ -433,9 +433,9 @@
     ],
     "journeyOrder": 24,
     "medals": [
-      12042,
-      21978,
-      28026
+      11844,
+      20052,
+      26100
     ]
   },
   {
@@ -448,7 +448,7 @@
       "talk",
       "pee",
       "ten",
-      "ugh"
+      "hug"
     ]
   },
   {
@@ -469,7 +469,7 @@
     "id": "dancing-in-the-rain",
     "text": "DANCING IN THE RAIN",
     "label": "Weather",
-    "difficulty": 3,
+    "difficulty": 2,
     "burnSolution": [
       "ancient",
       "hiding",
@@ -480,7 +480,7 @@
     "id": "kitchen-open-all-night",
     "text": "KITCHEN OPEN ALL NIGHT",
     "label": "Kitchen",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "thinking",
       "local",
@@ -489,47 +489,46 @@
     ]
   },
   {
-    "id": "fill-up-before-we-go",
-    "text": "FILL UP BEFORE WE GO",
+    "id": "follow-the-open-road",
+    "text": "FOLLOW THE OPEN ROAD",
     "label": "Road Trip",
-    "difficulty": 1,
+    "difficulty": 4,
     "burnSolution": [
-      "group",
-      "bow",
-      "life",
-      "feel"
+      "planet",
+      "hold",
+      "owe",
+      "roof"
     ]
   },
   {
-    "id": "lights-low-music-loud",
-    "text": "LIGHTS LOW MUSIC LOUD",
+    "id": "last-call-came-and-went",
+    "text": "LAST CALL CAME AND WENT",
     "label": "Late Night",
-    "difficulty": 2,
-    "burnSolution": [
-      "much",
-      "will",
-      "dogs",
-      "lou",
-      "sit"
-    ]
-  },
-  {
-    "id": "feel-the-rhythm-tonight",
-    "text": "FEEL THE RHYTHM TONIGHT",
-    "label": "Music",
     "difficulty": 3,
     "burnSolution": [
-      "mother",
-      "they",
-      "then",
-      "flight"
+      "called",
+      "castle",
+      "man",
+      "want"
+    ]
+  },
+  {
+    "id": "every-song-tells-a-story",
+    "text": "EVERY SONG TELLS A STORY",
+    "label": "Music",
+    "difficulty": 5,
+    "burnSolution": [
+      "everyone",
+      "glass",
+      "try",
+      "lost"
     ]
   },
   {
     "id": "save-it-for-a-rainy-day",
     "text": "SAVE IT FOR A RAINY DAY",
     "label": "Money",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "favorite",
       "days",
@@ -550,16 +549,15 @@
     ]
   },
   {
-    "id": "your-move-before-the-bell",
-    "text": "YOUR MOVE BEFORE THE BELL",
+    "id": "play-the-hand-youre-dealt",
+    "text": "PLAY THE HAND YOURE DEALT",
     "label": "Game Night",
-    "difficulty": 2,
+    "difficulty": 5,
     "burnSolution": [
-      "forever",
-      "home",
-      "lot",
-      "blue",
-      "bye"
+      "naturally",
+      "hope",
+      "they",
+      "dead"
     ]
   },
   {
@@ -582,16 +580,16 @@
     "burnSolution": [
       "travel",
       "mac",
-      "cook",
       "half",
-      "feel"
+      "feel",
+      "cook"
     ]
   },
   {
     "id": "better-after-the-first-sip",
     "text": "BETTER AFTER THE FIRST SIP",
     "label": "Coffee",
-    "difficulty": 4,
+    "difficulty": 3,
     "burnSolution": [
       "breath",
       "prefer",
@@ -604,7 +602,7 @@
     "id": "pack-light-for-the-trail",
     "text": "PACK LIGHT FOR THE TRAIL",
     "label": "Outdoors",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "patrick",
       "forget",
@@ -613,29 +611,28 @@
     ]
   },
   {
-    "id": "check-the-gate-once-more",
-    "text": "CHECK THE GATE ONCE MORE",
+    "id": "next-flight-leaves-at-six",
+    "text": "NEXT FLIGHT LEAVES AT SIX",
     "label": "Travel",
-    "difficulty": 3,
+    "difficulty": 5,
     "burnSolution": [
-      "took",
-      "gee",
-      "men",
-      "catch",
-      "cheer"
+      "exhales",
+      "text",
+      "living",
+      "fast"
     ]
   },
   {
-    "id": "big-screen-bright-lights",
-    "text": "BIG SCREEN BRIGHT LIGHTS",
+    "id": "one-more-scene-before-bed",
+    "text": "ONE MORE SCENE BEFORE BED",
     "label": "Movie Night",
-    "difficulty": 4,
+    "difficulty": 1,
     "burnSolution": [
-      "brings",
-      "chest",
-      "girl",
-      "beg",
-      "hit"
+      "freedom",
+      "once",
+      "bro",
+      "been",
+      "see"
     ]
   },
   {
@@ -645,33 +642,35 @@
     "difficulty": 1,
     "burnSolution": [
       "quite",
-      "convince",
-      "tongue",
-      "heh"
+      "voice",
+      "once",
+      "then",
+      "hung"
     ]
   },
   {
-    "id": "inbox-back-to-zero",
-    "text": "INBOX BACK TO ZERO",
+    "id": "one-more-call-before-home",
+    "text": "ONE MORE CALL BEFORE HOME",
     "label": "Workday",
     "difficulty": 2,
     "burnSolution": [
-      "zone",
-      "taxi",
-      "rock",
-      "bob"
+      "hello",
+      "free",
+      "bear",
+      "come",
+      "moon"
     ]
   },
   {
-    "id": "save-room-for-the-cake",
-    "text": "SAVE ROOM FOR THE CAKE",
+    "id": "cold-drink-on-a-hot-day",
+    "text": "COLD DRINK ON A HOT DAY",
     "label": "Food & Drink",
-    "difficulty": 5,
+    "difficulty": 2,
     "burnSolution": [
-      "forever",
-      "makes",
-      "act",
-      "ooh"
+      "think",
+      "candy",
+      "door",
+      "load"
     ]
   },
   {
@@ -691,7 +690,7 @@
     "id": "fast-break-to-the-rim",
     "text": "FAST BREAK TO THE RIM",
     "label": "Sports",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "breakfast",
       "their",
@@ -709,7 +708,7 @@
     "id": "ring-the-bell-twice",
     "text": "RING THE BELL TWICE",
     "label": "Game Show",
-    "difficulty": 2,
+    "difficulty": 1,
     "burnSolution": [
       "center",
       "weight",
@@ -753,70 +752,71 @@
     ]
   },
   {
-    "id": "wind-chill-drops-quickly",
-    "text": "WIND CHILL DROPS QUICKLY",
+    "id": "rain-against-the-glass",
+    "text": "RAIN AGAINST THE GLASS",
     "label": "Weather",
-    "difficulty": 4,
+    "difficulty": 5,
     "burnSolution": [
-      "quick",
-      "dry",
-      "child",
-      "pills",
-      "now"
+      "stealing",
+      "train",
+      "gas",
+      "has"
     ]
   },
   {
-    "id": "a-recipe-handed-down",
-    "text": "A RECIPE HANDED DOWN",
+    "id": "pass-the-salt-and-pepper",
+    "text": "PASS THE SALT AND PEPPER",
     "label": "Kitchen",
-    "difficulty": 4,
+    "difficulty": 5,
     "burnSolution": [
-      "prince",
-      "whoa",
-      "need",
-      "dad"
+      "happened",
+      "less",
+      "past",
+      "part"
     ]
   },
   {
-    "id": "follow-the-open-road",
-    "text": "FOLLOW THE OPEN ROAD",
+    "id": "radio-up-windows-down",
+    "text": "RADIO UP WINDOWS DOWN",
     "label": "Road Trip",
-    "difficulty": 5,
+    "difficulty": 1,
     "burnSolution": [
-      "pretend",
-      "fool",
-      "law",
-      "ooh"
+      "pounds",
+      "india",
+      "word",
+      "wow"
     ]
   },
   {
-    "id": "the-night-is-still-young",
-    "text": "THE NIGHT IS STILL YOUNG",
+    "id": "lights-low-music-loud",
+    "text": "LIGHTS LOW MUSIC LOUD",
     "label": "Late Night",
-    "difficulty": 5,
+    "difficulty": 2,
     "burnSolution": [
-      "yelling",
-      "thought",
-      "insist"
+      "much",
+      "will",
+      "dogs",
+      "lou",
+      "sit"
     ]
   },
   {
-    "id": "lost-inside-the-melody",
-    "text": "LOST INSIDE THE MELODY",
+    "id": "feel-the-rhythm-tonight",
+    "text": "FEEL THE RHYTHM TONIGHT",
     "label": "Music",
-    "difficulty": 5,
+    "difficulty": 2,
     "burnSolution": [
-      "honestly",
-      "times",
-      "old",
-      "die"
+      "mother",
+      "they",
+      "then",
+      "flight"
     ]
   },
   {
     "id": "dollars-make-no-sense",
     "text": "DOLLARS MAKE NO SENSE",
     "label": "Money",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "darkness",
       "someone",
@@ -827,7 +827,7 @@
     "id": "follow-the-north-star",
     "text": "FOLLOW THE NORTH STAR",
     "label": "The Sea",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "flowers",
       "lot",
@@ -839,7 +839,7 @@
     "id": "quiz-night-ends-in-a-tie",
     "text": "QUIZ NIGHT ENDS IN A TIE",
     "label": "Game Night",
-    "difficulty": 4,
+    "difficulty": 3,
     "burnSolution": [
       "size",
       "quit",
@@ -849,34 +849,39 @@
     ]
   },
   {
-    "id": "rush-hour-moves-slowly",
-    "text": "RUSH HOUR MOVES SLOWLY",
+    "id": "neon-signs-and-taxicabs",
+    "text": "NEON SIGNS AND TAXICABS",
     "label": "City Life",
-    "difficulty": 1
-  },
-  {
-    "id": "meet-me-out-after-dark",
-    "text": "MEET ME OUT AFTER DARK",
-    "label": "Weekend",
-    "difficulty": 1,
+    "difficulty": 5,
     "burnSolution": [
-      "market",
-      "route",
-      "feet",
-      "mad"
+      "exciting",
+      "boss",
+      "sand",
+      "anna"
     ]
   },
   {
-    "id": "take-your-coffee-black",
-    "text": "TAKE YOUR COFFEE BLACK",
-    "label": "Coffee",
-    "difficulty": 3,
+    "id": "saturday-starts-slowly",
+    "text": "SATURDAY STARTS SLOWLY",
+    "label": "Weekend",
+    "difficulty": 1,
     "burnSolution": [
-      "break",
-      "eye",
-      "luck",
-      "coat",
-      "off"
+      "assault",
+      "stays",
+      "try",
+      "world"
+    ]
+  },
+  {
+    "id": "pour-it-strong-and-hot",
+    "text": "POUR IT STRONG AND HOT",
+    "label": "Coffee",
+    "difficulty": 5,
+    "burnSolution": [
+      "thousand",
+      "got",
+      "trip",
+      "nor"
     ]
   },
   {
@@ -887,44 +892,57 @@
     "burnSolution": [
       "broke",
       "duty",
-      "poor",
-      "yes"
+      "yes",
+      "poor"
     ]
   },
   {
-    "id": "taxi-waits-outside",
-    "text": "TAXI WAITS OUTSIDE",
+    "id": "check-the-gate-once-more",
+    "text": "CHECK THE GATE ONCE MORE",
     "label": "Travel",
-    "difficulty": 1,
-    "burnSolution": [
-      "exist",
-      "out",
-      "said",
-      "wait"
-    ]
-  },
-  {
-    "id": "keep-the-volume-down",
-    "text": "KEEP THE VOLUME DOWN",
-    "label": "Movie Night",
     "difficulty": 2,
     "burnSolution": [
-      "loved",
-      "knew",
-      "mouth",
-      "pee"
+      "neck",
+      "together",
+      "each",
+      "come"
     ]
   },
   {
-    "id": "cold-drink-on-a-hot-day",
-    "text": "COLD DRINK ON A HOT DAY",
-    "label": "Food & Drink",
-    "difficulty": 3,
+    "id": "the-villain-gets-away",
+    "text": "THE VILLAIN GETS AWAY",
+    "label": "Movie Night",
+    "difficulty": 5,
     "burnSolution": [
-      "think",
-      "candy",
-      "door",
-      "load"
+      "staying",
+      "leave",
+      "law",
+      "hit"
+    ]
+  },
+  {
+    "id": "the-printer-jammed-again",
+    "text": "THE PRINTER JAMMED AGAIN",
+    "label": "Workday",
+    "difficulty": 5,
+    "burnSolution": [
+      "japan",
+      "nightmare",
+      "time",
+      "red"
+    ]
+  },
+  {
+    "id": "mix-the-perfect-mocktail",
+    "text": "MIX THE PERFECT MOCKTAIL",
+    "label": "Food & Drink",
+    "difficulty": 5,
+    "burnSolution": [
+      "expect",
+      "track",
+      "life",
+      "him",
+      "tom"
     ]
   },
   {
@@ -935,9 +953,9 @@
     "burnSolution": [
       "battle",
       "flight",
-      "this",
-      "heh",
-      "was"
+      "wish",
+      "she",
+      "hat"
     ]
   },
   {
@@ -947,17 +965,17 @@
     "difficulty": 2,
     "burnSolution": [
       "talked",
-      "some",
-      "mate",
-      "heh",
-      "eat"
+      "mom",
+      "hate",
+      "heat",
+      "see"
     ]
   },
   {
     "id": "peter-piper-picked-a-peck",
     "text": "PETER PIPER PICKED A PECK",
     "label": "Tongue Twisters",
-    "difficulty": 2,
+    "difficulty": 1,
     "canonical": true,
     "burnSolution": [
       "patrick",
@@ -987,9 +1005,9 @@
     "burnSolution": [
       "worked",
       "game",
-      "met",
-      "thy",
-      "ooh"
+      "tom",
+      "hot",
+      "hey"
     ]
   },
   {
@@ -1018,64 +1036,64 @@
     ]
   },
   {
-    "id": "hot-enough-to-melt-ice",
-    "text": "HOT ENOUGH TO MELT ICE",
+    "id": "wind-chill-drops-quickly",
+    "text": "WIND CHILL DROPS QUICKLY",
     "label": "Weather",
-    "difficulty": 2,
-    "burnSolution": [
-      "touching",
-      "let",
-      "ooh",
-      "meet"
-    ]
-  },
-  {
-    "id": "set-the-table-for-two",
-    "text": "SET THE TABLE FOR TWO",
-    "label": "Kitchen",
-    "difficulty": 4,
-    "burnSolution": [
-      "before",
-      "what",
-      "test",
-      "lot"
-    ]
-  },
-  {
-    "id": "next-stop-somewhere-new",
-    "text": "NEXT STOP SOMEWHERE NEW",
-    "label": "Road Trip",
     "difficulty": 3,
     "burnSolution": [
-      "express",
-      "women",
-      "teeth",
+      "quick",
+      "dry",
+      "child",
+      "pills",
       "now"
     ]
   },
   {
-    "id": "thoughts-keep-me-awake",
-    "text": "THOUGHTS KEEP ME AWAKE",
-    "label": "Late Night",
-    "difficulty": 2,
+    "id": "a-recipe-handed-down",
+    "text": "A RECIPE HANDED DOWN",
+    "label": "Kitchen",
+    "difficulty": 3,
     "burnSolution": [
-      "makes",
-      "take",
-      "hope",
-      "wet",
-      "ugh"
+      "prince",
+      "ahead",
+      "odd",
+      "new"
     ]
   },
   {
-    "id": "turn-the-volume-up",
-    "text": "TURN THE VOLUME UP",
-    "label": "Music",
+    "id": "two-lanes-out-of-town",
+    "text": "TWO LANES OUT OF TOWN",
+    "label": "Road Trip",
     "difficulty": 1,
     "burnSolution": [
-      "move",
-      "rule",
-      "hunt",
-      "put"
+      "fault",
+      "now",
+      "won",
+      "too",
+      "set"
+    ]
+  },
+  {
+    "id": "the-night-is-still-young",
+    "text": "THE NIGHT IS STILL YOUNG",
+    "label": "Late Night",
+    "difficulty": 4,
+    "burnSolution": [
+      "yelling",
+      "thought",
+      "insist"
+    ]
+  },
+  {
+    "id": "lost-inside-the-melody",
+    "text": "LOST INSIDE THE MELODY",
+    "label": "Music",
+    "difficulty": 5,
+    "burnSolution": [
+      "honestly",
+      "times",
+      "old",
+      "die"
     ]
   },
   {
@@ -1090,41 +1108,48 @@
     ]
   },
   {
-    "id": "the-lighthouse-guides-us",
-    "text": "THE LIGHTHOUSE GUIDES US",
+    "id": "lost-beyond-the-horizon",
+    "text": "LOST BEYOND THE HORIZON",
     "label": "The Sea",
-    "difficulty": 3,
-    "burnSolution": [
-      "outside",
-      "light",
-      "ugh",
-      "she",
-      "use"
-    ]
-  },
-  {
-    "id": "one-more-hour-in-bed",
-    "text": "ONE MORE HOUR IN BED",
-    "label": "Weekend",
-    "difficulty": 1,
-    "burnSolution": [
-      "honour",
-      "erm",
-      "die",
-      "bone"
-    ]
-  },
-  {
-    "id": "a-quiet-table-by-the-window",
-    "text": "A QUIET TABLE BY THE WINDOW",
-    "label": "Coffee",
     "difficulty": 5,
     "burnSolution": [
-      "quietly",
-      "behind",
-      "bat",
-      "eat",
+      "dozen",
+      "bother",
+      "thy",
+      "oil",
+      "son"
+    ]
+  },
+  {
+    "id": "bluff-your-way-to-the-win",
+    "text": "BLUFF YOUR WAY TO THE WIN",
+    "label": "Game Night",
+    "difficulty": 5,
+    "burnSolution": [
+      "reality",
+      "off",
+      "buy",
+      "hunt",
       "wow"
+    ]
+  },
+  {
+    "id": "rush-hour-moves-slowly",
+    "text": "RUSH HOUR MOVES SLOWLY",
+    "label": "City Life",
+    "difficulty": 1
+  },
+  {
+    "id": "take-your-coffee-black",
+    "text": "TAKE YOUR COFFEE BLACK",
+    "label": "Coffee",
+    "difficulty": 2,
+    "burnSolution": [
+      "break",
+      "eye",
+      "luck",
+      "coat",
+      "off"
     ]
   },
   {
@@ -1154,51 +1179,51 @@
     ]
   },
   {
-    "id": "pick-a-film-to-watch",
-    "text": "PICK A FILM TO WATCH",
+    "id": "big-screen-bright-lights",
+    "text": "BIG SCREEN BRIGHT LIGHTS",
     "label": "Movie Night",
-    "difficulty": 1,
+    "difficulty": 4,
     "burnSolution": [
-      "fail",
-      "pack",
-      "witch",
-      "tom"
+      "brings",
+      "chest",
+      "girl",
+      "beg",
+      "hit"
     ]
   },
   {
-    "id": "pass-the-hot-sauce",
-    "text": "PASS THE HOT SAUCE",
-    "label": "Food & Drink",
-    "difficulty": 2,
+    "id": "save-a-copy-just-in-case",
+    "text": "SAVE A COPY JUST IN CASE",
+    "label": "Workday",
+    "difficulty": 4,
     "burnSolution": [
-      "suspect",
-      "those",
-      "aah"
+      "vacation",
+      "jesus",
+      "sec",
+      "pay"
     ]
   },
   {
-    "id": "check-your-coat-at-the-door",
-    "text": "CHECK YOUR COAT AT THE DOOR",
+    "id": "the-line-moves-quickly",
+    "text": "THE LINE MOVES QUICKLY",
     "label": "Nightlife",
-    "difficulty": 3,
+    "difficulty": 5,
     "burnSolution": [
-      "checked",
-      "you",
-      "car",
-      "throat",
-      "too"
+      "quietly",
+      "shock",
+      "men",
+      "live"
     ]
   },
   {
-    "id": "photo-finish-at-the-line",
-    "text": "PHOTO FINISH AT THE LINE",
+    "id": "serve-wide-then-move-in",
+    "text": "SERVE WIDE THEN MOVE IN",
     "label": "Sports",
     "difficulty": 5,
     "burnSolution": [
-      "fashion",
-      "phone",
-      "hit",
-      "title"
+      "whenever",
+      "invited",
+      "some"
     ]
   },
   {
@@ -1218,12 +1243,12 @@
     "id": "spin-the-wheel-again",
     "text": "SPIN THE WHEEL AGAIN",
     "label": "Game Show",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
-      "sleeping",
-      "hit",
-      "aah",
-      "new"
+      "helping",
+      "what",
+      "ain",
+      "see"
     ]
   },
   {
@@ -1245,10 +1270,10 @@
     "difficulty": 1,
     "canonical": true,
     "burnSolution": [
-      "you",
-      "shh",
-      "rose",
-      "lord"
+      "hey",
+      "rush",
+      "door",
+      "los"
     ]
   },
   {
@@ -1264,40 +1289,53 @@
     ]
   },
   {
-    "id": "whisk-until-smooth",
-    "text": "WHISK UNTIL SMOOTH",
-    "label": "Kitchen",
-    "difficulty": 2,
+    "id": "hot-enough-to-melt-ice",
+    "text": "HOT ENOUGH TO MELT ICE",
+    "label": "Weather",
+    "difficulty": 1,
     "burnSolution": [
-      "thinks",
-      "must",
-      "oil",
-      "how"
+      "touching",
+      "lee",
+      "them",
+      "too"
     ]
   },
   {
-    "id": "radio-up-windows-down",
-    "text": "RADIO UP WINDOWS DOWN",
-    "label": "Road Trip",
-    "difficulty": 1,
+    "id": "set-the-table-for-two",
+    "text": "SET THE TABLE FOR TWO",
+    "label": "Kitchen",
+    "difficulty": 4,
     "burnSolution": [
-      "pounds",
-      "india",
-      "word",
-      "wow"
+      "before",
+      "what",
+      "test",
+      "lot"
+    ]
+  },
+  {
+    "id": "thoughts-keep-me-awake",
+    "text": "THOUGHTS KEEP ME AWAKE",
+    "label": "Late Night",
+    "difficulty": 2,
+    "burnSolution": [
+      "makes",
+      "take",
+      "hope",
+      "wet",
+      "hug"
     ]
   },
   {
     "id": "rhythm-moves-a-dark-room",
     "text": "RHYTHM MOVES A DARK ROOM",
     "label": "Music",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "moved",
-      "marks",
-      "ooh",
+      "york",
+      "shot",
       "harm",
-      "try"
+      "arm"
     ]
   },
   {
@@ -1306,59 +1344,112 @@
     "label": "Money",
     "difficulty": 2,
     "burnSolution": [
-      "events",
+      "eve",
+      "tony",
       "cry",
-      "yup",
-      "none"
+      "pen",
+      "sun"
     ]
   },
   {
-    "id": "saturday-starts-slowly",
-    "text": "SATURDAY STARTS SLOWLY",
-    "label": "Weekend",
-    "difficulty": 1,
-    "burnSolution": [
-      "assault",
-      "stays",
-      "try",
-      "world"
-    ]
-  },
-  {
-    "id": "coffee-makes-time-move",
-    "text": "COFFEE MAKES TIME MOVE",
-    "label": "Coffee",
-    "difficulty": 1,
-    "burnSolution": [
-      "voice",
-      "off",
-      "make",
-      "seem",
-      "met"
-    ]
-  },
-  {
-    "id": "one-backpack-two-weeks",
-    "text": "ONE BACKPACK TWO WEEKS",
-    "label": "Travel",
-    "difficulty": 2,
-    "burnSolution": [
-      "books",
-      "accept",
-      "wake",
-      "knew"
-    ]
-  },
-  {
-    "id": "a-table-set-for-four",
-    "text": "A TABLE SET FOR FOUR",
-    "label": "Food & Drink",
+    "id": "the-lighthouse-guides-us",
+    "text": "THE LIGHTHOUSE GUIDES US",
+    "label": "The Sea",
     "difficulty": 3,
     "burnSolution": [
-      "trouble",
-      "off",
-      "sea",
-      "art"
+      "outside",
+      "light",
+      "hug",
+      "she",
+      "use"
+    ]
+  },
+  {
+    "id": "meet-me-under-the-marquee",
+    "text": "MEET ME UNDER THE MARQUEE",
+    "label": "City Life",
+    "difficulty": 1,
+    "burnSolution": [
+      "queen",
+      "true",
+      "theme",
+      "emma",
+      "red"
+    ]
+  },
+  {
+    "id": "a-quiet-table-by-the-window",
+    "text": "A QUIET TABLE BY THE WINDOW",
+    "label": "Coffee",
+    "difficulty": 4,
+    "burnSolution": [
+      "quietly",
+      "behind",
+      "bat",
+      "eat",
+      "wow"
+    ]
+  },
+  {
+    "id": "book-the-early-flight-home",
+    "text": "BOOK THE EARLY FLIGHT HOME",
+    "label": "Travel",
+    "difficulty": 5,
+    "burnSolution": [
+      "market",
+      "bye",
+      "high",
+      "hello",
+      "foot"
+    ]
+  },
+  {
+    "id": "keep-the-volume-down",
+    "text": "KEEP THE VOLUME DOWN",
+    "label": "Movie Night",
+    "difficulty": 2,
+    "burnSolution": [
+      "loved",
+      "knew",
+      "mouth",
+      "pee"
+    ]
+  },
+  {
+    "id": "inbox-back-to-zero",
+    "text": "INBOX BACK TO ZERO",
+    "label": "Workday",
+    "difficulty": 1,
+    "burnSolution": [
+      "zone",
+      "taxi",
+      "rock",
+      "bob"
+    ]
+  },
+  {
+    "id": "check-your-coat-at-the-door",
+    "text": "CHECK YOUR COAT AT THE DOOR",
+    "label": "Nightlife",
+    "difficulty": 3,
+    "burnSolution": [
+      "checked",
+      "you",
+      "throat",
+      "too",
+      "car"
+    ]
+  },
+  {
+    "id": "defense-wins-the-final",
+    "text": "DEFENSE WINS THE FINAL",
+    "label": "Sports",
+    "difficulty": 5,
+    "burnSolution": [
+      "witness",
+      "hand",
+      "fine",
+      "feel"
     ]
   },
   {
@@ -1378,12 +1469,13 @@
     "id": "nobody-saw-that-happen",
     "text": "NOBODY SAW THAT HAPPEN",
     "label": "Mischief",
-    "difficulty": 5,
+    "difficulty": 4,
     "burnSolution": [
       "beyond",
-      "pants",
-      "path",
-      "whoa"
+      "pop",
+      "want",
+      "has",
+      "hat"
     ]
   },
   {
@@ -1402,7 +1494,7 @@
     "id": "all-in-good-time",
     "text": "ALL IN GOOD TIME",
     "label": "Proverbs",
-    "difficulty": 3,
+    "difficulty": 2,
     "canonical": true,
     "burnSolution": [
       "imagine",
@@ -1411,64 +1503,63 @@
     ]
   },
   {
-    "id": "wherever-the-road-leads",
-    "text": "WHEREVER THE ROAD LEADS",
-    "label": "Road Trip",
+    "id": "simmer-low-and-slow",
+    "text": "SIMMER LOW AND SLOW",
+    "label": "Kitchen",
     "difficulty": 5,
     "burnSolution": [
-      "whatever",
-      "harder",
-      "old",
-      "see"
+      "windows",
+      "more",
+      "small"
     ]
   },
   {
-    "id": "the-price-of-everything",
-    "text": "THE PRICE OF EVERYTHING",
+    "id": "pay-yourself-first",
+    "text": "PAY YOURSELF FIRST",
     "label": "Money",
-    "difficulty": 4,
-    "burnSolution": [
-      "everyone",
-      "chef",
-      "right",
-      "tip"
-    ]
-  },
-  {
-    "id": "sunday-moves-too-fast",
-    "text": "SUNDAY MOVES TOO FAST",
-    "label": "Weekend",
-    "difficulty": 4,
-    "burnSolution": [
-      "saved",
-      "foot",
-      "sun",
-      "tom",
-      "say"
-    ]
-  },
-  {
-    "id": "the-cafe-opens-at-dawn",
-    "text": "THE CAFE OPENS AT DAWN",
-    "label": "Coffee",
     "difficulty": 5,
     "burnSolution": [
-      "defeat",
-      "space",
-      "than",
-      "now"
+      "itself",
+      "four",
+      "spy",
+      "ray"
+    ]
+  },
+  {
+    "id": "coffee-makes-time-move",
+    "text": "COFFEE MAKES TIME MOVE",
+    "label": "Coffee",
+    "difficulty": 1,
+    "burnSolution": [
+      "voice",
+      "off",
+      "make",
+      "seem",
+      "met"
     ]
   },
   {
     "id": "hotel-key-in-my-wallet",
     "text": "HOTEL KEY IN MY WALLET",
     "label": "Travel",
-    "difficulty": 3,
+    "difficulty": 2,
     "burnSolution": [
       "likely",
       "money",
       "let",
       "what"
+    ]
+  },
+  {
+    "id": "the-sequel-opens-tonight",
+    "text": "THE SEQUEL OPENS TONIGHT",
+    "label": "Movie Night",
+    "difficulty": 5,
+    "burnSolution": [
+      "question",
+      "gotten",
+      "help",
+      "she"
     ]
   },
   {
@@ -1509,46 +1600,10 @@
     ]
   },
   {
-    "id": "take-the-long-way-home",
-    "text": "TAKE THE LONG WAY HOME",
-    "label": "Weekend",
-    "difficulty": 2,
-    "burnSolution": [
-      "gotten",
-      "whom",
-      "yeah",
-      "lake"
-    ]
-  },
-  {
-    "id": "latte-art-looks-perfect",
-    "text": "LATTE ART LOOKS PERFECT",
-    "label": "Coffee",
-    "difficulty": 5,
-    "burnSolution": [
-      "attack",
-      "prefer",
-      "stole",
-      "lot"
-    ]
-  },
-  {
-    "id": "catch-the-ferry-at-noon",
-    "text": "CATCH THE FERRY AT NOON",
-    "label": "Travel",
-    "difficulty": 2,
-    "burnSolution": [
-      "factory",
-      "other",
-      "then",
-      "can"
-    ]
-  },
-  {
     "id": "turn-over-a-new-leaf",
     "text": "TURN OVER A NEW LEAF",
     "label": "Idioms",
-    "difficulty": 2,
+    "difficulty": 1,
     "canonical": true,
     "burnSolution": [
       "travel",
@@ -1570,19 +1625,6 @@
     ]
   },
   {
-    "id": "a-quiet-afternoon-at-home",
-    "text": "A QUIET AFTERNOON AT HOME",
-    "label": "Weekend",
-    "difficulty": 4,
-    "burnSolution": [
-      "quite",
-      "after",
-      "aah",
-      "moon",
-      "note"
-    ]
-  },
-  {
     "id": "once-bitten-twice-shy",
     "text": "ONCE BITTEN TWICE SHY",
     "label": "Idioms",
@@ -1599,7 +1641,7 @@
     "id": "you-live-and-learn",
     "text": "YOU LIVE AND LEARN",
     "label": "Proverbs",
-    "difficulty": 3,
+    "difficulty": 2,
     "canonical": true,
     "burnSolution": [
       "around",
@@ -1676,7 +1718,7 @@
     "id": "patience-is-a-virtue",
     "text": "PATIENCE IS A VIRTUE",
     "label": "Proverbs",
-    "difficulty": 5,
+    "difficulty": 4,
     "canonical": true,
     "burnSolution": [
       "private",
@@ -1693,10 +1735,10 @@
     "canonical": true,
     "burnSolution": [
       "exist",
-      "kind",
-      "bet",
-      "huh",
-      "too"
+      "hook",
+      "hit",
+      "end",
+      "but"
     ]
   },
   {
@@ -1719,9 +1761,9 @@
     "difficulty": 3,
     "canonical": true,
     "burnSolution": [
-      "school",
-      "wide",
-      "ages"
+      "good",
+      "cases",
+      "while"
     ]
   },
   {
@@ -1768,7 +1810,7 @@
     "id": "second-nature",
     "text": "SECOND NATURE",
     "label": "Idioms",
-    "difficulty": 4,
+    "difficulty": 3,
     "canonical": true,
     "burnSolution": [
       "around",
@@ -1783,17 +1825,16 @@
     "difficulty": 5,
     "canonical": true,
     "burnSolution": [
-      "keeping",
-      "red",
-      "los",
-      "wow"
+      "sleeping",
+      "woke",
+      "word"
     ]
   },
   {
     "id": "spill-the-beans",
     "text": "SPILL THE BEANS",
     "label": "Idioms",
-    "difficulty": 4,
+    "difficulty": 3,
     "canonical": true,
     "burnSolution": [
       "table",
@@ -1805,7 +1846,7 @@
     "id": "practice-makes-perfect",
     "text": "PRACTICE MAKES PERFECT",
     "label": "Proverbs",
-    "difficulty": 5,
+    "difficulty": 4,
     "canonical": true,
     "burnSolution": [
       "prefer",
@@ -1818,7 +1859,7 @@
     "id": "through-thick-and-thin",
     "text": "THROUGH THICK AND THIN",
     "label": "Idioms",
-    "difficulty": 4,
+    "difficulty": 3,
     "canonical": true,
     "burnSolution": [
       "think",
@@ -1831,7 +1872,7 @@
     "id": "you-reap-what-you-sow",
     "text": "YOU REAP WHAT YOU SOW",
     "label": "Proverbs",
-    "difficulty": 3,
+    "difficulty": 2,
     "canonical": true,
     "burnSolution": [
       "house",
@@ -1845,7 +1886,7 @@
     "id": "raining-cats-and-dogs",
     "text": "RAINING CATS AND DOGS",
     "label": "Idioms",
-    "difficulty": 4,
+    "difficulty": 3,
     "canonical": true,
     "burnSolution": [
       "dancing",
@@ -1855,29 +1896,16 @@
     ]
   },
   {
-    "id": "a-stitch-in-time-saves-nine",
-    "text": "A STITCH IN TIME SAVES NINE",
-    "label": "Proverbs",
-    "difficulty": 4,
-    "canonical": true,
-    "burnSolution": [
-      "sensitive",
-      "ancient",
-      "him",
-      "sat"
-    ]
-  },
-  {
     "id": "let-sleeping-dogs-lie",
     "text": "LET SLEEPING DOGS LIE",
     "label": "Idioms",
     "difficulty": 4,
     "canonical": true,
     "burnSolution": [
-      "telling",
-      "gold",
-      "pie",
-      "sees"
+      "despite",
+      "long",
+      "leg",
+      "lies"
     ]
   },
   {
@@ -1888,8 +1916,8 @@
     "canonical": true,
     "burnSolution": [
       "party",
-      "sec",
       "tony",
+      "sec",
       "spent"
     ]
   },
@@ -1897,13 +1925,37 @@
     "id": "a-blessing-in-disguise",
     "text": "A BLESSING IN DISGUISE",
     "label": "Idioms",
-    "difficulty": 4,
+    "difficulty": 3,
     "canonical": true,
     "burnSolution": [
       "useless",
       "big",
       "sign",
       "india"
+    ]
+  },
+  {
+    "id": "beat-around-the-bush",
+    "text": "BEAT AROUND THE BUSH",
+    "label": "Idioms",
+    "difficulty": 5,
+    "canonical": true,
+    "burnSolution": [
+      "husband",
+      "about",
+      "there"
+    ]
+  },
+  {
+    "id": "burn-the-midnight-oil",
+    "text": "BURN THE MIDNIGHT OIL",
+    "label": "Idioms",
+    "difficulty": 5,
+    "canonical": true,
+    "burnSolution": [
+      "mother",
+      "building",
+      "thin"
     ]
   },
   {
@@ -1943,57 +1995,6 @@
       "boom",
       "ain",
       "one"
-    ]
-  },
-  {
-    "id": "pull-yourself-together",
-    "text": "PULL YOURSELF TOGETHER",
-    "label": "Idioms",
-    "difficulty": 4,
-    "canonical": true,
-    "burnSolution": [
-      "surgery",
-      "full",
-      "pool",
-      "teeth"
-    ]
-  },
-  {
-    "id": "throw-caution-to-the-wind",
-    "text": "THROW CAUTION TO THE WIND",
-    "label": "Idioms",
-    "difficulty": 5,
-    "canonical": true,
-    "burnSolution": [
-      "introduce",
-      "with",
-      "what",
-      "onto"
-    ]
-  },
-  {
-    "id": "under-the-weather",
-    "text": "UNDER THE WEATHER",
-    "label": "Idioms",
-    "difficulty": 1,
-    "canonical": true,
-    "burnSolution": [
-      "thunder",
-      "where",
-      "eat"
-    ]
-  },
-  {
-    "id": "best-of-both-worlds",
-    "text": "BEST OF BOTH WORLDS",
-    "label": "Idioms",
-    "difficulty": 2,
-    "canonical": true,
-    "burnSolution": [
-      "left",
-      "bob",
-      "words",
-      "shot"
     ]
   }
 ]

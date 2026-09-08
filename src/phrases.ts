@@ -1,5 +1,6 @@
 import phraseData from "../content/phrases.json";
 import dailyScheduleData from "../content/daily-schedule.json";
+import dailyArchiveData from "../content/daily-archive.json";
 
 export type PhraseEntry = {
   id: string;
@@ -26,7 +27,7 @@ export function phraseDisplayText(phrase: Pick<PhraseEntry, "text" | "display">)
 
 type DailySchedule = { versions: Array<{ id: string; startsOn: string; phraseIds: string[] }> };
 const DAILY_SCHEDULE = dailyScheduleData as DailySchedule;
-const PHRASES_BY_ID = new Map(PHRASES.map((phrase) => [phrase.id, phrase]));
+const PHRASES_BY_ID = new Map([...(dailyArchiveData as PhraseEntry[]), ...PHRASES].map((phrase) => [phrase.id, phrase]));
 
 function utcDay(date: Date): number {
   return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000);

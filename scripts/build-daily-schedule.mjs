@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { access, readFile, writeFile } from 'node:fs/promises';
 import { root, seededPhraseOrder } from './phrase-analysis-lib.mjs';
 
 const bankUrl = new URL('content/phrases.json', root);
@@ -14,6 +14,12 @@ const schedule = {
 };
 
 if (process.argv.includes('--write')) {
+  try {
+    await access(scheduleUrl);
+    throw new Error('Daily schedule already exists. Add a new dated version; never regenerate archived versions.');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   await writeFile(scheduleUrl, `${JSON.stringify(schedule, null, 2)}\n`);
   console.log(`Wrote stable Daily schedule with ${phraseIds.length} phrase ids.`);
 } else {
