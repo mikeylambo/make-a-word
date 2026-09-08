@@ -17,6 +17,8 @@ export type SaveData = {
   completedChallengeIds: string[];
   settings: {
     sound: boolean;
+    music: boolean;
+    volume: number;
     reducedMotion: boolean;
     analytics: boolean;
     classicDuration: 60 | 120 | 180;
@@ -38,7 +40,7 @@ const DEFAULT_SAVE: SaveData = {
   completedOnlineMatchIds: [],
   challengesCompleted: 0,
   completedChallengeIds: [],
-  settings: { sound: true, reducedMotion: false, analytics: true, classicDuration: 120 }
+  settings: { sound: true, music: true, volume: 0.72, reducedMotion: false, analytics: true, classicDuration: 120 }
 };
 
 export class SaveStore {
@@ -120,9 +122,28 @@ export class MenuNavigator {
 
 export class TinyAudio {
   private context?: AudioContext;
+  private volume = .72;
+  private theme: "studio" | "felt" = "studio";
+  private musicNodes: OscillatorNode[] = [];
+
+  constructor() {
+    const wake = () => { if (this.context?.state === "suspended") void this.context.resume(); };
+    window.addEventListener("pointerdown", wake, { passive: true });
+    window.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); });
+  }
+
+  configure(volume: number, theme: "studio" | "felt" = this.theme): void {
+    this.volume = Math.max(0, Math.min(1, volume));
+    this.theme = theme;
+  }
+
+  async resume(): Promise<void> {
+    this.context ??= new AudioContext();
+    if (this.context.state === "suspended") await this.context.resume();
+  }
 
   play(
-    kind: "accept" | "reject" | "tick" | "start" | "go" | "end" | "combo" | "board" | "warning",
+    kind: "accept" | "reject" | "rule" | "soft-reject" | "tick" | "start" | "go" | "end" | "combo" | "board" | "bank" | "navigate" | "warning",
     enabled: boolean
   ): void {
     if (!enabled) return;
@@ -131,12 +152,16 @@ export class TinyAudio {
     const soundMap = {
       accept: { notes: [620, 930], duration: .09, gain: .055, type: "sine" as OscillatorType },
       reject: { notes: [155, 120], duration: .12, gain: .045, type: "sawtooth" as OscillatorType },
+      rule: { notes: [180, 135], duration: .13, gain: .05, type: "square" as OscillatorType },
+      "soft-reject": { notes: [294, 262], duration: .1, gain: .025, type: "sine" as OscillatorType },
       tick: { notes: [420], duration: .045, gain: .038, type: "square" as OscillatorType },
       warning: { notes: [520], duration: .065, gain: .05, type: "square" as OscillatorType },
       start: { notes: [392], duration: .11, gain: .05, type: "sine" as OscillatorType },
       go: { notes: [523, 659, 784], duration: .24, gain: .045, type: "triangle" as OscillatorType },
       combo: { notes: [784, 988], duration: .16, gain: .04, type: "triangle" as OscillatorType },
       board: { notes: [392, 523, 659, 784], duration: .34, gain: .043, type: "triangle" as OscillatorType },
+      bank: { notes: [330, 440, 554, 659, 880], duration: .42, gain: .06, type: "triangle" as OscillatorType },
+      navigate: { notes: [this.theme === "studio" ? 440 : 392], duration: .045, gain: .018, type: "sine" as OscillatorType },
       end: { notes: [440, 349, 262], duration: .36, gain: .045, type: "triangle" as OscillatorType }
     } as const;
     const sound = soundMap[kind];
@@ -148,11 +173,60 @@ export class TinyAudio {
       osc.frequency.setValueAtTime(frequency, startAt);
       if (kind === "accept") osc.frequency.exponentialRampToValueAtTime(frequency * 1.035, startAt + sound.duration);
       gain.gain.setValueAtTime(.0001, startAt);
-      gain.gain.exponentialRampToValueAtTime(sound.gain, startAt + .012);
+      gain.gain.exponentialRampToValueAtTime(sound.gain * this.volume, startAt + .012);
       gain.gain.exponentialRampToValueAtTime(.0001, startAt + sound.duration);
       osc.connect(gain).connect(ctx.destination);
       osc.start(startAt);
       osc.stop(startAt + sound.duration + .02);
+    });
+  }
+
+  playAccept(length: number, rarity: number, chain: number, enabled: boolean): void {
+    if (!enabled) return;
+    this.context ??= new AudioContext();
+    const scale = this.theme === "studio" ? [262, 294, 330, 392, 440] : [220, 262, 294, 330, 392];
+    const rung = Math.min(scale.length - 1, Math.max(0, length - 3 + Math.floor(chain / 2)));
+    const notes = [scale[rung], scale[Math.min(scale.length - 1, rung + 1)]];
+    if (rarity > 1) notes.push(Math.round(scale[rung] * (rarity >= 1.6 ? 2 : 1.5)));
+    notes.forEach((frequency, index) => this.tone(frequency, index * .035, .12, .045, "triangle"));
+  }
+
+  playReject(reason: string, enabled: boolean): void {
+    this.play(reason === "not-word" ? "soft-reject" : "rule", enabled);
+  }
+
+  private tone(frequency: number, delay: number, duration: number, level: number, type: OscillatorType): void {
+    if (!this.context) return;
+    const start = this.context.currentTime + delay;
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(level * this.volume, start + .012);
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(gain).connect(this.context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .02);
+  }
+
+  setMusic(enabled: boolean): void {
+    if (!enabled || !this.context || this.volume === 0) {
+      this.musicNodes.forEach((node) => node.stop());
+      this.musicNodes = [];
+      return;
+    }
+    if (this.musicNodes.length) return;
+    const root = this.theme === "studio" ? 65.41 : 73.42;
+    [root, root * 1.5].forEach((frequency) => {
+      const oscillator = this.context!.createOscillator();
+      const gain = this.context!.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.value = .006 * this.volume;
+      oscillator.connect(gain).connect(this.context!.destination);
+      oscillator.start();
+      this.musicNodes.push(oscillator);
     });
   }
 }

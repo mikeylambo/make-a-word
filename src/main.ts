@@ -144,6 +144,7 @@ telemetry.enabled = save.settings.analytics && navigator.doNotTrack !== "1";
 const screens = new ScreenManager(appRoot);
 new MenuNavigator(appRoot);
 const audio = new TinyAudio();
+audio.configure(save.settings.volume);
 
 let round: RoundState | null = null;
 let timerId: number | null = null;
@@ -838,7 +839,7 @@ async function submitOnlineWord(): Promise<void> {
   const response = await sendOnlineAction({ action: "submit", credentials: onlineCredentials, word });
   onlineBusy = false;
   if (!response.ok) {
-    audio.play("reject", save.settings.sound);
+    audio.play("soft-reject", save.settings.sound);
     setOnlineMessage(response.error);
     input?.classList.remove("shake");
     if (input) void input.offsetWidth;
@@ -848,7 +849,7 @@ async function submitOnlineWord(): Promise<void> {
   if (input) input.value = "";
   const newest = response.room.words.at(-1);
   applyOnlineRoom(response.room);
-  audio.play("accept", save.settings.sound);
+  if (newest) audio.playAccept(newest.word.length, 1, Math.max(1, (onlineSelf(response.room)?.combo ?? 0) + 1), save.settings.sound);
   const feedback = document.querySelector<HTMLElement>("#online-feedback");
   if (feedback && newest && response.room.words.length > priorWords) {
     feedback.textContent = `${newest.word.toUpperCase()} · +${newest.points.toLocaleString()}`;
@@ -1038,7 +1039,7 @@ function submitTogetherWord(): void {
   const submitted = state.mode === "relay" || state.mode === "last-word" ? state.sharedSubmitted : player.submitted;
   const result = validateWord(input.value, countsForText(state.phrase.text), submitted);
   if (!result.ok) {
-    audio.play("reject", save.settings.sound);
+    audio.playReject(result.reason, save.settings.sound);
     feedback?.classList.remove("feedback--good");
     feedback?.classList.add("feedback--bad");
     if (feedback) feedback.textContent = humanReason(result.reason);
@@ -1056,7 +1057,7 @@ function submitTogetherWord(): void {
   player.submitted.add(result.word);
   state.sharedSubmitted.add(result.word);
   input.value = "";
-  audio.play("accept", save.settings.sound);
+  audio.playAccept(result.word.length, 1, 1, save.settings.sound);
   if (state.mode === "relay" || state.mode === "last-word") {
     state.currentPlayer = nextActiveTogetherPlayer(state, state.currentPlayer);
     if (state.mode === "last-word") state.timeLeft = togetherTurnDuration("last-word");
@@ -1522,7 +1523,7 @@ function submitCurrentWord(): void {
       "phrase-word": "reject_phrase_word"
     } as const;
     telemetry.increment(rejectionMetric[result.reason]);
-    audio.play("reject", save.settings.sound);
+    audio.playReject(result.reason, save.settings.sound);
     feedback?.classList.remove("feedback--good");
     feedback?.classList.add("feedback--bad");
     if (feedback) feedback.textContent = humanReason(result.reason);
@@ -1551,7 +1552,7 @@ function submitCurrentWord(): void {
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
 
   input.value = "";
-  audio.play("accept", save.settings.sound);
+  audio.playAccept(result.word.length, rarity, round.chainLength, save.settings.sound);
   if (round.combo >= 2 || rarity > 1) audio.play("combo", save.settings.sound);
   if (feedback) {
     feedback.classList.remove("feedback--bad");
@@ -1644,7 +1645,7 @@ function cashChain(announce = true): number {
   updateGameHud(previousScore);
   if (announce) {
     showEvent(`+${payout.toLocaleString()}`, "CHAIN BANKED", "event-card--board");
-    audio.play("board", save.settings.sound);
+    audio.play("bank", save.settings.sound);
     window.setTimeout(clearEvent, 650);
   }
   return payout;
@@ -2028,6 +2029,8 @@ function showSettings(returnTo?: ScreenId): void {
   screens.show("settings", shell("SETTINGS", `
     <section class="settings-list">
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
+      <button class="setting-row" data-nav data-action="toggle-music"><span><strong>Music</strong><small>Theme ambience</small></span><b>${save.settings.music ? "ON" : "OFF"}</b></button>
+      <label class="setting-row setting-row--slider"><span><strong>Volume</strong><small>All game audio</small></span><input id="volume-setting" type="range" min="0" max="1" step="0.05" value="${save.settings.volume}" aria-label="Volume" /></label>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-analytics"><span><strong>Anonymous Analytics</strong><small>Share aggregate play counts; never words or names</small></span><b>${save.settings.analytics ? "ON" : "OFF"}</b></button>
     </section>
@@ -2053,6 +2056,13 @@ function settingsReturn(): void {
 }
 
 appRoot.addEventListener("input", (event) => {
+  const volume = (event.target as HTMLElement).closest<HTMLInputElement>("#volume-setting");
+  if (volume) {
+    save.settings.volume = Number(volume.value);
+    audio.configure(save.settings.volume);
+    store.save(save);
+    return;
+  }
   const input = (event.target as HTMLElement).closest<HTMLInputElement>("[data-player-name]");
   if (!input) return;
   const index = Number(input.dataset.playerName);
@@ -2062,6 +2072,8 @@ appRoot.addEventListener("input", (event) => {
 appRoot.addEventListener("click", (event) => {
   const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-classic-duration], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
   if (!target) return;
+  void audio.resume().then(() => audio.setMusic(save.settings.music));
+  audio.play("navigate", save.settings.sound);
   const classicDuration = Number(target.dataset.classicDuration);
   if (classicDuration === 60 || classicDuration === 120 || classicDuration === 180) {
     save.settings.classicDuration = classicDuration;
@@ -2147,6 +2159,11 @@ appRoot.addEventListener("click", (event) => {
   }
   else if (action === "toggle-sound") {
     save.settings.sound = !save.settings.sound;
+    store.save(save);
+    showSettings();
+  } else if (action === "toggle-music") {
+    save.settings.music = !save.settings.music;
+    audio.setMusic(save.settings.music);
     store.save(save);
     showSettings();
   } else if (action === "toggle-motion") {

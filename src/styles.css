@@ -467,6 +467,7 @@ body::before {
 .setting-row small { color:var(--muted); margin-top:4px; }
 .setting-row b { color:var(--lime); font:700 11px "Space Grotesk"; letter-spacing:.1em; }
 .settings-note { color:#596174; font-size:12px; text-align:center; }
+.setting-row--slider input { width:min(220px,42vw); accent-color:var(--hero, var(--lime)); }
 
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior:auto !important; }
 

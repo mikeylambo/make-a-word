@@ -1,5 +1,12 @@
 # Release log
 
+## Finishing pass — Phase G: Adaptive audio
+
+- Accept tones now climb by word length and chain position, with an extra interval for distinctive words.
+- Rule violations and dictionary misses use different feedback; chain banking has its own payoff sound.
+- Added menu tones, master volume, music/SFX controls, low theme ambience, and AudioContext recovery after iOS background suspension.
+- Audio choices are theme-scoped so visual themes can carry matching sound sets.
+
 ## Finishing pass — Phase A: Measurement
 
 ### Found
