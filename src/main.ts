@@ -255,6 +255,18 @@ function showTitle(): void {
   showMenu();
 }
 
+function menuLogo(): string {
+  return "MAKEAWORD".split("").map((letter, index) =>
+    `<span class="studio-logo__tile ${index === 4 ? "studio-logo__tile--a" : ""}" style="--logo-index:${index}">${letter}</span>`
+  ).join("");
+}
+
+function scatterLetters(word: string): string {
+  return word.split("").map((letter, index) =>
+    `<i style="--scatter-index:${index}">${letter}</i>`
+  ).join("");
+}
+
 function showMenu(): void {
   stopTimer();
   stopTogetherTimer();
@@ -263,68 +275,54 @@ function showMenu(): void {
   const dailyDone = save.daily[todayKey()] ?? 0;
   const streak = dailyStreak();
   const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
-  screens.show("menu", shell("MAKE A WORD", `
-    <section class="hero-panel hero-panel--menu">
-      <div>
-        <div class="eyebrow">THE PHRASE WORD GAME</div>
-        <h1>MAKE <em>A</em> WORD</h1>
-        <h2>Words are hiding inside every phrase.</h2>
-        <p>Use only the letters you can see. Longer words score more. Quick answers build your combo.</p>
-      </div>
-      <div class="hero-score">
-        <span>LEVEL ${playerLevel()} · BEST SCORE</span>
-        <strong>${Math.max(0, ...Object.values(save.bestScores)).toLocaleString()}</strong>
-      </div>
-    </section>
+  const best = Math.max(0, ...Object.values(save.bestScores));
+  screens.show("menu", `
+    <main class="studio-menu">
+      <div class="studio-menu__lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="studio-menu__set">
+        <aside class="studio-menu__side studio-menu__side--left" aria-hidden="true">SMALL<br>WORDS<br><b>BIG</b><br>MINDS</aside>
+        <aside class="studio-menu__side studio-menu__side--right" aria-hidden="true">PLAY<br>LEARN<br>IMPROVE<br>EVERY DAY</aside>
 
-    <section class="menu-grid">
-      <button class="menu-card menu-card--feature" data-nav data-mode="classic">
-        <span class="menu-card__tag">START HERE</span>
-        <strong>Classic</strong>
-        <small>${formatTime(modeDuration("classic"))} · Find as many words as you can</small>
-        <span class="arrow">→</span>
-      </button>
-      <button class="menu-card menu-card--daily" data-nav data-mode="daily">
-        <span class="menu-card__tag">TODAY</span>
-        <strong>Daily Phrase</strong>
-        <small>${dailyDone ? `Best today: ${dailyDone.toLocaleString()}` : "Unplayed"} · ${streak} day${streak === 1 ? "" : "s"} streak</small>
-        <span class="arrow">→</span>
-      </button>
-      <button class="menu-card menu-card--burn" data-nav data-mode="burn">
-        <span class="menu-card__tag">EVERY LETTER COUNTS</span>
-        <strong>Burn</strong>
-        <small>Clear each board before time runs out</small>
-        <span class="arrow">→</span>
-      </button>
-      <button class="menu-card menu-card--journey" data-nav data-action="journey">
-        <span class="menu-card__tag">CHALLENGES</span>
-        <strong>Trials</strong>
-        <small>${journeyMedals} / ${JOURNEY_PHRASES.length * 3} medals</small>
-        <span class="arrow">→</span>
-      </button>
-      <button class="menu-card menu-card--together" data-nav data-action="multiplayer">
-        <span class="menu-card__tag">LOCAL + ONLINE</span>
-        <strong>Play Together</strong>
-        <small>Room Codes • Word Relay • Last Word</small>
-        <span class="arrow">→</span>
-      </button>
-      <button class="menu-card menu-card--secondary" data-nav data-action="modes">
-        <span class="menu-card__tag">MORE</span>
-        <strong>Round Options</strong>
-        <small>Choose a timer and mode</small>
-      </button>
-      <button class="menu-card menu-card--secondary" data-nav data-action="stats">
-        <span class="menu-card__tag">PROFILE</span>
-        <strong>Statistics</strong>
-        <small>${save.totalWords.toLocaleString()} words found</small>
-      </button>
-      <button class="menu-card menu-card--secondary" data-nav data-action="help">
-        <span class="menu-card__tag">RULES</span>
-        <strong>How to Play</strong>
-        <small>Learn the phrase</small>
-      </button>
-    </section>
-  `));
+        <header class="studio-menu__header">
+          <button class="studio-record" data-nav data-action="stats" aria-label="Open statistics">
+            <span>▥ <small>WORDS PLAYED</small><strong>${save.totalWords.toLocaleString()}</strong></span>
+            <span>★ <small>BEST SCORE</small><strong>${best.toLocaleString()}</strong></span>
+          </button>
+          <div class="studio-logo" aria-label="Make a Word">${menuLogo()}</div>
+          <nav class="studio-utilities" aria-label="Utilities">
+            <button data-nav data-action="stats"><b>♜</b><span>STATS</span></button>
+            <button data-nav data-action="help"><b>▤</b><span>RULES</span></button>
+            <button data-nav data-action="settings"><b>⚙</b><span>SETTINGS</span></button>
+          </nav>
+        </header>
+
+        <section class="studio-grid" aria-label="Game modes">
+          <button class="studio-mode studio-mode--classic" data-nav data-mode="classic">
+            <span class="studio-scatter studio-scatter--classic" aria-hidden="true">${scatterLetters("WORD")}</span>
+            <span class="studio-mode__content"><strong>CLASSIC</strong><small>MAKE AS MANY WORDS<br>AS YOU CAN</small><b>PLAY CLASSIC <i>›</i></b></span>
+          </button>
+          <button class="studio-mode studio-mode--daily" data-nav data-mode="daily">
+            <span class="studio-mode__icon" aria-hidden="true">★</span>
+            <span class="studio-mode__content"><strong>DAILY<br>PHRASE</strong><small>${dailyDone ? `BEST ${dailyDone.toLocaleString()}` : "A NEW PUZZLE EVERY DAY"}<br>${streak} DAY STREAK</small><b>PLAY DAILY PHRASE <i>›</i></b></span>
+            <span class="studio-scatter studio-scatter--daily" aria-hidden="true">${scatterLetters("PHRASE")}</span>
+          </button>
+          <button class="studio-mode studio-mode--burn" data-nav data-mode="burn">
+            <span class="studio-mode__icon studio-mode__icon--burn" aria-hidden="true">♨</span>
+            <span class="studio-mode__content"><strong>BURN</strong><small>EVERY LETTER COUNTS</small><b>PLAY BURN <i>›</i></b></span>
+            <span class="studio-scatter studio-scatter--burn" aria-hidden="true">${scatterLetters("BURN")}</span>
+          </button>
+          <button class="studio-mode studio-mode--trials" data-nav data-action="journey">
+            <span class="studio-mode__icon" aria-hidden="true">⚑</span>
+            <span class="studio-mode__content"><strong>TRIALS</strong><small>${journeyMedals} / ${JOURNEY_PHRASES.length * 3} MEDALS</small></span><i class="studio-mode__arrow">›</i>
+          </button>
+          <button class="studio-mode studio-mode--together" data-nav data-action="multiplayer">
+            <span class="studio-mode__icon" aria-hidden="true">●●●</span>
+            <span class="studio-mode__content"><strong>PLAY TOGETHER</strong><small>WORDS ARE BETTER TOGETHER</small></span><i class="studio-mode__arrow">›</i>
+          </button>
+        </section>
+        <footer class="studio-menu__footer">A BRIGHTER MIND <span></span> ONE WORD AT A TIME</footer>
+      </div>
+    </main>`);
 }
 
 function showModes(): void {

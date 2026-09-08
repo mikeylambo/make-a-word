@@ -1,5 +1,11 @@
 # Release log
 
+## Studio championship menu
+
+- Rebuilt the landing screen as a responsive television game-show set closely matching the approved visual target.
+- Added a physical letter-tile logo, stage lighting, dimensional angled mode boards, animated tile scatter, live player records, and compact utility controls.
+- Classic remains the dominant action while Daily Phrase, Burn, Trials, and Play Together retain one-step access across keyboard, controller, touch, and mobile layouts.
+
 ## Finishing pass — Phase J: Mobile journey
 
 - The title and menu are now one screen, with Classic, Daily Phrase, and Burn promoted as the three clear starting points.
