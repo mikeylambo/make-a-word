@@ -18,6 +18,7 @@ export type SaveData = {
   settings: {
     sound: boolean;
     reducedMotion: boolean;
+    analytics: boolean;
   };
 };
 
@@ -36,7 +37,7 @@ const DEFAULT_SAVE: SaveData = {
   completedOnlineMatchIds: [],
   challengesCompleted: 0,
   completedChallengeIds: [],
-  settings: { sound: true, reducedMotion: false }
+  settings: { sound: true, reducedMotion: false, analytics: true }
 };
 
 export class SaveStore {

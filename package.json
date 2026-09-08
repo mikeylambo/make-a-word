@@ -17,6 +17,7 @@
     "burn:derive": "node scripts/derive-burn.mjs",
     "trials:simulate": "node scripts/simulate-round.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
+    "metrics": "node scripts/metrics.mjs",
     "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run build"
   },
   "dependencies": {

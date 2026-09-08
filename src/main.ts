@@ -9,6 +9,7 @@ import {
   storeOnlineCredentials
 } from "./online-client";
 import type { OnlineCredentials, OnlinePlayerView, OnlineRoomView, OnlineSettings } from "./online-types";
+import { telemetry } from "./telemetry";
 import {
   burnLetters,
   countsForText,
@@ -122,6 +123,7 @@ if (!appRoot) throw new Error("Missing #app root");
 
 const store = new SaveStore();
 let save: SaveData = store.load();
+telemetry.enabled = save.settings.analytics && navigator.doNotTrack !== "1";
 const screens = new ScreenManager(appRoot);
 new MenuNavigator(appRoot);
 const audio = new TinyAudio();
@@ -1222,6 +1224,7 @@ function startPendingChallenge(): void {
   const challenge = pendingChallenge;
   const phrase = challenge ? PHRASES.find((entry) => entry.id === challenge.phraseId) : undefined;
   if (!challenge || !phrase) return showMenu();
+  telemetry.increment("invite_accepted");
   startRound(challenge.mode, phrase, undefined, challenge.target);
 }
 
@@ -1254,6 +1257,7 @@ async function shareLastResult(button: HTMLElement): Promise<void> {
   try {
     if (canShare) await navigator.share({ title: "Make a Word Challenge", text, url });
     else await navigator.clipboard.writeText(url);
+    telemetry.increment("invite_created");
     button.textContent = canShare ? "CHALLENGE SHARED" : "LINK COPIED";
   } catch (error) {
     if ((error as DOMException).name === "AbortError") return;
@@ -1301,6 +1305,9 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
     ended: false,
     newBest: false
   };
+  telemetry.increment("round_started");
+  if (save.roundsPlayed === 0) telemetry.increment("activation");
+  if (mode === "daily") telemetry.increment("daily_played");
   renderGame();
   void runRoundCountdown(token);
 }
@@ -1473,6 +1480,7 @@ function submitCurrentWord(): void {
   const feedback = document.querySelector<HTMLElement>("#feedback");
 
   if (!result.ok) {
+    telemetry.increment(`reject_${result.reason.replaceAll("-", "_")}` as Parameters<typeof telemetry.increment>[0]);
     audio.play("reject", save.settings.sound);
     feedback?.classList.remove("feedback--good");
     feedback?.classList.add("feedback--bad");
@@ -1493,6 +1501,7 @@ function submitCurrentWord(): void {
   round.score += points;
   round.submitted.add(result.word);
   round.found.push({ word: result.word, points });
+  telemetry.increment("words_submitted");
   round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
 
@@ -1826,6 +1835,8 @@ function endRound(): void {
   save.totalWords += round.found.length;
   save.totalScore += round.score;
   save.roundsPlayed += 1;
+  telemetry.increment("round_completed");
+  telemetry.flush();
   const longest = round.found.reduce((best, entry) => entry.word.length > best.length ? entry.word : best, save.longestWord);
   save.longestWord = longest;
   store.save(save);
@@ -1946,6 +1957,7 @@ function showSettings(returnTo?: ScreenId): void {
     <section class="settings-list">
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
+      <button class="setting-row" data-nav data-action="toggle-analytics"><span><strong>Anonymous Analytics</strong><small>Share aggregate play counts; never words or names</small></span><b>${save.settings.analytics ? "ON" : "OFF"}</b></button>
     </section>
     <p class="settings-note">Progress is saved on this device.</p>
   `, { back: "settings-back" }));
@@ -2045,7 +2057,7 @@ appRoot.addEventListener("click", (event) => {
   else if (action === "quit-together") { together = null; showMenu(); }
   else if (action === "again-together" && together) startMultiplayer(together.mode);
   else if (action === "quit") { round = null; showMenu(); }
-  else if (action === "again" && lastResult) startRound(lastResult.mode, lastResult.mode === "journey" || lastResult.challengeTarget !== undefined ? lastResult.phrase : undefined, lastResult.journeyStage, lastResult.challengeTarget);
+  else if (action === "again" && lastResult) { telemetry.increment("replay"); startRound(lastResult.mode, lastResult.mode === "journey" || lastResult.challengeTarget !== undefined ? lastResult.phrase : undefined, lastResult.journeyStage, lastResult.challengeTarget); }
   else if (action === "share-result") void shareLastResult(target);
   else if (action === "journey-next" && lastResult?.journeyStage !== undefined) {
     const nextStage = lastResult.journeyStage + 1;
@@ -2060,6 +2072,11 @@ appRoot.addEventListener("click", (event) => {
   } else if (action === "toggle-motion") {
     save.settings.reducedMotion = !save.settings.reducedMotion;
     document.documentElement.classList.toggle("reduce-motion", save.settings.reducedMotion);
+    store.save(save);
+    showSettings();
+  } else if (action === "toggle-analytics") {
+    save.settings.analytics = !save.settings.analytics;
+    telemetry.enabled = save.settings.analytics && navigator.doNotTrack !== "1";
     store.save(save);
     showSettings();
   }
@@ -2114,6 +2131,7 @@ document.documentElement.classList.toggle("reduce-motion", save.settings.reduced
 const initialQuery = new URLSearchParams(location.search);
 const initialRoomCode = cleanRoomCode(initialQuery.get("room") ?? "");
 pendingChallenge = decodeChallenge(initialQuery.get("challenge"));
+if (pendingChallenge) telemetry.increment("invite_opened");
 if (initialRoomCode.length === 6) void resumeOnlineRoom(initialRoomCode);
 else if (pendingChallenge) showChallengeLanding();
 else showTitle();
