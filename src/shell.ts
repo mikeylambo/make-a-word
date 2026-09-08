@@ -22,6 +22,7 @@ export type SaveData = {
     reducedMotion: boolean;
     analytics: boolean;
     classicDuration: 60 | 120 | 180;
+    theme: "studio" | "felt";
   };
 };
 
@@ -40,7 +41,7 @@ const DEFAULT_SAVE: SaveData = {
   completedOnlineMatchIds: [],
   challengesCompleted: 0,
   completedChallengeIds: [],
-  settings: { sound: true, music: true, volume: 0.72, reducedMotion: false, analytics: true, classicDuration: 120 }
+  settings: { sound: true, music: true, volume: 0.72, reducedMotion: false, analytics: true, classicDuration: 120, theme: "studio" }
 };
 
 export class SaveStore {

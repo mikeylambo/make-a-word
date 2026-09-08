@@ -1,5 +1,12 @@
 # Release log
 
+## Finishing pass — Phase H: Studio identity
+
+- Studio is now the default: broadcast blue field, navy panels, ivory letters, amber rewards, and red alarms.
+- Felt ships as a second free theme through a registry that also scopes typography and audio.
+- Removed mode-specific navigation accents, decorative blur blobs, remote Google Fonts, and sub-11px labels.
+- Theme verification fails unless every theme has exactly the five semantic color roles and no legacy accent tokens remain.
+
 ## Finishing pass — Phase G: Adaptive audio
 
 - Accept tones now climb by word length and chain position, with an extra interval for distinctive words.

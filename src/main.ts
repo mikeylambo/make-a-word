@@ -10,6 +10,7 @@ import {
 } from "./online-client";
 import type { OnlineCredentials, OnlinePlayerView, OnlineRoomView, OnlineSettings } from "./online-types";
 import { telemetry } from "./telemetry";
+import { applyTheme, THEMES, type ThemeId } from "./themes";
 import {
   burnLetters,
   chainPayout,
@@ -144,7 +145,7 @@ telemetry.enabled = save.settings.analytics && navigator.doNotTrack !== "1";
 const screens = new ScreenManager(appRoot);
 new MenuNavigator(appRoot);
 const audio = new TinyAudio();
-audio.configure(save.settings.volume);
+audio.configure(save.settings.volume, applyTheme(save.settings.theme).audio);
 
 let round: RoundState | null = null;
 let timerId: number | null = null;
@@ -2031,6 +2032,7 @@ function showSettings(returnTo?: ScreenId): void {
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-music"><span><strong>Music</strong><small>Theme ambience</small></span><b>${save.settings.music ? "ON" : "OFF"}</b></button>
       <label class="setting-row setting-row--slider"><span><strong>Volume</strong><small>All game audio</small></span><input id="volume-setting" type="range" min="0" max="1" step="0.05" value="${save.settings.volume}" aria-label="Volume" /></label>
+      <div class="theme-setting"><span><strong>Table Theme</strong><small>Choose the room your words live in</small></span><div>${(Object.keys(THEMES) as ThemeId[]).map((id) => `<button data-nav data-theme="${id}" class="${save.settings.theme === id ? "selected" : ""}">${THEMES[id].name}</button>`).join("")}</div></div>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-analytics"><span><strong>Anonymous Analytics</strong><small>Share aggregate play counts; never words or names</small></span><b>${save.settings.analytics ? "ON" : "OFF"}</b></button>
     </section>
@@ -2070,10 +2072,21 @@ appRoot.addEventListener("input", (event) => {
 });
 
 appRoot.addEventListener("click", (event) => {
-  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-classic-duration], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
+  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-theme], [data-classic-duration], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
   if (!target) return;
   void audio.resume().then(() => audio.setMusic(save.settings.music));
   audio.play("navigate", save.settings.sound);
+  const themeId = target.dataset.theme as ThemeId | undefined;
+  if (themeId && THEMES[themeId]) {
+    save.settings.theme = themeId;
+    const theme = applyTheme(themeId);
+    audio.setMusic(false);
+    audio.configure(save.settings.volume, theme.audio);
+    audio.setMusic(save.settings.music);
+    store.save(save);
+    showSettings();
+    return;
+  }
   const classicDuration = Number(target.dataset.classicDuration);
   if (classicDuration === 60 || classicDuration === 120 || classicDuration === 180) {
     save.settings.classicDuration = classicDuration;
