@@ -13,6 +13,7 @@
     "analyze": "node scripts/analyze-phrases.mjs",
     "phrases:bank": "node scripts/build-phrase-bank.mjs",
     "phrases:review": "node scripts/review-phrase-bank.mjs",
+    "daily:build": "node scripts/build-daily-schedule.mjs --write",
     "burn:derive": "node scripts/derive-burn.mjs",
     "trials:simulate": "node scripts/simulate-round.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",

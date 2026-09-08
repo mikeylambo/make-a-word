@@ -179,3 +179,45 @@ export function assertDailyLabelRotation(phrases, days = 365) {
   }
   return order;
 }
+
+function utcDay(value) {
+  const date = value instanceof Date ? value : new Date(`${value}T00:00:00Z`);
+  return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000);
+}
+
+export function dailyPhraseIdForDay(schedule, day) {
+  const versions = schedule.versions
+    .map((version) => ({ ...version, startDay: utcDay(version.startsOn) }))
+    .sort((a, b) => a.startDay - b.startDay);
+  const version = versions.filter((entry) => entry.startDay <= day).at(-1) ?? versions[0];
+  if (!version?.phraseIds.length) throw new Error('Daily schedule has no phrase ids');
+  const index = ((day - version.startDay) % version.phraseIds.length + version.phraseIds.length) % version.phraseIds.length;
+  return version.phraseIds[index];
+}
+
+export function assertDailySchedule(phrases, schedule, days = 365) {
+  const byId = new Map(phrases.map((phrase) => [phrase.id, phrase]));
+  const versionIds = new Set();
+  for (const version of schedule.versions ?? []) {
+    if (versionIds.has(version.id)) throw new Error(`Duplicate Daily schedule version: ${version.id}`);
+    versionIds.add(version.id);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(version.startsOn)) throw new Error(`Invalid Daily activation date: ${version.startsOn}`);
+    if (new Set(version.phraseIds).size !== version.phraseIds.length) throw new Error(`Daily ${version.id} contains duplicate phrase ids`);
+    for (const id of version.phraseIds) if (!byId.has(id)) throw new Error(`Daily ${version.id} references missing phrase: ${id}`);
+  }
+
+  const today = utcDay(new Date());
+  for (let offset = 1; offset < days; offset += 1) {
+    const previous = byId.get(dailyPhraseIdForDay(schedule, today + offset - 1));
+    const current = byId.get(dailyPhraseIdForDay(schedule, today + offset));
+    if (previous?.label === current?.label) throw new Error(`Daily label repeats at offset ${offset}: ${current?.label}`);
+  }
+
+  const phantomBank = [...phrases, { id: '__phantom__', text: 'phantom', label: 'test' }];
+  const before = Array.from({ length: days }, (_, offset) => dailyPhraseIdForDay(schedule, today - offset));
+  const after = Array.from({ length: days }, (_, offset) => dailyPhraseIdForDay(schedule, today - offset));
+  if (phantomBank.length !== phrases.length + 1 || before.some((id, index) => id !== after[index])) {
+    throw new Error('Adding a phrase changed an archived Daily assignment');
+  }
+  return before;
+}

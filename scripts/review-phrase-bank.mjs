@@ -1,7 +1,8 @@
 import { readFile } from 'node:fs/promises';
-import { analyzePhrases, assertDailyLabelRotation, letterSignature, loadDictionary, measuredDifficultyById, phraseVariety, root, wordsIn } from './phrase-analysis-lib.mjs';
+import { analyzePhrases, assertDailySchedule, letterSignature, loadDictionary, measuredDifficultyById, phraseVariety, root, wordsIn } from './phrase-analysis-lib.mjs';
 
 const phrases = JSON.parse(await readFile(new URL('content/phrases.json', root), 'utf8'));
+const dailySchedule = JSON.parse(await readFile(new URL('content/daily-schedule.json', root), 'utf8'));
 const dictionaryWords = await loadDictionary();
 const dictionary = new Set(dictionaryWords);
 const analyses = analyzePhrases(phrases, dictionaryWords);
@@ -35,7 +36,7 @@ for (const [word, ids] of wordUse) if (ids.length > 3) errors.push(`${word}: use
 for (const [bigram, ids] of bigramUse) if (ids.length > 2) errors.push(`${bigram}: repeated in ${ids.length} phrases`);
 
 try {
-  assertDailyLabelRotation(phrases);
+  assertDailySchedule(phrases, dailySchedule);
 } catch (error) {
   errors.push(error.message);
 }
@@ -56,4 +57,4 @@ if (errors.length) {
 }
 
 console.log(`Bank review passed: ${phrases.length} phrases · ${canonicalCount} canonical · ${phrases.filter((phrase) => phrase.burnSolution).length} Burn boards · ${trials.length} Trials.`);
-console.log('All phrases pass the content bands, variety, template, canonical ratio, derived-difficulty, and 365-day Daily rotation gates.');
+console.log('All phrases pass the content bands, variety, template, canonical ratio, derived-difficulty, and append-safe Daily schedule gates.');
