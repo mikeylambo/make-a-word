@@ -1,5 +1,12 @@
 # Release log
 
+## Finishing pass — Phase I: The board
+
+- The phrase is now the largest gameplay object, dealt as physical ivory split-flap tiles at 40ms intervals.
+- Classic records which letters the player has mined; Burn retains its consumed-letter state.
+- Unavailable-letter rejections pulse the relevant tile, teaching the rule in place.
+- Found words append as banked cards with a persistent BEST slot, and rapid score impacts play through a queue.
+
 ## Finishing pass — Phase H: Studio identity
 
 - Studio is now the default: broadcast blue field, navy panels, ivory letters, amber rewards, and red alarms.

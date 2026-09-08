@@ -77,6 +77,7 @@ type RoundState = {
   submitted: Set<string>;
   found: FoundWord[];
   burned: Set<number>;
+  usedLetters: Set<string>;
   combo: number;
   chainBank: number;
   chainLength: number;
@@ -154,6 +155,8 @@ let lastPhraseText = "";
 let flowToken = 0;
 let settingsReturnScreen: ScreenId = "menu";
 let comboMeterFrame: number | null = null;
+const scoreFxQueue: Array<{ word: string; points: number; multiplier: number; distinctive: boolean }> = [];
+let scoreFxPlaying = false;
 let together: TogetherState | null = null;
 let togetherPlayerCount = 2;
 let togetherTimerId: number | null = null;
@@ -1319,6 +1322,7 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
     submitted: new Set(),
     found: [],
     burned: new Set(),
+    usedLetters: new Set(),
     combo: 0,
     chainBank: 0,
     chainLength: 0,
@@ -1363,7 +1367,7 @@ async function runRoundCountdown(token: number): Promise<void> {
   timerId = window.setInterval(tick, 1000);
 }
 
-function renderPhraseText(text: string, burned = new Set<number>(), display = text): string {
+function renderPhraseText(text: string, burned = new Set<number>(), display = text, usedLetters = new Set<string>()): string {
   const sourceLetterIndexes = [...text].flatMap((char, index) => /[a-z]/i.test(char) ? [index] : []);
   let letterOrdinal = 0;
   const words = display.split(" ");
@@ -1373,14 +1377,16 @@ function renderPhraseText(text: string, burned = new Set<number>(), display = te
       const index = sourceLetterIndexes[letterOrdinal] ?? -1;
       letterOrdinal += 1;
       const isBurned = burned.has(index);
-      return `<span class="phrase-letter ${isBurned ? "phrase-letter--burned" : ""}" data-letter-index="${index}">${escapeHtml(char)}</span>`;
+      const used = usedLetters.has(char.toLowerCase());
+      const ordinal = letterOrdinal - 1;
+      return `<span class="phrase-letter ${isBurned ? "phrase-letter--burned" : ""} ${used ? "phrase-letter--used" : ""}" style="--deal-index:${ordinal}" data-letter="${char.toLowerCase()}" data-letter-index="${index}">${escapeHtml(char)}</span>`;
     }).join("");
     return `<span class="phrase-word">${letters}</span>`;
   }).join(" ");
 }
 
 function renderPhrase(state: RoundState): string {
-  return renderPhraseText(state.phrase.text, state.burned, state.phrase.display);
+  return renderPhraseText(state.phrase.text, state.burned, state.phrase.display, state.usedLetters);
 }
 
 function renderFound(state: RoundState): string {
@@ -1433,7 +1439,8 @@ function renderGame(): void {
         <div class="round-lower">
           <div class="found-panel">
             <div class="found-panel__header"><span>FOUND</span><strong id="word-count">${state.found.length}</strong></div>
-            <div class="found-list" id="found-list">${renderFound(state)}</div>
+            <div class="best-word" id="best-word">${state.found.length ? `<small>BEST</small><strong>${state.found.reduce((best, item) => item.word.length > best.length ? item.word : best, "").toUpperCase()}</strong>` : "<small>BEST</small><strong>—</strong>"}</div>
+            <div class="found-list" id="found-list" data-found-count="${state.found.length}">${renderFound(state)}</div>
           </div>
           <aside class="round-tip">
             ${state.mode === "burn" ? `
@@ -1531,6 +1538,7 @@ function submitCurrentWord(): void {
     input.classList.remove("shake");
     void input.offsetWidth;
     input.classList.add("shake");
+    if (result.reason === "letters") flashMissingLetter(input.value, available);
     return;
   }
 
@@ -1548,6 +1556,7 @@ function submitCurrentWord(): void {
   round.chainBank += points;
   round.submitted.add(result.word);
   round.found.push({ word: result.word, points, rarity });
+  for (const letter of result.word) round.usedLetters.add(letter);
   telemetry.increment("words_submitted");
   round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
@@ -1597,11 +1606,39 @@ function updateGameHud(previousScore?: number): void {
   if (chainBank) chainBank.textContent = chainPayout(round.chainBank, round.chainLength).toLocaleString();
   if (cashButton) cashButton.disabled = round.chainBank <= 0;
   if (count) count.textContent = String(round.found.length);
-  if (list) list.innerHTML = renderFound(round);
-  if (phrase && round.mode === "burn") {
+  if (list) appendLatestFound(list, round);
+  const bestWord = document.querySelector<HTMLElement>("#best-word strong");
+  if (bestWord) bestWord.textContent = round.found.reduce((best, item) => item.word.length > best.length ? item.word : best, "").toUpperCase() || "—";
+  if (phrase) {
     phrase.innerHTML = renderPhrase(round);
-    updateBurnProgress(round);
+    if (round.mode === "burn") updateBurnProgress(round);
   }
+}
+
+function appendLatestFound(list: HTMLElement, state: RoundState): void {
+  const renderedCount = Number(list.dataset.foundCount ?? 0);
+  if (state.found.length <= renderedCount) return;
+  if (!renderedCount) list.innerHTML = "";
+  for (const item of state.found.slice(renderedCount)) {
+    const row = document.createElement("div");
+    row.className = "found-word found-word--new";
+    row.innerHTML = `<span>${escapeHtml(item.word.toUpperCase())}${item.rarity && item.rarity > 1 ? " <i>◆</i>" : ""}</span><strong>+${item.points}</strong>`;
+    list.prepend(row);
+  }
+  list.dataset.foundCount = String(state.found.length);
+}
+
+function flashMissingLetter(input: string, available: Map<string, number>): void {
+  const used = new Map<string, number>();
+  let missing = "";
+  for (const letter of input.toLowerCase().replace(/[^a-z]/g, "")) {
+    const count = (used.get(letter) ?? 0) + 1;
+    used.set(letter, count);
+    if (count > (available.get(letter) ?? 0)) { missing = letter; break; }
+  }
+  const tiles = [...document.querySelectorAll<HTMLElement>(`.phrase-letter[data-letter="${missing}"]`)];
+  const targets = tiles.length ? tiles : [...document.querySelectorAll<HTMLElement>(".phrase-letter")];
+  targets.forEach((tile) => { tile.classList.remove("phrase-letter--missing"); void tile.offsetWidth; tile.classList.add("phrase-letter--missing"); });
 }
 
 function updateBurnProgress(state: RoundState): void {
@@ -1720,8 +1757,16 @@ function clearComboMeter(): void {
 }
 
 function showScoreImpact(word: string, points: number, multiplier: number, distinctive = false): void {
+  scoreFxQueue.push({ word, points, multiplier, distinctive });
+  if (!scoreFxPlaying) void drainScoreFx();
+}
+
+async function drainScoreFx(): Promise<void> {
+  scoreFxPlaying = true;
+  while (scoreFxQueue.length) {
+    const { word, points, multiplier, distinctive } = scoreFxQueue.shift()!;
   const stage = document.querySelector<HTMLElement>("#score-fx-stage");
-  if (!stage) return;
+    if (!stage) break;
   const tier = multiplier >= 5 ? "score-impact--major" : multiplier >= 3 ? "score-impact--combo" : "";
   stage.innerHTML = `
     <div class="score-impact ${tier}">
@@ -1729,9 +1774,10 @@ function showScoreImpact(word: string, points: number, multiplier: number, disti
       <span>+${points.toLocaleString()}</span>
       ${multiplier > 1 ? `<b>COMBO ×${multiplier}</b>` : ""}
     </div>`;
-  window.setTimeout(() => {
-    if (stage.querySelector(".score-impact")) stage.innerHTML = "";
-  }, multiplier >= 5 ? 1050 : 720);
+    await delay(multiplier >= 5 ? 760 : 460);
+    stage.innerHTML = "";
+  }
+  scoreFxPlaying = false;
 }
 
 function tick(): void {
