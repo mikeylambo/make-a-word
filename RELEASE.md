@@ -1,5 +1,11 @@
 # Release log
 
+## Studio menu integration fixes
+
+- Isolated the desktop master plate from the CSS mobile fallback so only one menu can render at a time.
+- Replaced rectangular focus shadows with SVG strokes that follow each illustrated panel and circular utility control.
+- Rebuilt Settings as an illuminated control-room console over the Studio Championship set, including a compact phone layout.
+
 ## Approved master-plate menu
 
 - Desktop and tablet now use the approved 1672×941 Studio Championship artwork as the exact visual coordinate master.

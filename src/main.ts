@@ -284,14 +284,14 @@ function showMenu(): void {
           <span><i>▥</i><small>WORDS PLAYED</small><strong>${save.totalWords.toLocaleString()}</strong></span>
           <span><i>★</i><small>BEST SCORE</small><strong>${best.toLocaleString()}</strong></span>
         </button>
-        <button class="studio-hotspot studio-hotspot--stats" data-nav data-action="stats"><span>Statistics</span></button>
-        <button class="studio-hotspot studio-hotspot--rules" data-nav data-action="help"><span>Rules</span></button>
-        <button class="studio-hotspot studio-hotspot--settings" data-nav data-action="settings"><span>Settings</span></button>
-        <button class="studio-hotspot studio-hotspot--classic" data-nav data-mode="classic"><span>Play Classic</span></button>
-        <button class="studio-hotspot studio-hotspot--daily" data-nav data-mode="daily"><span>Play Daily Phrase</span></button>
-        <button class="studio-hotspot studio-hotspot--burn" data-nav data-mode="burn"><span>Play Burn</span></button>
-        <button class="studio-hotspot studio-hotspot--trials" data-nav data-action="journey"><span>Open Trials</span></button>
-        <button class="studio-hotspot studio-hotspot--together" data-nav data-action="multiplayer"><span>Play Together</span></button>
+        <button class="studio-hotspot studio-hotspot--stats studio-hotspot--round" data-nav data-action="stats"><span>Statistics</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="38" rx="33" ry="32" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--rules studio-hotspot--round" data-nav data-action="help"><span>Rules</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="38" rx="33" ry="32" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--settings studio-hotspot--round" data-nav data-action="settings"><span>Settings</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse cx="50" cy="38" rx="31" ry="32" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--classic" data-nav data-mode="classic"><span>Play Classic</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="5,1 99,1 95,99 1,99" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--daily" data-nav data-mode="daily"><span>Play Daily Phrase</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="5,2 99,2 96,99 1,94" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--burn" data-nav data-mode="burn"><span>Play Burn</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="1,4 96,1 99,99 4,97" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--trials" data-nav data-action="journey"><span>Open Trials</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="1,1 99,4 96,99 1,92" /></svg></button>
+        <button class="studio-hotspot studio-hotspot--together" data-nav data-action="multiplayer"><span>Play Together</span><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="3,5 99,1 97,94 1,99" /></svg></button>
       </section>
       <div class="studio-menu__lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="studio-menu__set studio-menu__fallback">
@@ -2095,17 +2095,26 @@ function showSettings(returnTo?: ScreenId): void {
   const current = screens.getCurrent();
   if (current === "online-room") stopOnlineSync();
   if (current !== "settings") settingsReturnScreen = returnTo ?? current;
-  screens.show("settings", shell("SETTINGS", `
-    <section class="settings-list">
+  screens.show("settings", `
+    <main class="studio-subscreen">
+      <img class="studio-subscreen__backdrop" src="/assets/menu/studio-championship.webp" alt="" aria-hidden="true" />
+      <section class="studio-console">
+        <header class="studio-console__header">
+          <button class="studio-console__back" data-nav data-action="settings-back" aria-label="Back">‹</button>
+          <div><span>GAME SHOW CONTROL ROOM</span><h1>SETTINGS</h1></div>
+          <div class="studio-console__logo" aria-label="Make a Word">${menuLogo()}</div>
+        </header>
+        <section class="settings-list studio-settings-list">
       <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-music"><span><strong>Music</strong><small>Theme ambience</small></span><b>${save.settings.music ? "ON" : "OFF"}</b></button>
       <label class="setting-row setting-row--slider"><span><strong>Volume</strong><small>All game audio</small></span><input id="volume-setting" type="range" min="0" max="1" step="0.05" value="${save.settings.volume}" aria-label="Volume" /></label>
       <div class="theme-setting"><span><strong>Table Theme</strong><small>Choose the room your words live in</small></span><div>${(Object.keys(THEMES) as ThemeId[]).map((id) => `<button data-nav data-theme="${id}" class="${save.settings.theme === id ? "selected" : ""}">${THEMES[id].name}</button>`).join("")}</div></div>
       <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
       <button class="setting-row" data-nav data-action="toggle-analytics"><span><strong>Anonymous Analytics</strong><small>Share aggregate play counts; never words or names</small></span><b>${save.settings.analytics ? "ON" : "OFF"}</b></button>
-    </section>
-    <p class="settings-note">Progress is saved on this device.</p>
-  `, { back: "settings-back" }));
+        </section>
+        <p class="settings-note">PROGRESS IS SAVED ON THIS DEVICE</p>
+      </section>
+    </main>`);
 }
 
 function settingsReturn(): void {
