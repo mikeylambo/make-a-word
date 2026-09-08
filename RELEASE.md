@@ -1,5 +1,11 @@
 # Release log
 
+## Approved master-plate menu
+
+- Desktop and tablet now use the approved 1672×941 Studio Championship artwork as the exact visual coordinate master.
+- Functional accessible hit regions align to every illustrated mode and utility, with live statistics replacing the static concept values.
+- The CSS-built championship menu remains as the dedicated phone composition where the 16:9 master would be too small to operate.
+
 ## Studio championship menu
 
 - Rebuilt the landing screen as a responsive television game-show set closely matching the approved visual target.

@@ -278,8 +278,23 @@ function showMenu(): void {
   const best = Math.max(0, ...Object.values(save.bestScores));
   screens.show("menu", `
     <main class="studio-menu">
+      <section class="studio-plate" aria-label="Make a Word main menu">
+        <img class="studio-plate__art" src="/assets/menu/studio-championship.webp" alt="" aria-hidden="true" />
+        <button class="studio-plate__record" data-nav data-action="stats" aria-label="Statistics: ${save.totalWords.toLocaleString()} words played, best score ${best.toLocaleString()}">
+          <span><i>▥</i><small>WORDS PLAYED</small><strong>${save.totalWords.toLocaleString()}</strong></span>
+          <span><i>★</i><small>BEST SCORE</small><strong>${best.toLocaleString()}</strong></span>
+        </button>
+        <button class="studio-hotspot studio-hotspot--stats" data-nav data-action="stats"><span>Statistics</span></button>
+        <button class="studio-hotspot studio-hotspot--rules" data-nav data-action="help"><span>Rules</span></button>
+        <button class="studio-hotspot studio-hotspot--settings" data-nav data-action="settings"><span>Settings</span></button>
+        <button class="studio-hotspot studio-hotspot--classic" data-nav data-mode="classic"><span>Play Classic</span></button>
+        <button class="studio-hotspot studio-hotspot--daily" data-nav data-mode="daily"><span>Play Daily Phrase</span></button>
+        <button class="studio-hotspot studio-hotspot--burn" data-nav data-mode="burn"><span>Play Burn</span></button>
+        <button class="studio-hotspot studio-hotspot--trials" data-nav data-action="journey"><span>Open Trials</span></button>
+        <button class="studio-hotspot studio-hotspot--together" data-nav data-action="multiplayer"><span>Play Together</span></button>
+      </section>
       <div class="studio-menu__lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="studio-menu__set">
+      <div class="studio-menu__set studio-menu__fallback">
         <aside class="studio-menu__side studio-menu__side--left" aria-hidden="true">SMALL<br>WORDS<br><b>BIG</b><br>MINDS</aside>
         <aside class="studio-menu__side studio-menu__side--right" aria-hidden="true">PLAY<br>LEARN<br>IMPROVE<br>EVERY DAY</aside>
 
