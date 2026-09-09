@@ -1,0 +1,37 @@
+/* Final clean-art overrides for the layered Make-a-Word menu.
+   Keep this small: layered-menu.css owns layout/typography/interaction;
+   this file swaps in the text-free art kit and removes the temporary masks. */
+
+.studio-menu--layered .studio-logo {
+  background-image: url('/assets/menu/studio-logo-v3.webp');
+}
+
+.studio-menu--layered .studio-mode--classic {
+  background-image: url('/assets/menu/classic-clean-v3.webp');
+}
+
+.studio-menu--layered .studio-mode--daily {
+  background-image: url('/assets/menu/daily-clean-v3.webp');
+}
+
+.studio-menu--layered .studio-mode--burn {
+  background-image: url('/assets/menu/burn-clean-v3.webp');
+}
+
+.studio-menu--layered .studio-mode--trials {
+  background-image: url('/assets/menu/trials-clean-v3.webp');
+}
+
+.studio-menu--layered .studio-mode--together {
+  background-image: url('/assets/menu/together-clean-v3.webp');
+}
+
+/* The v3 panels are genuinely text-free; the live DOM no longer needs
+   painted-over extraction masks. Preserve ::after for focus/highlight geometry. */
+.studio-menu--layered .studio-mode--daily::before,
+.studio-menu--layered .studio-mode--burn::before,
+.studio-menu--layered .studio-mode--trials::before,
+.studio-menu--layered .studio-mode--together::before {
+  display: none !important;
+  opacity: 0 !important;
+}
