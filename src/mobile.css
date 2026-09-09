@@ -1,0 +1,84 @@
+/* Phone studio: the same game and palette, composed for thumbs and a keyboard. */
+button { touch-action: manipulation; }
+.word-entry input { min-width: 0; }
+@media (max-width: 700px) {
+  .studio-menu { min-height:100svh; }
+  .studio-menu__set { width:100%; min-height:100svh; padding: max(12px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; }
+  .studio-menu__header { min-height:116px; flex:none; }
+  .studio-logo { padding:4px 0 0; }
+  .studio-logo__tile { width:10vw; max-width:51px; font-size:clamp(25px,7vw,38px); }
+  .studio-utilities { top:75px; right:50%; translate:50% 0; padding:0; gap:14px; }
+  .studio-utilities b { display:none; }
+  .studio-utilities button { min-width:72px; min-height:44px; border:1px solid #4385b6; border-radius:12px; background:#082c5b; }
+  .studio-utilities span { margin:0; font-size:12px; }
+  .studio-grid { width:100%; margin:8px 0 0; gap:12px; grid-template-columns:1fr 1fr; grid-template-rows:minmax(164px,1.4fr) minmax(128px,1fr) minmax(100px,.8fr); flex:1; }
+  .studio-mode { min-width:0; grid-column:auto!important; grid-row:auto!important; border-width:3px; border-radius:12px; clip-path:none; padding:16px 12px; }
+  .studio-mode--classic { grid-column:1/-1!important; padding:20px 24px 20px 32%; }
+  .studio-mode--classic strong { font-size:clamp(40px,11vw,68px); }
+  .studio-mode--classic .studio-scatter { left:7%; top:8%; transform:scale(.55); }
+  .studio-mode--daily,.studio-mode--burn { padding:18px 8px; }
+  .studio-mode--daily > .studio-mode__icon,.studio-mode--burn > .studio-mode__icon,.studio-scatter--daily,.studio-scatter--burn { display:none; }
+  .studio-mode--daily strong,.studio-mode--burn strong { font-size:clamp(27px,7vw,38px); }
+  .studio-mode__content small { font-size:12px; line-height:1.3; letter-spacing:0; margin-top:8px; }
+  .studio-mode__content b { min-height:38px; margin-top:12px; padding:0 8px; font-size:12px; border-width:2px; }
+  .studio-mode--trials,.studio-mode--together { padding:16px 10px; justify-content:center; text-align:center; }
+  .studio-mode--trials > .studio-mode__icon,.studio-mode--together > .studio-mode__icon,.studio-mode__arrow { display:none; }
+  .studio-mode--trials .studio-mode__content strong,.studio-mode--together .studio-mode__content strong { font-size:clamp(22px,5.5vw,31px); }
+  .studio-menu__footer,.studio-menu__side { display:none; }
+  .game-hud { grid-template-columns:44px minmax(55px,1fr) minmax(100px,1.4fr) minmax(55px,.8fr); min-height:80px; gap:4px; padding: max(8px,env(safe-area-inset-top)) 10px 8px; }
+  .game-hud .icon-button { width:44px; height:44px; }
+  .hud-stat { min-width:0; padding-left:5px; }
+  .hud-stat strong { font-size:18px; font-variant-numeric:tabular-nums; }
+  .hud-stat span { font-size:11px; letter-spacing:.04em; }
+  .hud-stat--combo .chain-cash { min-height:36px; width:100%; padding:5px; font-size:12px; }
+  .playfield { padding-top:0; }
+  .board-stage { top:80px; padding-top:10px; }
+  .phrase-display { min-height:100px; padding:14px 0; gap:8px; }
+  .phrase-word { flex-wrap:wrap; justify-content:center; max-width:100%; }
+  .phrase-header small { font-size:12px; }
+  .word-entry { grid-template-columns:minmax(0,1fr) 76px; border-radius:14px; }
+  .word-entry input { height:50px; font-size:20px; }
+  .submit-word { min-height:48px; touch-action:manipulation; }
+  .feedback { min-height:30px; font-size:13px; }
+  .round-lower { gap:12px; margin-top:12px; }
+  .game-screen--burn .round-tip { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:12px; }
+  .game-screen--burn .round-tip > span,.game-screen--burn .round-tip p { display:none; }
+  .burn-board-stat { flex:1; }
+  .deal-button { min-height:48px; flex:2; margin:0; }
+  .found-panel__header { min-height:44px; }
+  .pause-overlay { overflow-y:auto; padding:16px; }
+  .pause-card { max-height:calc(var(--visible-height,100dvh) - 32px); overflow-y:auto; padding:24px 18px; background:var(--panel); border:2px solid var(--hero); box-shadow:0 8px 0 #061831; }
+  .pause-card button { min-height:48px; }
+  .studio-console__header { min-height:90px; }
+  .studio-settings-list .setting-row,.studio-settings-list .theme-setting { min-height:72px; padding:12px; }
+  .studio-settings-list .setting-row strong { font-size:16px; }
+  .studio-settings-list .setting-row small { font-size:13px; }
+  .setting-row--slider { flex-wrap:wrap; gap:10px; }
+  .setting-row--slider input { width:100%; min-height:44px; }
+  .theme-setting button { min-height:44px; }
+  .result-actions { position:sticky; bottom:0; z-index:12; padding:12px 0 max(12px,env(safe-area-inset-bottom)); background:var(--field); }
+  .result-actions button { flex:1 1 42%; min-height:48px; }
+  .player-names input,.online-entry input,.online-entry select { font-size:16px; min-height:48px; }
+  .multiplayer-mode { min-height:150px; }
+  .online-entry { padding:18px; }
+  .keyboard-open #app[data-screen="game"],.keyboard-open #app[data-screen="multiplayer-game"] { height:var(--visible-height); overflow-y:auto; overscroll-behavior-y:contain; }
+  .keyboard-open .game-screen { min-height:var(--visible-height); padding-bottom:8px; }
+  .keyboard-open .screen-transition > * { animation:none; }
+  .keyboard-open .game-hud { position:relative; min-height:66px; padding-top:6px; }
+  .keyboard-open .board-stage { position:relative; top:auto; padding-top:4px; margin-bottom:4px; }
+  .keyboard-open .phrase-header small { display:none; }
+  .keyboard-open .phrase-display { min-height:0; padding:8px 0; }
+  .keyboard-open .round-lower { margin-top:6px; }
+  .keyboard-open .found-panel { padding:4px 12px; }
+  .keyboard-open .game-screen--journey .round-tip { display:none; }
+  .keyboard-open .burn-progress { margin-bottom:4px; }
+  .keyboard-open .pause-overlay { bottom:auto; top:var(--visible-top); height:var(--visible-height); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important; scroll-behavior:auto!important; }
+}
+@media (pointer:coarse) {
+  button { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  .studio-mode:hover { transform:none; }
+  .studio-mode:active { filter:brightness(1.15); transform:scale(.985); }
+}

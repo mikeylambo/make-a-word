@@ -1,4 +1,6 @@
 import "./styles.css";
+import "./mobile.css";
+import { installMobileExperience } from "./mobile";
 import { JOURNEY_PHRASES, PHRASES, phraseDisplayText, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
 import {
@@ -141,6 +143,7 @@ function scoreKey(mode: ModeId, duration: number): string {
 
 const appRoot = document.querySelector<HTMLElement>("#app");
 if (!appRoot) throw new Error("Missing #app root");
+installMobileExperience(appRoot);
 
 const store = new SaveStore();
 let save: SaveData = store.load();
@@ -1499,6 +1502,7 @@ function bindWordForm(): void {
 
 function focusWordInput(): void {
   requestAnimationFrame(() => {
+    if (screens.getCurrent() !== "game" || round?.paused) return;
     const input = document.querySelector<HTMLInputElement>("#word-input");
     if (!input?.disabled) input?.focus({ preventScroll: true });
   });
@@ -1927,11 +1931,12 @@ function togglePause(force?: boolean): void {
   }
   layer.innerHTML = `
     <div class="pause-overlay">
-      <div class="pause-card">
+      <div class="pause-card" role="dialog" aria-modal="true" aria-label="Round paused">
         <span class="eyebrow">ROUND PAUSED</span>
         <h2>${MODE_META[round.mode].name}</h2>
         <button class="primary-button" data-nav data-action="resume">RESUME</button>
         <button class="secondary-button" data-nav data-action="restart">RESTART</button>
+        <button class="secondary-button" data-nav data-action="settings">SETTINGS</button>
         <button class="secondary-button secondary-button--danger" data-nav data-action="end-run">END RUN</button>
         <button class="text-button" data-nav data-action="quit">QUIT TO MENU</button>
       </div>
@@ -2101,7 +2106,7 @@ function showSettings(returnTo?: ScreenId): void {
       <section class="studio-console">
         <header class="studio-console__header">
           <button class="studio-console__back" data-nav data-action="settings-back" aria-label="Back">‹</button>
-          <div><span>GAME SHOW CONTROL ROOM</span><h1>SETTINGS</h1></div>
+          <div><h1>SETTINGS</h1></div>
           <div class="studio-console__logo" aria-label="Make a Word">${menuLogo()}</div>
         </header>
         <section class="settings-list studio-settings-list">
@@ -2118,7 +2123,7 @@ function showSettings(returnTo?: ScreenId): void {
 }
 
 function settingsReturn(): void {
-  if (settingsReturnScreen === "game" && round) renderGame();
+  if (settingsReturnScreen === "game" && round) { renderGame(); togglePause(true); }
   else if (settingsReturnScreen === "results") showResults();
   else if (settingsReturnScreen === "modes") showModes();
   else if (settingsReturnScreen === "journey") showJourney();
@@ -2309,7 +2314,7 @@ window.addEventListener("keydown", (event) => {
   const input = document.querySelector<HTMLInputElement>("#word-input");
   // Own Enter explicitly while playing. This prevents the browser from
   // re-activating whichever menu button held focus before the round rendered.
-  if (event.key === "Enter" && !round.paused && input && !input.disabled) {
+  if (event.key === "Enter" && !event.isComposing && !event.repeat && !round.paused && input && !input.disabled && !(event.target as Element).closest('button')) {
     event.preventDefault();
     event.stopImmediatePropagation();
     submitCurrentWord();

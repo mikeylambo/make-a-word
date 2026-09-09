@@ -99,8 +99,11 @@ export class ScreenManager {
   }
 
   focusFirst(): void {
+    const screen = this.current;
     requestAnimationFrame(() => {
-      const first = this.root.querySelector<HTMLElement>("[data-nav]:not([disabled])");
+      if (screen !== this.current) return;
+      const scope = this.root.querySelector('.pause-card') ?? this.root;
+      const first = [...scope.querySelectorAll<HTMLElement>("[data-nav]:not([disabled])")].find(item => item.getClientRects().length > 0);
       first?.focus({ preventScroll: true });
     });
   }
@@ -112,10 +115,20 @@ export class MenuNavigator {
   }
 
   private onKey(event: KeyboardEvent): void {
+    const modal = this.root.querySelector<HTMLElement>('.pause-card');
+    if (modal && event.key === 'Tab') {
+      const controls = [...modal.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), [tabindex="0"]')].filter(item => item.getClientRects().length > 0);
+      if (controls.length) {
+        event.preventDefault();
+        const index = controls.indexOf(document.activeElement as HTMLElement);
+        controls[(index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length]?.focus();
+      }
+      return;
+    }
     if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
     const active = document.activeElement as HTMLElement | null;
-    if (active?.matches("input, textarea")) return;
-    const items = [...this.root.querySelectorAll<HTMLElement>("[data-nav]:not([disabled])")];
+    if (active?.matches("input, textarea, select")) return;
+    const items = [...(modal ?? this.root).querySelectorAll<HTMLElement>("[data-nav]:not([disabled])")].filter(item => item.getClientRects().length > 0);
     if (!items.length) return;
     event.preventDefault();
     const index = Math.max(0, items.indexOf(active ?? items[0]));

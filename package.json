@@ -20,7 +20,7 @@
     "scoring:verify": "node scripts/verify-scoring.mjs",
     "themes:verify": "node scripts/verify-themes.mjs",
     "board:verify": "node scripts/verify-board.mjs",
-    "mobile:verify": "node scripts/verify-mobile.mjs",
+    "mobile:verify": "node scripts/verify-mobile.mjs && node scripts/verify-mobile-runtime.mjs",
     "menu:verify": "node scripts/verify-menu.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",
