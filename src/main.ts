@@ -1,5 +1,6 @@
 import "./styles.css";
 import "./mobile.css";
+import "./layered-menu.css";
 import { installMobileExperience } from "./mobile";
 import { JOURNEY_PHRASES, PHRASES, phraseDisplayText, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
@@ -280,7 +281,7 @@ function showMenu(): void {
   const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
   const best = Math.max(0, ...Object.values(save.bestScores));
   screens.show("menu", `
-    <main class="studio-menu">
+    <main class="studio-menu ${new URLSearchParams(location.search).get('menu') === 'layered' ? 'studio-menu--layered' : ''}">
       <section class="studio-plate" aria-label="Make a Word main menu">
         <img class="studio-plate__art" src="/assets/menu/studio-championship.webp" alt="" aria-hidden="true" />
         <button class="studio-plate__record" data-nav data-action="stats" aria-label="Statistics: ${save.totalWords.toLocaleString()} words played, best score ${best.toLocaleString()}">

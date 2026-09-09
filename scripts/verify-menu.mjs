@@ -6,7 +6,7 @@ const shell = fs.readFileSync(new URL('../src/shell.ts', import.meta.url), 'utf8
 
 const requiredModes = ['studio-mode--classic', 'studio-mode--daily', 'studio-mode--burn', 'studio-mode--trials', 'studio-mode--together'];
 const failures = [];
-if (!main.includes('class="studio-menu"')) failures.push('the championship menu root is missing');
+if (!main.includes('class="studio-menu ')) failures.push('the championship menu root is missing');
 if (!main.includes('/assets/menu/studio-championship.webp')) failures.push('the approved desktop master plate is missing');
 if (!main.includes('studio-hotspot--classic') || !main.includes('studio-hotspot--together')) failures.push('desktop master-plate hit regions are missing');
 if (!main.includes('preserveAspectRatio="none"><polygon') || !css.includes('.studio-hotspot svg polygon')) failures.push('panel-shaped SVG focus frames are missing');
