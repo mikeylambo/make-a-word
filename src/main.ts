@@ -2149,7 +2149,12 @@ appRoot.addEventListener("input", (event) => {
 });
 
 appRoot.addEventListener("click", (event) => {
-  const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action], [data-mode], [data-theme], [data-classic-duration], [data-journey-stage], [data-player-count], [data-round-count], [data-together-mode]");
+  const eventTarget = event.target as HTMLElement;
+  // Text/range/select controls are never navigation triggers. Keep this guard
+  // ahead of delegated action routing so a tap used to focus gameplay input
+  // cannot bubble into a stale/overlapping menu action on mobile browsers.
+  if (eventTarget.closest("input, textarea, select, option")) return;
+  const target = eventTarget.closest<HTMLElement>("button[data-action], button[data-mode], button[data-theme], button[data-classic-duration], button[data-journey-stage], button[data-player-count], button[data-round-count], button[data-together-mode]");
   if (!target) return;
   void audio.resume().then(() => audio.setMusic(save.settings.music));
   audio.play("navigate", save.settings.sound);
@@ -2301,6 +2306,15 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (screens.getCurrent() !== "game" || !round) return;
+  const input = document.querySelector<HTMLInputElement>("#word-input");
+  // Own Enter explicitly while playing. This prevents the browser from
+  // re-activating whichever menu button held focus before the round rendered.
+  if (event.key === "Enter" && !round.paused && input && !input.disabled) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    submitCurrentWord();
+    return;
+  }
   if (event.key === "Tab" && !round.paused && round.chainBank) {
     event.preventDefault();
     cashChain();
@@ -2312,7 +2326,6 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (round.paused) return;
-  const input = document.querySelector<HTMLInputElement>("#word-input");
   if (!input) return;
   if (/^[a-zA-Z]$/.test(event.key) && document.activeElement !== input && !event.metaKey && !event.ctrlKey && !event.altKey) {
     input.focus();

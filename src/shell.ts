@@ -87,7 +87,10 @@ export class ScreenManager {
     this.root.classList.remove("screen-transition");
     void this.root.offsetWidth;
     this.root.classList.add("screen-transition");
-    this.focusFirst();
+    // Gameplay owns its text focus. Letting the generic menu autofocus race the
+    // word input can leave a previously selected utility button as Enter's
+    // implicit click target, especially after a touch-driven transition.
+    if (id !== "game" && id !== "multiplayer-game" && id !== "online-room") this.focusFirst();
     return this.root;
   }
 
