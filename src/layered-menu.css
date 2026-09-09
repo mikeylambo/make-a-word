@@ -1,55 +1,302 @@
-/* First art-kit slice. Opt in with ?menu=layered; approved default stays intact. */
+/* Layered studio composition. Opt in with ?menu=layered while the approved
+   master-plate menu remains the default. The mode buttons stay real DOM
+   controls; raster art supplies the approved surface treatment. */
 .studio-menu--layered {
-  background:#061d40 url('/assets/menu/studio-empty.png') center / cover no-repeat;
+  position: relative;
+  overflow: hidden;
+  background: #061d40 url('/assets/menu/studio-empty.png') center / 100% 100% no-repeat;
 }
+
 .studio-menu--layered .studio-plate,
 .studio-menu--layered::before,
 .studio-menu--layered::after,
 .studio-menu--layered .studio-menu__lights,
 .studio-menu--layered .studio-menu__side,
-.studio-menu--layered .studio-menu__footer { display:none!important; }
+.studio-menu--layered .studio-menu__footer {
+  display: none !important;
+}
+
 .studio-menu--layered .studio-menu__fallback {
-  display:grid!important;
-  grid-template-rows:auto 1fr;
-  padding-left:clamp(16px,4vw,70px);
-  padding-right:clamp(16px,4vw,70px);
-  padding-bottom:8vh;
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
 }
-.studio-menu--layered .studio-menu__header { grid-template-columns:1fr 2fr 1fr; gap:18px; }
+
+/* Keep the existing live record + utility controls, but place them over the
+   reconstructed studio rather than rendering the old menu underneath it. */
+.studio-menu--layered .studio-menu__header {
+  position: absolute;
+  z-index: 8;
+  left: 3.1%;
+  right: 3.1%;
+  top: 2.1%;
+  height: 15.5%;
+  display: grid;
+  grid-template-columns: 23% 1fr 23%;
+  align-items: center;
+  gap: 1.4%;
+}
+
+.studio-menu--layered .studio-logo {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: transparent url('/assets/menu/studio-logo.webp') center / contain no-repeat;
+  filter: drop-shadow(0 7px 8px #0007);
+}
+.studio-menu--layered .studio-logo__tile { visibility: hidden; }
+
+.studio-menu--layered .studio-record,
+.studio-menu--layered .studio-utilities {
+  position: relative;
+  z-index: 2;
+}
+
+/* The art-kit cards are composed in the same normalized coordinate system as
+   the approved 1672x941 menu plate. */
+.studio-menu--layered .studio-grid {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.studio-menu--layered .studio-mode {
+  position: absolute;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  clip-path: none;
+  overflow: visible;
+  background-color: transparent;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  box-shadow: none;
+  transform-origin: 50% 54%;
+  transition: transform .16s cubic-bezier(.2,.8,.2,1), filter .16s ease;
+}
+.studio-menu--layered .studio-mode::before,
+.studio-menu--layered .studio-mode::after,
+.studio-menu--layered .studio-mode__icon,
+.studio-menu--layered .studio-scatter { display: none !important; }
+
 .studio-menu--layered .studio-mode--classic {
-  background:transparent url('/assets/menu/classic-clean.png') center / 100% 100% no-repeat;
-  border:0; outline:0; clip-path:none; border-radius:14px;
-  color:#fff; padding:7% 7% 6% 31%;
-  box-shadow:0 10px 0 #291705,0 20px 30px #0009;
-  transform:rotate(-1deg);
-  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;
+  left: 7.4%;
+  top: 19.8%;
+  width: 52.6%;
+  height: 39.5%;
+  z-index: 3;
+  color: #fff;
+  padding: 7% 7% 6% 31%;
+  background-image: url('/assets/menu/classic-clean.png');
+  filter: drop-shadow(0 15px 11px #0008);
 }
-.studio-menu--layered .studio-mode--classic::after,
-.studio-menu--layered .studio-scatter--classic { display:none; }
+.studio-menu--layered .studio-mode--daily {
+  left: 53.9%;
+  top: 14.9%;
+  width: 27.8%;
+  height: 30.1%;
+  z-index: 4;
+  background-image: url('/assets/menu/daily-clean.webp');
+}
+.studio-menu--layered .studio-mode--burn {
+  left: 57.5%;
+  top: 31.8%;
+  width: 39.4%;
+  height: 34.8%;
+  z-index: 5;
+  background-image: url('/assets/menu/burn-clean.webp');
+}
+.studio-menu--layered .studio-mode--trials {
+  left: 7.5%;
+  top: 59.9%;
+  width: 54.7%;
+  height: 19.9%;
+  z-index: 3;
+  background-image: url('/assets/menu/trials-clean.webp');
+}
+.studio-menu--layered .studio-mode--together {
+  left: 55.7%;
+  top: 59.6%;
+  width: 40.9%;
+  height: 21.2%;
+  z-index: 4;
+  background-image: url('/assets/menu/together-clean.webp');
+}
+
+/* Classic was rebuilt as a clean art surface, so its typography remains live. */
+.studio-menu--layered .studio-mode--classic .studio-mode__content {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 .studio-menu--layered .studio-mode--classic strong {
-  font-family:Impact,'Arial Narrow',sans-serif;
-  font-style:italic; font-size:clamp(44px,6.3vw,96px);
-  line-height:1.05; letter-spacing:-.025em;
-  -webkit-text-stroke:1px #572706;
-  text-shadow:1px 2px #572706,2px 4px #572706,3px 6px #391901,4px 8px 9px #39190199;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-style: italic;
+  font-size: clamp(42px, 5.8vw, 94px);
+  line-height: .95;
+  letter-spacing: -.025em;
+  color: #fffaf0;
+  -webkit-text-stroke: 1px #572706;
+  text-shadow: 1px 2px #572706, 2px 4px #572706, 3px 6px #391901, 4px 8px 9px #39190199;
 }
-.studio-menu--layered .studio-mode--classic small { font-size:clamp(14px,1.5vw,22px); line-height:1.2; color:#512704; }
-.studio-menu--layered .studio-mode--classic b { min-height:54px; margin-top:24px; font-size:clamp(14px,1.5vw,22px); background:linear-gradient(#6c3104,#381400); border-color:#fff0a7; box-shadow:0 5px 8px #63330066; }
-.studio-menu--layered .studio-mode--classic:hover,
-.studio-menu--layered .studio-mode--classic:focus-visible { transform:translateY(-6px) rotate(-1deg) scale(1.015); filter:brightness(1.08); box-shadow:0 0 0 3px #fff8d5,0 0 28px #ffc44088,0 20px 30px #0009; }
-.studio-menu--layered .studio-mode--classic:active { transform:translateY(3px) rotate(-1deg) scale(.99); }
-@media (max-width:900px) {
-  .studio-menu--layered .studio-menu__header { grid-template-columns:1fr; }
-  .studio-menu--layered .studio-mode--classic strong { font-size:clamp(40px,7vw,68px); }
+.studio-menu--layered .studio-mode--classic small {
+  margin-top: 2.2%;
+  font-size: clamp(12px, 1.12vw, 19px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: .02em;
+  color: #4d2505;
 }
-@media (max-width:700px) {
-  .studio-menu--layered .studio-menu__fallback { display:flex!important; padding: max(12px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom)); }
-  .studio-menu--layered .studio-mode--classic { padding:18px 18px 18px 31%; }
-  .studio-menu--layered .studio-mode--classic strong { font-size:clamp(34px,9vw,58px); }
-  .studio-menu--layered .studio-mode--classic small { font-size:13px; }
-  .studio-menu--layered .studio-mode--classic b { min-height:40px; margin-top:12px; font-size:13px; }
+.studio-menu--layered .studio-mode--classic b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 55%;
+  min-height: 44px;
+  margin-top: 4.5%;
+  padding: .5em 1.15em;
+  border: 2px solid #fff0a7;
+  border-radius: 999px;
+  background: linear-gradient(#6c3104,#381400);
+  box-shadow: 0 5px 8px #63330066;
+  color: #fff;
+  font-size: clamp(12px, 1.15vw, 18px);
+  letter-spacing: .06em;
 }
-@media (prefers-reduced-motion:reduce) {
-  .studio-menu--layered .studio-mode--classic { transition:none; transform:none!important; }
+
+/* The remaining raster panels retain their approved lettering. The equivalent
+   DOM copy stays in the accessibility tree and continues to drive navigation. */
+.studio-menu--layered .studio-mode--daily .studio-mode__content,
+.studio-menu--layered .studio-mode--burn .studio-mode__content,
+.studio-menu--layered .studio-mode--trials .studio-mode__content,
+.studio-menu--layered .studio-mode--together .studio-mode__content {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
-.reduce-motion .studio-menu--layered .studio-mode--classic { transform:none!important; }
+
+.studio-menu--layered .studio-mode:hover,
+.studio-menu--layered .studio-mode:focus-visible {
+  z-index: 10;
+  transform: translateY(-5px) scale(1.018);
+  filter: brightness(1.09) drop-shadow(0 0 18px #fff8) drop-shadow(0 15px 12px #0009);
+}
+.studio-menu--layered .studio-mode:focus-visible {
+  outline: 3px solid #fff8d5;
+  outline-offset: 2px;
+}
+.studio-menu--layered .studio-mode:active {
+  transform: translateY(4px) scale(.985);
+  filter: brightness(.96) drop-shadow(0 7px 6px #0008);
+}
+
+@media (max-width: 900px) and (min-width: 701px) {
+  .studio-menu--layered .studio-menu__header {
+    grid-template-columns: 24% 1fr 24%;
+  }
+  .studio-menu--layered .studio-mode--classic strong {
+    font-size: clamp(38px, 6.3vw, 70px);
+  }
+}
+
+/* Mobile becomes a true scrolling menu rather than a squeezed desktop plate. */
+@media (max-width: 700px) {
+  .studio-menu--layered {
+    overflow: hidden;
+    background-size: auto 100%;
+    background-position: center top;
+  }
+  .studio-menu--layered .studio-menu__fallback {
+    position: relative;
+    inset: auto;
+    display: flex !important;
+    min-height: 100dvh;
+    height: 100dvh;
+    padding: max(10px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom));
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .studio-menu--layered .studio-menu__header {
+    position: relative;
+    inset: auto;
+    display: grid;
+    width: 100%;
+    height: auto;
+    min-height: 116px;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    flex: 0 0 auto;
+  }
+  .studio-menu--layered .studio-logo {
+    order: -1;
+    min-height: 72px;
+  }
+  .studio-menu--layered .studio-record,
+  .studio-menu--layered .studio-utilities {
+    margin-inline: auto;
+    width: min(100%, 480px);
+  }
+  .studio-menu--layered .studio-grid {
+    position: relative;
+    inset: auto;
+    display: flex;
+    width: min(100%, 520px);
+    height: auto;
+    margin: 14px auto 0;
+    padding-bottom: 12px;
+    flex-direction: column;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .studio-menu--layered .studio-mode {
+    position: relative;
+    inset: auto;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: auto;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 8px 8px #0008);
+  }
+  .studio-menu--layered .studio-mode--classic {
+    aspect-ratio: 1.8 / 1;
+    padding: 8% 6% 7% 31%;
+  }
+  .studio-menu--layered .studio-mode--daily { aspect-ratio: 430 / 270; }
+  .studio-menu--layered .studio-mode--burn { aspect-ratio: 615 / 310; }
+  .studio-menu--layered .studio-mode--trials { aspect-ratio: 885 / 180; min-height: 76px; }
+  .studio-menu--layered .studio-mode--together { aspect-ratio: 640 / 190; min-height: 84px; }
+  .studio-menu--layered .studio-mode--classic strong { font-size: clamp(34px, 11vw, 58px); }
+  .studio-menu--layered .studio-mode--classic small { font-size: clamp(11px, 3.5vw, 15px); }
+  .studio-menu--layered .studio-mode--classic b { min-height: 38px; margin-top: 5%; font-size: clamp(11px, 3.4vw, 14px); }
+  .studio-menu--layered .studio-mode:hover,
+  .studio-menu--layered .studio-mode:focus-visible { transform: translateY(-2px) scale(1.008); }
+  .studio-menu--layered .studio-mode:active { transform: translateY(2px) scale(.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-menu--layered .studio-mode { transition: none; transform: none !important; }
+}
+.reduce-motion .studio-menu--layered .studio-mode { transition: none; transform: none !important; }
