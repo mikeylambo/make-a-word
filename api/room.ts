@@ -3,6 +3,8 @@ import { Redis } from "@upstash/redis";
 import dictionary from "../content/server-dictionary.json" with { type: "json" };
 import blockedWords from "../content/dictionary-blocklist.json" with { type: "json" };
 import phraseData from "../content/phrases.json" with { type: "json" };
+import wordRanks from "../content/word-ranks.json" with { type: "json" };
+import { canSpell, countsForText, normalizeWord, rarityMultiplier, scoreWord } from "../src/word-rules.js";
 import type {
   OnlineAction,
   OnlineCredentials,
@@ -25,34 +27,6 @@ type PhraseEntry = {
 };
 
 const PHRASES = phraseData as PhraseEntry[];
-
-function normalizeWord(input: string): string {
-  return input.trim().toLowerCase().replace(/[^a-z]/g, "");
-}
-
-function countsForText(text: string): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const char of text.toLowerCase()) {
-    if (!/[a-z]/.test(char)) continue;
-    counts.set(char, (counts.get(char) ?? 0) + 1);
-  }
-  return counts;
-}
-
-function canSpell(word: string, counts: Map<string, number>): boolean {
-  const used = new Map<string, number>();
-  for (const char of word) {
-    const next = (used.get(char) ?? 0) + 1;
-    if (next > (counts.get(char) ?? 0)) return false;
-    used.set(char, next);
-  }
-  return true;
-}
-
-function scoreWord(length: number, combo: number): number {
-  const base = length === 3 ? 100 : length === 4 ? 180 : length === 5 ? 300 : length === 6 ? 480 : length === 7 ? 720 : 900 + (length - 8) * 180;
-  return Math.round(base * (1 + Math.min(combo, 8) * 0.1));
-}
 
 type ApiRequest = {
   method?: string;
@@ -79,6 +53,8 @@ type RoomPlayer = {
   roundWords: OnlineFoundWord[];
   submitted: string[];
   longestWord: string;
+  matchFoundCount: number;
+  matchLongestWord: string;
   combo: number;
   lastValidAt: number;
 };
@@ -100,6 +76,7 @@ type StoredRoom = {
 };
 
 const WORDS = new Set<string>(dictionary);
+const WORD_RANKS = new Map<string, number | undefined>(dictionary.map((word, index) => [word, wordRanks[index]]));
 const BLOCKED_CODE_PARTS = blockedWords.filter((word) => word.length >= 3);
 const ROOM_TTL_SECONDS = 6 * 60 * 60;
 const PRESENCE_WINDOW_MS = 20_000;
@@ -174,6 +151,8 @@ function newPlayer(name: string, ready: boolean): { player: RoomPlayer; credenti
       roundWords: [],
       submitted: [],
       longestWord: "",
+      matchFoundCount: 0,
+      matchLongestWord: "",
       combo: 0,
       lastValidAt: 0
     },
@@ -200,6 +179,13 @@ function resetRoundPlayer(player: RoomPlayer): void {
   player.lastValidAt = 0;
 }
 
+function resetMatchPlayer(player: RoomPlayer): void {
+  player.score = 0;
+  player.matchFoundCount = 0;
+  player.matchLongestWord = "";
+  resetRoundPlayer(player);
+}
+
 function beginRound(room: StoredRoom, roundNumber: number): void {
   const phrase = choosePhrase(room);
   const startsAt = Date.now() + 4_000;
@@ -209,7 +195,14 @@ function beginRound(room: StoredRoom, roundNumber: number): void {
   room.startsAt = startsAt;
   room.endsAt = startsAt + room.settings.roundSeconds * 1_000;
   room.phase = "playing";
-  room.players.forEach(resetRoundPlayer);
+  room.players.forEach((player) => {
+    if (roundNumber === 1) {
+      player.score = 0;
+      player.matchFoundCount = 0;
+      player.matchLongestWord = "";
+    }
+    resetRoundPlayer(player);
+  });
 }
 
 function advanceExpiredRound(room: StoredRoom): boolean {
@@ -262,8 +255,10 @@ function roomView(room: StoredRoom, viewerId: string): OnlineRoomView {
     online: now - player.lastSeen < PRESENCE_WINDOW_MS,
     score: player.score,
     roundScore: player.roundScore,
-    foundCount: player.roundWords.length,
-    longestWord: player.longestWord,
+    foundCount: player.roundWords?.length ?? 0,
+    longestWord: player.longestWord ?? "",
+    matchFoundCount: player.matchFoundCount ?? player.roundWords?.length ?? 0,
+    matchLongestWord: player.matchLongestWord ?? player.longestWord ?? "",
     combo: player.lastValidAt && now - player.lastValidAt <= 5_000 ? player.combo : 0
   }));
   return {
@@ -439,12 +434,15 @@ async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ ro
       if (!WORDS.has(word)) throw new RoomError("That word is not in the word list.", 422, "NOT_WORD");
       player.combo = player.lastValidAt && now - player.lastValidAt <= 5_000 ? Math.min(9, player.combo + 1) : 0;
       player.lastValidAt = now;
-      const points = scoreWord(word.length, player.combo);
+      const rarity = rarityMultiplier(WORD_RANKS.get(word));
+      const points = Math.round(scoreWord(word.length, player.combo, false) * rarity);
       player.score += points;
       player.roundScore += points;
+      player.matchFoundCount = (player.matchFoundCount ?? player.roundWords.length) + 1;
       player.submitted.push(word);
       player.roundWords.push({ word, points });
       if (word.length > player.longestWord.length) player.longestWord = word;
+      if (word.length > (player.matchLongestWord ?? "").length) player.matchLongestWord = word;
       return;
     }
     if (action.action === "next-round") {
@@ -464,8 +462,7 @@ async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ ro
       room.startsAt = undefined;
       room.endsAt = undefined;
       room.players.forEach((entry) => {
-        entry.score = 0;
-        resetRoundPlayer(entry);
+        resetMatchPlayer(entry);
         entry.ready = entry.id === room.hostPlayerId;
       });
       return;
