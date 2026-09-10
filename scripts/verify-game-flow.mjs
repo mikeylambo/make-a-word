@@ -55,6 +55,9 @@ need(main, 'void resumeOnlineRoom(initialRoomCode)', 'room-link reconnect path i
 need(online, 'CREDENTIALS_KEY', 'online reconnect persistence key is missing');
 need(online, 'try {\n    sessionStorage.setItem', 'online persistence is not safe in restricted storage contexts');
 need(online, 'REQUEST_TIMEOUT_MS = 8_000', 'online requests can hang without a bounded timeout');
+need(online, 'function normalizeFinalLeaderboard', 'final online results do not normalize to full-match totals');
+need(online, 'player.foundCount = player.matchFoundCount', 'final online leaderboard still shows only the last round word count');
+need(online, 'player.longestWord = player.matchLongestWord', 'final online leaderboard still exposes only the last round longest word');
 need(online, 'function reconcileCompletedMatch', 'completed online matches are not reconciled into lifetime progression');
 need(online, 'save.totalWords += self.matchFoundCount', 'online words are not counted in lifetime progression');
 need(online, 'save.totalScore += self.score', 'online score is not counted in lifetime progression');
@@ -78,4 +81,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Game-flow gate passed: solo, Burn, local multiplayer, shared online scoring/progression, challenges, reconnect storage, and background-pause invariants are intact.');
+console.log('Game-flow gate passed: solo, Burn, local multiplayer, shared online scoring/progression/final totals, challenges, reconnect storage, and background-pause invariants are intact.');
