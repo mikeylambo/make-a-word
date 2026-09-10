@@ -21,6 +21,8 @@ export type OnlinePlayerView = {
   roundScore: number;
   foundCount: number;
   longestWord: string;
+  matchFoundCount: number;
+  matchLongestWord: string;
   combo: number;
 };
 
