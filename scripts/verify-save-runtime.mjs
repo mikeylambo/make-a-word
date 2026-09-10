@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
 
 const data = new Map();
 globalThis.localStorage = {
@@ -10,7 +12,18 @@ globalThis.localStorage = {
   get length() { return data.size; }
 };
 
-const { SaveStore } = await import('../src/shell.ts');
+// Node's built-in TypeScript stripping intentionally does not transform
+// parameter properties. Compile the production module with the same TypeScript
+// dependency used by the app, then exercise the emitted JavaScript directly.
+const shellSource = fs.readFileSync(new URL('../src/shell.ts', import.meta.url), 'utf8');
+const compiled = ts.transpileModule(shellSource, {
+  compilerOptions: {
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ES2022
+  }
+}).outputText;
+const shellUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
+const { SaveStore } = await import(shellUrl);
 
 const a = new SaveStore('test.concurrent');
 const b = new SaveStore('test.concurrent');
