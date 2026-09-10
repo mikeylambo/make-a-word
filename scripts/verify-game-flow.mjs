@@ -35,10 +35,15 @@ need(main, 'data-action="again-together"', 'local rematch route is missing');
 need(main, 'state.sharedSubmitted.add(result.word)', 'shared-word duplicate protection is missing');
 need(main, 'player.lives = Math.max(0, player.lives - 1)', 'Last Word strike/elimination logic is missing');
 
-// Online room lifecycle must remain server-authoritative and reconnectable.
+// Online room lifecycle must remain server-authoritative, reconnectable, and score from the shared rules authority.
 for (const action of ['create', 'join', 'ready', 'heartbeat', 'kick', 'start', 'submit', 'next-round', 'rematch', 'leave']) {
   need(room, `action.action === "${action}"`, `server online action is missing: ${action}`);
 }
+need(room, 'from "../src/word-rules.js"', 'online scoring/validation has drifted from the shared word rules');
+need(room, 'rarityMultiplier(WORD_RANKS.get(word))', 'online scoring is missing rank-based word value');
+need(room, 'scoreWord(word.length, player.combo, false)', 'online score calculation is not using the shared score curve');
+need(room, 'player.matchFoundCount = (player.matchFoundCount ?? player.roundWords.length) + 1', 'online match word totals are not accumulated');
+need(room, 'matchLongestWord: player.matchLongestWord ?? player.longestWord ?? ""', 'online match longest-word state is not exposed');
 need(room, 'requirePlayer(room, credentials)', 'online mutations are not authenticated');
 need(room, 'requireHost(room, credentials)', 'host-only online controls are not enforced');
 need(room, 'acquireLock(normalizedCode)', 'online room mutations are not serialized');
@@ -49,6 +54,11 @@ need(room, '!WORDS.has(word)', 'online dictionary validation is missing');
 need(main, 'void resumeOnlineRoom(initialRoomCode)', 'room-link reconnect path is missing');
 need(online, 'CREDENTIALS_KEY', 'online reconnect persistence key is missing');
 need(online, 'try {\n    sessionStorage.setItem', 'online persistence is not safe in restricted storage contexts');
+need(online, 'REQUEST_TIMEOUT_MS = 8_000', 'online requests can hang without a bounded timeout');
+need(online, 'function reconcileCompletedMatch', 'completed online matches are not reconciled into lifetime progression');
+need(online, 'save.totalWords += self.matchFoundCount', 'online words are not counted in lifetime progression');
+need(online, 'save.totalScore += self.score', 'online score is not counted in lifetime progression');
+need(online, 'save.completedOnlineMatchIds.push(response.room.matchId)', 'online match completion is not idempotent');
 
 // Challenge links must preserve a deterministic phrase/rules target.
 need(main, 'phraseId: result.phrase.id', 'challenge links no longer preserve the phrase');
@@ -68,4 +78,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Game-flow gate passed: solo, Burn, local multiplayer, online room lifecycle, challenges, reconnect storage, and background-pause invariants are intact.');
+console.log('Game-flow gate passed: solo, Burn, local multiplayer, shared online scoring/progression, challenges, reconnect storage, and background-pause invariants are intact.');
