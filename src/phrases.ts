@@ -30,18 +30,26 @@ const DAILY_SCHEDULE = dailyScheduleData as DailySchedule;
 const PHRASES_BY_ID = new Map([...(dailyArchiveData as PhraseEntry[]), ...PHRASES].map((phrase) => [phrase.id, phrase]));
 
 function utcDay(date: Date): number {
+  if (!Number.isFinite(date.getTime())) return Number.NaN;
   return Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000);
 }
 
 export function phraseForDay(date = new Date()): PhraseEntry {
+  const fallback = PHRASES[0];
   const day = utcDay(date);
+  if (!fallback) throw new Error("Make a Word requires at least one phrase.");
+  if (!Number.isFinite(day)) return fallback;
+
   const versions = DAILY_SCHEDULE.versions
     .map((version) => ({ ...version, startDay: utcDay(new Date(`${version.startsOn}T00:00:00Z`)) }))
+    .filter((version) => Number.isFinite(version.startDay) && version.phraseIds.length > 0)
     .sort((a, b) => a.startDay - b.startDay);
+  if (!versions.length) return fallback;
+
   const version = versions.filter((entry) => entry.startDay <= day).at(-1) ?? versions[0];
-  const ids = version?.phraseIds ?? [];
-  const index = ((day - (version?.startDay ?? 0)) % ids.length + ids.length) % ids.length;
-  return PHRASES_BY_ID.get(ids[index] ?? "") ?? PHRASES[0];
+  const offset = day - version.startDay;
+  const index = ((offset % version.phraseIds.length) + version.phraseIds.length) % version.phraseIds.length;
+  return PHRASES_BY_ID.get(version.phraseIds[index] ?? "") ?? fallback;
 }
 
 export function randomPhrase(exclude?: string, burnOnly = false): PhraseEntry {
