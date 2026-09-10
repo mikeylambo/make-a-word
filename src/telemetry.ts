@@ -16,12 +16,24 @@ class AggregateTelemetry {
   private counts = new Map<MetricName, number>();
   private requests = 0;
   private day = new Date().toISOString().slice(0, 10);
+  private _enabled = false;
+  private sessionCounted = false;
 
-  enabled = true;
+  get enabled(): boolean {
+    return this._enabled;
+  }
+
+  set enabled(value: boolean) {
+    this._enabled = Boolean(value) && navigator.doNotTrack !== "1";
+    if (this._enabled && !this.sessionCounted) {
+      this.sessionCounted = true;
+      this.increment("sessions");
+    }
+  }
 
   constructor() {
-    if (navigator.doNotTrack === "1") this.enabled = false;
-    this.increment("sessions");
+    // Start disabled. main.ts applies the persisted preference after SaveStore
+    // loads, so opted-out players never queue even a session metric first.
     window.addEventListener("pagehide", () => this.flush(true));
   }
 
