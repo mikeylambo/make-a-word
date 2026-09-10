@@ -22,9 +22,10 @@
     "board:verify": "node scripts/verify-board.mjs",
     "mobile:verify": "node scripts/verify-mobile.mjs && node scripts/verify-mobile-runtime.mjs",
     "menu:verify": "node scripts/verify-menu.mjs",
+    "flow:verify": "node scripts/verify-game-flow.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",
-    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run menu:verify && npm run build"
+    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run menu:verify && npm run flow:verify && npm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3"
