@@ -1,29 +1,38 @@
 import fs from 'node:fs';
 
+const stable = fs.readFileSync(new URL('../src/stable-menu.ts', import.meta.url), 'utf8');
 const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
 const shell = fs.readFileSync(new URL('../src/shell.ts', import.meta.url), 'utf8');
+const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
-const requiredModes = ['studio-mode--classic', 'studio-mode--daily', 'studio-mode--burn', 'studio-mode--trials', 'studio-mode--together'];
 const failures = [];
-if (!main.includes('class="studio-menu ')) failures.push('the championship menu root is missing');
-if (!main.includes('/assets/menu/studio-championship.webp')) failures.push('the approved desktop master plate is missing');
-if (!main.includes('studio-hotspot--classic') || !main.includes('studio-hotspot--together')) failures.push('desktop master-plate hit regions are missing');
-if (!main.includes('preserveAspectRatio="none"><polygon') || !css.includes('.studio-hotspot svg polygon')) failures.push('panel-shaped SVG focus frames are missing');
-if (!main.includes('menuLogo()')) failures.push('the physical letter-tile logo is missing');
-for (const mode of requiredModes) if (!main.includes(mode) || !css.includes(`.${mode}`)) failures.push(`${mode} is not fully implemented`);
-if (!css.includes('@media (max-width: 560px)') || !css.includes('grid-template-rows:230px 155px 155px 100px 100px')) failures.push('the phone menu reflow is missing');
-if (!css.includes('.studio-menu__lights') || !css.includes('.studio-menu::after')) failures.push('the studio lighting or stage floor is missing');
-if (!css.includes('aspect-ratio:1672/941') || !css.includes('.studio-hotspot--classic { left:7.6%; top:22.1%')) failures.push('the desktop plate is not locked to the approved coordinate system');
-if (!main.includes('data-action="stats"') || !main.includes('data-action="help"') || !main.includes('data-action="settings"')) failures.push('menu utilities are not wired');
-if (!main.includes('class="studio-subscreen"') || !css.includes('.studio-console__header')) failures.push('settings is not integrated into the studio set');
+const required = [
+  'data-mode="classic"',
+  'data-mode="daily"',
+  'data-mode="burn"',
+  'data-action="journey"',
+  'data-action="multiplayer"',
+  'data-action="modes"',
+  'data-action="stats"',
+  'data-action="help"',
+  'data-action="settings"'
+];
+
+if (!stable.includes('hero-panel hero-panel--menu') || !stable.includes('class="menu-grid"')) failures.push('stable pre-studio menu structure is missing');
+for (const token of required) if (!stable.includes(token)) failures.push(`stable menu routing is missing ${token}`);
+if (!stable.includes('new SaveStore()') || !stable.includes('classicDuration') || !stable.includes('dailyStreak')) failures.push('stable menu is not reading current save state');
+if (!stable.includes('MutationObserver') || !stable.includes('root.dataset.screen !== "menu"')) failures.push('stable menu replacement is not scoped to the menu screen');
+if (!css.includes('.menu-grid') || !css.includes('.menu-card--feature') || !css.includes('.hero-panel--menu')) failures.push('pre-studio menu styling is missing');
+if (!index.includes('/src/stable-menu.ts')) failures.push('stable menu is not loaded by the app');
+if (index.includes('three.min.js') || index.includes('/src/studio3d.ts') || index.includes('studio-reference-lock.css')) failures.push('experimental studio renderer is still on the live boot path');
 if (!shell.includes('id !== "game" && id !== "multiplayer-game" && id !== "online-room"')) failures.push('gameplay must own text-input focus without menu autofocus racing it');
-if (!main.includes('eventTarget.closest("input, textarea, select, option")')) failures.push('delegated menu actions must ignore form-control taps');
+if (!main.includes('eventTarget.closest("input, textarea, select, option")')) failures.push('delegated actions must ignore form-control taps');
 if (!main.includes('event.stopImmediatePropagation();\n    submitCurrentWord();')) failures.push('gameplay Enter must be captured before stale focused controls can activate');
-if (!css.includes('display:none!important') || !css.includes('.studio-menu::after { display:none!important; }')) failures.push('the desktop master plate is not isolated from the mobile fallback');
 
 if (failures.length) {
-  console.error(`Studio menu gate failed:\n- ${failures.join('\n- ')}`);
+  console.error(`Stable menu gate failed:\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
-console.log('Studio menu gate passed: tile logo, staged lighting, five functional mode boards, utilities, and phone reflow.');
+
+console.log('Stable menu gate passed: pre-studio presentation restored, all routes wired, save data live, experimental WebGL boot disabled, gameplay input guards retained.');
