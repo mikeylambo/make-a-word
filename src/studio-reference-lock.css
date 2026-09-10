@@ -1,0 +1,313 @@
+/* Reference-lock pass for the layered menu.
+   The approved flattened menu is treated as the pixel source of truth.
+   Every mode is rendered as an exact sprite-window into that plate, while
+   remaining a separate DOM control that StudioDirector can animate.
+
+   This deliberately prioritizes fidelity over regenerated panel art: when a
+   panel is idle, the pixels in its window are the original approved pixels.
+   Effects are additive and subtle so animation does not redesign the menu. */
+
+@media (min-width: 701px) {
+  .studio-menu--layered.studio-directed {
+    --plate: url('/assets/menu/studio-championship.webp');
+    background: #061d40 url('/assets/menu/studio-empty.png') center / cover no-repeat !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-menu__fallback {
+    position: relative !important;
+    width: min(100vw, calc(100vh * 1.7768331562)) !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    aspect-ratio: 1672 / 941 !important;
+    background: url('/assets/menu/studio-empty.png') center / 100% 100% no-repeat !important;
+    overflow: hidden !important;
+  }
+
+  /* Header is an absolute HUD, not a grid. This prevents the utility buttons
+     from ever consuming logo tiles. */
+  .studio-menu--layered.studio-directed .studio-menu__header {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    pointer-events: none;
+    z-index: 40 !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-record {
+    position: absolute !important;
+    left: 2.2% !important;
+    top: 5.0% !important;
+    width: 22.2% !important;
+    height: 11.5% !important;
+    margin: 0 !important;
+    pointer-events: auto;
+  }
+
+  .studio-menu--layered.studio-directed .studio-utilities {
+    position: absolute !important;
+    left: 76.1% !important;
+    top: 5.7% !important;
+    width: 20.6% !important;
+    height: 10.6% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 5.5% !important;
+    margin: 0 !important;
+    pointer-events: auto;
+  }
+
+  /* Exact logo crop from x=435,y=45,w=815,h=160 of the approved 1672x941
+     plate. It is a sprite-window rather than a regenerated logo. */
+  .studio-menu--layered.studio-directed .studio-logo {
+    position: absolute !important;
+    left: 26.0167% !important;
+    top: 4.7821% !important;
+    width: 48.7440% !important;
+    height: 17.0032% !important;
+    display: block !important;
+    overflow: hidden !important;
+    background: none !important;
+    filter: none !important;
+    transform: none !important;
+    pointer-events: none;
+  }
+
+  .studio-menu--layered.studio-directed .studio-logo::before {
+    content: "";
+    position: absolute;
+    width: 205.1534%;
+    height: 588.125%;
+    left: -53.3742%;
+    top: -28.125%;
+    background-image: var(--plate);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  .studio-menu--layered.studio-directed .studio-logo__tile {
+    visibility: hidden !important;
+    display: none !important;
+  }
+
+  /* The five mode windows use the exact crop rectangles measured from the
+     approved 1672x941 reference. Their ::before element is the entire plate,
+     scaled and offset so the visible window is pixel-identical to the source. */
+  .studio-menu--layered.studio-directed .studio-mode {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    opacity: 1;
+    isolation: isolate;
+    transform-origin: 50% 50%;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode::before {
+    content: "" !important;
+    position: absolute !important;
+    display: block !important;
+    z-index: 0 !important;
+    opacity: 1 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background-image: var(--plate) !important;
+    background-size: 100% 100% !important;
+    background-repeat: no-repeat !important;
+    pointer-events: none !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--classic {
+    left: 7.4761% !important;
+    top: 21.7853% !important;
+    width: 51.1364% !important;
+    height: 49.9470% !important;
+  }
+  .studio-menu--layered.studio-directed .studio-mode--classic::before {
+    width: 195.5556% !important;
+    height: 200.2128% !important;
+    left: -14.6199% !important;
+    top: -43.6170% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--daily {
+    left: 56.8182% !important;
+    top: 21.7853% !important;
+    width: 30.5024% !important;
+    height: 26.5675% !important;
+  }
+  .studio-menu--layered.studio-directed .studio-mode--daily::before {
+    width: 327.8431% !important;
+    height: 376.4000% !important;
+    left: -186.2745% !important;
+    top: -82.0000% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--burn {
+    left: 55.3229% !important;
+    top: 47.8215% !important;
+    width: 34.6890% !important;
+    height: 23.9107% !important;
+  }
+  .studio-menu--layered.studio-directed .studio-mode--burn::before {
+    width: 288.2759% !important;
+    height: 418.2222% !important;
+    left: -159.4828% !important;
+    top: -200.0000% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--trials {
+    left: 7.4761% !important;
+    top: 71.2009% !important;
+    width: 43.0622% !important;
+    height: 14.6652% !important;
+  }
+  .studio-menu--layered.studio-directed .studio-mode--trials::before {
+    width: 232.2222% !important;
+    height: 681.8841% !important;
+    left: -17.3611% !important;
+    top: -485.5072% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--together {
+    left: 49.0431% !important;
+    top: 71.2009% !important;
+    width: 41.8660% !important;
+    height: 14.8778% !important;
+  }
+  .studio-menu--layered.studio-directed .studio-mode--together::before {
+    width: 238.8571% !important;
+    height: 672.1429% !important;
+    left: -117.1429% !important;
+    top: -478.5714% !important;
+  }
+
+  /* Baked reference typography is kept visually for this lock pass. DOM copy
+     remains present for semantics/navigation but is not painted twice. */
+  .studio-menu--layered.studio-directed .studio-mode__content,
+  .studio-menu--layered.studio-directed .studio-mode__icon,
+  .studio-menu--layered.studio-directed .studio-scatter,
+  .studio-menu--layered.studio-directed .studio-mode__arrow {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+  }
+
+  /* Restore the reference's environmental copy. */
+  .studio-menu--layered.studio-directed .studio-menu__side,
+  .studio-menu--layered.studio-directed .studio-menu__footer {
+    display: block !important;
+    position: absolute !important;
+    z-index: 18;
+    color: #b9d9ef;
+    font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: .015em;
+    text-align: center;
+    text-shadow: 0 2px 8px #001a37;
+    pointer-events: none;
+  }
+
+  .studio-menu--layered.studio-directed .studio-menu__side--left {
+    left: 1.7% !important;
+    top: 31.8% !important;
+    width: 5.8% !important;
+    font-size: clamp(16px, 1.7vw, 29px) !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-menu__side--right {
+    right: 1.1% !important;
+    top: 31.0% !important;
+    width: 6.4% !important;
+    font-size: clamp(15px, 1.55vw, 27px) !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-menu__footer {
+    left: 35.2% !important;
+    bottom: 5.4% !important;
+    width: 29.6% !important;
+    font-family: system-ui, sans-serif;
+    font-size: clamp(9px, .82vw, 14px) !important;
+    font-style: italic;
+    font-weight: 800;
+    letter-spacing: .36em;
+    line-height: 1.15;
+    color: #6fb6e7;
+  }
+
+  /* StudioDirector now enhances the approved composition rather than changing
+     it. Focus/attract is a restrained lift and light response. */
+  .studio-menu--layered.studio-directed .studio-mode--directed-focus,
+  .studio-menu--layered.studio-directed .studio-mode--attract {
+    transform: translateY(-2px) scale(1.006) !important;
+    filter: brightness(1.06) saturate(1.035) drop-shadow(0 0 7px var(--mode-accent)) !important;
+    z-index: 35 !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--directed-press {
+    transform: translateY(2px) scale(.997) !important;
+    filter: brightness(1.03) !important;
+  }
+
+  .studio-menu--layered.studio-entering .studio-mode {
+    opacity: 0 !important;
+    transform: translateY(7px) scale(.995) !important;
+  }
+
+  .studio-menu--layered.studio-entered .studio-mode {
+    animation-name: studio-reference-card-in !important;
+    animation-duration: .46s !important;
+    animation-timing-function: cubic-bezier(.2,.8,.2,1) !important;
+    animation-fill-mode: both !important;
+  }
+
+  @keyframes studio-reference-card-in {
+    from { opacity: 0; transform: translateY(7px) scale(.995); filter: brightness(.88); }
+    to { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+  }
+
+  /* The light rig is allowed to move; the set and menu art are not redesigned. */
+  .studio-stage-live {
+    z-index: 45 !important;
+    mix-blend-mode: screen;
+    opacity: .55;
+  }
+
+  .studio-stage-beams i {
+    opacity: .08 !important;
+  }
+
+  .studio-stage-floor {
+    display: none !important;
+  }
+
+  .studio-stage-glow {
+    opacity: .2 !important;
+    bottom: 8.5% !important;
+  }
+}
+
+/* On mobile keep the dedicated stacked layout, but remove the flat v3 panel
+   substitutions and the aggressive director transforms. Mobile receives a
+   separate fidelity pass after the desktop reference is approved. */
+@media (max-width: 700px) {
+  .studio-menu--layered.studio-directed .studio-mode--directed-focus,
+  .studio-menu--layered.studio-directed .studio-mode--attract {
+    transform: translateY(-1px) scale(1.004) !important;
+  }
+  .studio-stage-live { opacity: .38; }
+  .studio-stage-floor { display: none !important; }
+}
