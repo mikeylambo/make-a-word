@@ -105,6 +105,34 @@ function sanitizeSave(value: unknown): SaveData {
   };
 }
 
+function mergeRecords(previous: Record<string, number>, next: Record<string, number>): Record<string, number> {
+  const merged = { ...previous };
+  for (const [key, value] of Object.entries(next)) merged[key] = Math.max(merged[key] ?? 0, value);
+  return merged;
+}
+
+function mergeSave(previousValue: unknown, nextValue: unknown): SaveData {
+  const previous = sanitizeSave(previousValue);
+  const next = sanitizeSave(nextValue);
+  return {
+    bestScores: mergeRecords(previous.bestScores, next.bestScores),
+    totalWords: Math.max(previous.totalWords, next.totalWords),
+    totalScore: Math.max(previous.totalScore, next.totalScore),
+    longestWord: next.longestWord.length >= previous.longestWord.length ? next.longestWord : previous.longestWord,
+    roundsPlayed: Math.max(previous.roundsPlayed, next.roundsPlayed),
+    daily: mergeRecords(previous.daily, next.daily),
+    journeyScores: mergeRecords(previous.journeyScores, next.journeyScores),
+    journeyMedals: mergeRecords(previous.journeyMedals, next.journeyMedals),
+    journeyUnlocked: Math.max(previous.journeyUnlocked, next.journeyUnlocked),
+    partyMatches: Math.max(previous.partyMatches, next.partyMatches),
+    onlineMatches: Math.max(previous.onlineMatches, next.onlineMatches),
+    completedOnlineMatchIds: safeIds([...previous.completedOnlineMatchIds, ...next.completedOnlineMatchIds]),
+    challengesCompleted: Math.max(previous.challengesCompleted, next.challengesCompleted),
+    completedChallengeIds: safeIds([...previous.completedChallengeIds, ...next.completedChallengeIds]),
+    settings: next.settings
+  };
+}
+
 export class SaveStore {
   constructor(private readonly key = "slu.make-a-word.save.v1") {}
 
@@ -124,8 +152,18 @@ export class SaveStore {
   }
 
   save(data: SaveData): void {
-    const safe = sanitizeSave(data);
+    let previous = MEMORY_SAVES.get(this.key);
+    if (!previous) {
+      try {
+        const raw = localStorage.getItem(this.key);
+        if (raw) previous = sanitizeSave(JSON.parse(raw));
+      } catch {
+        // Fall through to the default snapshot below.
+      }
+    }
+    const safe = mergeSave(previous ?? DEFAULT_SAVE, data);
     MEMORY_SAVES.set(this.key, safe);
+    Object.assign(data, structuredClone(safe));
     try {
       localStorage.setItem(this.key, JSON.stringify(safe));
     } catch {
