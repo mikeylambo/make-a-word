@@ -1,6 +1,7 @@
 import type { OnlineAction, OnlineCredentials, OnlineResponse } from "./online-types";
 
 const API_PATH = "/api/room";
+const CREDENTIALS_KEY = "make-a-word.online-room";
 
 async function parseResponse(response: Response): Promise<OnlineResponse> {
   const body = await response.json().catch(() => null) as OnlineResponse | null;
@@ -38,22 +39,32 @@ export async function fetchOnlineRoom(credentials: OnlineCredentials): Promise<O
 }
 
 export function storeOnlineCredentials(credentials: OnlineCredentials): void {
-  sessionStorage.setItem("make-a-word.online-room", JSON.stringify(credentials));
+  try {
+    sessionStorage.setItem(CREDENTIALS_KEY, JSON.stringify(credentials));
+  } catch {
+    // Storage can be unavailable in private/restricted browser contexts. The
+    // live room still works; only automatic reload/reconnect is unavailable.
+  }
 }
 
 export function loadOnlineCredentials(code?: string): OnlineCredentials | null {
   try {
-    const raw = sessionStorage.getItem("make-a-word.online-room");
+    const raw = sessionStorage.getItem(CREDENTIALS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<OnlineCredentials>;
     if (typeof parsed.code !== "string" || typeof parsed.playerId !== "string" || typeof parsed.token !== "string") return null;
-    if (code && parsed.code !== code.toUpperCase()) return null;
-    return parsed as OnlineCredentials;
+    const normalizedCode = parsed.code.toUpperCase();
+    if (code && normalizedCode !== code.toUpperCase()) return null;
+    return { code: normalizedCode, playerId: parsed.playerId, token: parsed.token };
   } catch {
     return null;
   }
 }
 
 export function clearOnlineCredentials(): void {
-  sessionStorage.removeItem("make-a-word.online-room");
+  try {
+    sessionStorage.removeItem(CREDENTIALS_KEY);
+  } catch {
+    // Treat unavailable storage as already cleared.
+  }
 }
