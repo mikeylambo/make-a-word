@@ -45,6 +45,7 @@ const DEFAULT_SAVE: SaveData = {
 };
 
 const MEMORY_SAVES = new Map<string, SaveData>();
+const SAVE_BASELINES = new WeakMap<SaveData, SaveData>();
 
 function safeCount(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : fallback;
@@ -105,31 +106,56 @@ function sanitizeSave(value: unknown): SaveData {
   };
 }
 
+function trackedClone(save: SaveData): SaveData {
+  const clone = structuredClone(save);
+  SAVE_BASELINES.set(clone, structuredClone(save));
+  return clone;
+}
+
 function mergeRecords(previous: Record<string, number>, next: Record<string, number>): Record<string, number> {
   const merged = { ...previous };
   for (const [key, value] of Object.entries(next)) merged[key] = Math.max(merged[key] ?? 0, value);
   return merged;
 }
 
-function mergeSave(previousValue: unknown, nextValue: unknown): SaveData {
+function mergeCounter(previous: number, next: number, baseline: number): number {
+  return safeCount(previous) + Math.max(0, safeCount(next) - safeCount(baseline));
+}
+
+function mergeSettings(previous: SaveData["settings"], next: SaveData["settings"], baseline: SaveData["settings"]): SaveData["settings"] {
+  return {
+    sound: next.sound !== baseline.sound ? next.sound : previous.sound,
+    music: next.music !== baseline.music ? next.music : previous.music,
+    volume: next.volume !== baseline.volume ? next.volume : previous.volume,
+    reducedMotion: next.reducedMotion !== baseline.reducedMotion ? next.reducedMotion : previous.reducedMotion,
+    analytics: next.analytics !== baseline.analytics ? next.analytics : previous.analytics,
+    classicDuration: next.classicDuration !== baseline.classicDuration ? next.classicDuration : previous.classicDuration,
+    theme: next.theme !== baseline.theme ? next.theme : previous.theme
+  };
+}
+
+function mergeSave(previousValue: unknown, nextValue: unknown, baselineValue: unknown): SaveData {
   const previous = sanitizeSave(previousValue);
   const next = sanitizeSave(nextValue);
+  const baseline = sanitizeSave(baselineValue);
+  const completedOnlineMatchIds = safeIds([...previous.completedOnlineMatchIds, ...next.completedOnlineMatchIds]);
+  const completedChallengeIds = safeIds([...previous.completedChallengeIds, ...next.completedChallengeIds]);
   return {
     bestScores: mergeRecords(previous.bestScores, next.bestScores),
-    totalWords: Math.max(previous.totalWords, next.totalWords),
-    totalScore: Math.max(previous.totalScore, next.totalScore),
+    totalWords: mergeCounter(previous.totalWords, next.totalWords, baseline.totalWords),
+    totalScore: mergeCounter(previous.totalScore, next.totalScore, baseline.totalScore),
     longestWord: next.longestWord.length >= previous.longestWord.length ? next.longestWord : previous.longestWord,
-    roundsPlayed: Math.max(previous.roundsPlayed, next.roundsPlayed),
+    roundsPlayed: mergeCounter(previous.roundsPlayed, next.roundsPlayed, baseline.roundsPlayed),
     daily: mergeRecords(previous.daily, next.daily),
     journeyScores: mergeRecords(previous.journeyScores, next.journeyScores),
     journeyMedals: mergeRecords(previous.journeyMedals, next.journeyMedals),
     journeyUnlocked: Math.max(previous.journeyUnlocked, next.journeyUnlocked),
-    partyMatches: Math.max(previous.partyMatches, next.partyMatches),
-    onlineMatches: Math.max(previous.onlineMatches, next.onlineMatches),
-    completedOnlineMatchIds: safeIds([...previous.completedOnlineMatchIds, ...next.completedOnlineMatchIds]),
-    challengesCompleted: Math.max(previous.challengesCompleted, next.challengesCompleted),
-    completedChallengeIds: safeIds([...previous.completedChallengeIds, ...next.completedChallengeIds]),
-    settings: next.settings
+    partyMatches: mergeCounter(previous.partyMatches, next.partyMatches, baseline.partyMatches),
+    onlineMatches: Math.max(previous.onlineMatches, next.onlineMatches, completedOnlineMatchIds.length),
+    completedOnlineMatchIds,
+    challengesCompleted: Math.max(previous.challengesCompleted, next.challengesCompleted, completedChallengeIds.length),
+    completedChallengeIds,
+    settings: mergeSettings(previous.settings, next.settings, baseline.settings)
   };
 }
 
@@ -138,16 +164,16 @@ export class SaveStore {
 
   load(): SaveData {
     const memory = MEMORY_SAVES.get(this.key);
-    if (memory) return structuredClone(memory);
+    if (memory) return trackedClone(memory);
     try {
       const raw = localStorage.getItem(this.key);
       const save = sanitizeSave(raw ? JSON.parse(raw) : DEFAULT_SAVE);
       MEMORY_SAVES.set(this.key, save);
-      return structuredClone(save);
+      return trackedClone(save);
     } catch {
       const save = sanitizeSave(DEFAULT_SAVE);
       MEMORY_SAVES.set(this.key, save);
-      return structuredClone(save);
+      return trackedClone(save);
     }
   }
 
@@ -161,9 +187,12 @@ export class SaveStore {
         // Fall through to the default snapshot below.
       }
     }
-    const safe = mergeSave(previous ?? DEFAULT_SAVE, data);
+    const current = previous ?? sanitizeSave(DEFAULT_SAVE);
+    const baseline = SAVE_BASELINES.get(data) ?? current;
+    const safe = mergeSave(current, data, baseline);
     MEMORY_SAVES.set(this.key, safe);
     Object.assign(data, structuredClone(safe));
+    SAVE_BASELINES.set(data, structuredClone(safe));
     try {
       localStorage.setItem(this.key, JSON.stringify(safe));
     } catch {
