@@ -14,7 +14,7 @@ const {
 assert.equal(normalizeWord(" Heat's! "), 'heats');
 const counts = countsForText('MAKE A WORD');
 assert.equal(canSpell('maker', counts), true);
-assert.equal(canSpell('dream', counts), false);
+assert.equal(canSpell('drawer', counts), false);
 
 assert.equal(scoreWord(3, 0, false), 100);
 assert.equal(scoreWord(3, 8, false), 180);
