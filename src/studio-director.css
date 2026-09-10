@@ -1,0 +1,477 @@
+/* StudioDirector: game-show presentation layer.
+   Keeps the game web-native while making the studio, cards, tiles and gameplay
+   react as a coherent directed show. */
+
+.studio-director-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.studio-director-canvas,
+.studio-director-flash {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.studio-director-flash {
+  --studio-flash-color: #fff;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 52%, color-mix(in srgb, var(--studio-flash-color) 62%, transparent) 0%, transparent 44%),
+    linear-gradient(color-mix(in srgb, var(--studio-flash-color) 24%, transparent), transparent 70%);
+  mix-blend-mode: screen;
+}
+
+.studio-director-flash--go {
+  animation: studio-global-flash .5s cubic-bezier(.16,.8,.25,1);
+}
+
+.studio-director-flash--board {
+  animation: studio-board-flash .88s cubic-bezier(.15,.75,.2,1);
+}
+
+@keyframes studio-global-flash {
+  0% { opacity: 0; transform: scale(.96); }
+  20% { opacity: .58; transform: scale(1.015); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes studio-board-flash {
+  0%, 100% { opacity: 0; }
+  12% { opacity: .64; }
+  28% { opacity: .14; }
+  42% { opacity: .38; }
+  70% { opacity: 0; }
+}
+
+/* The reference plate must never remain visible beneath the layered build. */
+.studio-menu--layered > .studio-plate,
+.studio-menu--layered .studio-plate {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.studio-menu--layered.studio-directed {
+  isolation: isolate;
+  background: #061d40 url('/assets/menu/studio-empty.png') center / cover no-repeat !important;
+}
+
+.studio-menu--layered.studio-directed .studio-menu__fallback {
+  z-index: 2;
+  background: url('/assets/menu/studio-empty.png') center / 100% 100% no-repeat !important;
+}
+
+.studio-stage-live {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.studio-stage-live::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 10%, #4fc8ff19 0 14%, transparent 38%),
+    radial-gradient(ellipse at 50% 96%, #f2ab3912 0 15%, transparent 40%),
+    linear-gradient(180deg, #02152a22 0%, transparent 34%, #02152a22 100%);
+  mix-blend-mode: screen;
+}
+
+.studio-stage-beams {
+  position: absolute;
+  inset: -8% 0 0;
+  filter: blur(.2px);
+}
+
+.studio-stage-beams i {
+  position: absolute;
+  top: 0;
+  width: 9%;
+  height: 67%;
+  transform-origin: 50% 0;
+  opacity: .13;
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg, #effcff 0%, #64d9ff88 34%, transparent 100%);
+  mix-blend-mode: screen;
+  animation: studio-beam-breathe 4.8s ease-in-out infinite alternate;
+}
+
+.studio-stage-beams i:nth-child(1) { left: 20%; transform: rotate(6deg); animation-delay: -.4s; }
+.studio-stage-beams i:nth-child(2) { left: 34%; transform: rotate(2deg); animation-delay: -1.7s; }
+.studio-stage-beams i:nth-child(3) { left: 47%; transform: rotate(0deg); animation-delay: -2.8s; }
+.studio-stage-beams i:nth-child(4) { left: 61%; transform: rotate(-3deg); animation-delay: -.9s; }
+.studio-stage-beams i:nth-child(5) { left: 75%; transform: rotate(-7deg); animation-delay: -2.1s; }
+
+@keyframes studio-beam-breathe {
+  from { opacity: .08; filter: brightness(.9); }
+  to { opacity: .22; filter: brightness(1.22); }
+}
+
+.studio-stage-glow {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 7.2%;
+  height: 8%;
+  opacity: .42;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #5edcff3a 0%, #247dff18 42%, transparent 72%);
+  filter: blur(13px);
+  transition: opacity .3s ease, background .3s ease;
+}
+
+.studio-stage-floor {
+  position: absolute;
+  left: 17.2%;
+  right: 17.2%;
+  bottom: 2.5%;
+  height: 13.8%;
+  border: 2px solid #ffb33b88;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 18px #087fff70,
+    0 0 18px #1b8fff58,
+    0 0 36px #ffb13b24;
+  opacity: .68;
+  transform: perspective(440px) rotateX(67deg);
+  animation: studio-floor-pulse 4.2s ease-in-out infinite alternate;
+}
+
+@keyframes studio-floor-pulse {
+  from { opacity: .5; filter: brightness(.9); }
+  to { opacity: .82; filter: brightness(1.18); }
+}
+
+/* Exact panel geometry recovered from the approved 1672x941 plate. */
+@media (min-width: 701px) {
+  .studio-menu--layered.studio-directed .studio-mode--classic {
+    left: 7.4761% !important;
+    top: 21.7853% !important;
+    width: 51.1364% !important;
+    height: 49.947% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--daily {
+    left: 56.8182% !important;
+    top: 21.7853% !important;
+    width: 30.5024% !important;
+    height: 26.5675% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--burn {
+    left: 55.3229% !important;
+    top: 47.8215% !important;
+    width: 34.689% !important;
+    height: 23.9107% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--trials {
+    left: 7.4761% !important;
+    top: 71.2009% !important;
+    width: 43.0622% !important;
+    height: 14.6652% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--together {
+    left: 49.0431% !important;
+    top: 71.2009% !important;
+    width: 41.866% !important;
+    height: 14.8778% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-menu__header {
+    top: 2.2% !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-logo {
+    position: absolute;
+    left: 24.5%;
+    top: 0;
+    width: 51%;
+    height: 100%;
+  }
+}
+
+/* Use the verified art exports for this pass. The temporary v3 binary exports
+   are intentionally bypassed until their full payloads can be verified. */
+.studio-menu--layered.studio-directed .studio-mode--classic {
+  background-image: url('/assets/menu/classic-clean.png') !important;
+}
+.studio-menu--layered.studio-directed .studio-mode--daily {
+  background-image: url('/assets/menu/daily-clean.webp') !important;
+}
+.studio-menu--layered.studio-directed .studio-mode--burn {
+  background-image: url('/assets/menu/burn-clean.webp') !important;
+}
+.studio-menu--layered.studio-directed .studio-mode--trials {
+  background-image: url('/assets/menu/trials-clean.webp') !important;
+}
+.studio-menu--layered.studio-directed .studio-mode--together {
+  background-image: url('/assets/menu/together-clean.webp') !important;
+}
+
+/* Restore the extraction masks only for source panels that still contain
+   baked copy. The user-facing copy remains live DOM. */
+.studio-menu--layered.studio-directed .studio-mode--daily::before,
+.studio-menu--layered.studio-directed .studio-mode--burn::before,
+.studio-menu--layered.studio-directed .studio-mode--trials::before,
+.studio-menu--layered.studio-directed .studio-mode--together::before {
+  display: block !important;
+  opacity: 1 !important;
+}
+
+/* Live letter-tile logo. Each tile can now move independently. */
+.studio-menu--layered.studio-directed .studio-logo {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, .35vw, 7px);
+  background: none !important;
+  filter: drop-shadow(0 8px 8px #0007);
+  transform: translateY(-2%);
+}
+
+.studio-menu--layered.studio-directed .studio-logo__tile {
+  --logo-rot: calc((var(--logo-index) - 4) * 1.35deg);
+  visibility: visible !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: clamp(38px, 5.1vw, 86px);
+  aspect-ratio: .82;
+  border: clamp(2px, .18vw, 4px) solid #fff7dd;
+  border-radius: clamp(5px, .55vw, 11px);
+  background: linear-gradient(145deg, #fffdf3 0%, #f8edce 66%, #d7b66b 100%);
+  box-shadow:
+    inset 0 0 0 2px #ffffff99,
+    inset 0 -8px 12px #b9771630,
+    0 5px 0 #8f5518,
+    0 9px 12px #0007;
+  color: #082553;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(29px, 4.05vw, 68px);
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1;
+  transform: rotate(var(--logo-rot));
+  text-shadow: 0 2px 0 #fff;
+}
+
+.studio-menu--layered.studio-directed .studio-logo__tile--a {
+  width: clamp(43px, 5.55vw, 94px);
+  color: #082553;
+  border-color: #fff3a8;
+  background: linear-gradient(145deg, #ffd84a 0%, #ffb515 70%, #e07a00 100%);
+  box-shadow:
+    inset 0 0 0 2px #fff8b8,
+    inset 0 -8px 12px #b55a002f,
+    0 5px 0 #934b07,
+    0 10px 15px #0008,
+    0 0 16px #ffd34b88;
+}
+
+.studio-menu--layered.studio-entering .studio-logo__tile {
+  opacity: 0;
+  transform: translateY(-70%) rotate(calc(var(--logo-rot) - 8deg)) scale(.82);
+}
+
+.studio-menu--layered.studio-entered .studio-logo__tile {
+  animation: studio-logo-drop .72s cubic-bezier(.18,.88,.2,1.14) both;
+  animation-delay: calc(70ms + var(--logo-index) * 45ms);
+}
+
+@keyframes studio-logo-drop {
+  0% { opacity: 0; transform: translateY(-72%) rotate(calc(var(--logo-rot) - 8deg)) scale(.82); }
+  70% { opacity: 1; transform: translateY(4%) rotate(calc(var(--logo-rot) + 1deg)) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) rotate(var(--logo-rot)) scale(1); }
+}
+
+/* Cards arrive as a staged television reveal rather than appearing all at once. */
+.studio-menu--layered.studio-entering .studio-mode {
+  opacity: 0;
+  transform: translateY(22px) scale(.94);
+}
+
+.studio-menu--layered.studio-entered .studio-mode {
+  animation: studio-card-in .58s cubic-bezier(.16,.86,.24,1.08) both;
+}
+.studio-menu--layered.studio-entered .studio-mode--classic { animation-delay: .28s; }
+.studio-menu--layered.studio-entered .studio-mode--daily { animation-delay: .38s; }
+.studio-menu--layered.studio-entered .studio-mode--burn { animation-delay: .47s; }
+.studio-menu--layered.studio-entered .studio-mode--trials { animation-delay: .56s; }
+.studio-menu--layered.studio-entered .studio-mode--together { animation-delay: .64s; }
+
+@keyframes studio-card-in {
+  0% { opacity: 0; transform: translateY(24px) scale(.94); filter: brightness(.7) blur(2px); }
+  72% { opacity: 1; transform: translateY(-3px) scale(1.012); filter: brightness(1.08) blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+.studio-menu--layered.studio-directed .studio-mode {
+  will-change: transform, filter;
+  transition:
+    transform .19s cubic-bezier(.18,.82,.2,1),
+    filter .19s ease,
+    opacity .19s ease;
+}
+
+.studio-menu--layered.studio-directed .studio-mode--directed-focus,
+.studio-menu--layered.studio-directed .studio-mode--attract {
+  z-index: 35 !important;
+  transform: translateY(-7px) scale(1.024) !important;
+  filter:
+    brightness(1.12)
+    saturate(1.08)
+    drop-shadow(0 0 4px #fff)
+    drop-shadow(0 0 17px var(--mode-accent))
+    drop-shadow(0 17px 16px #000a) !important;
+}
+
+.studio-menu--layered.studio-directed .studio-mode--directed-press {
+  transform: translateY(4px) scale(.982) !important;
+  filter: brightness(1.04) saturate(1.08) drop-shadow(0 7px 7px #000a) !important;
+}
+
+.studio-menu--layered.studio-directed[data-studio-focus="classic"] .studio-stage-glow { background: radial-gradient(ellipse, #ffd34f55 0%, #f3a31918 45%, transparent 74%); opacity: .72; }
+.studio-menu--layered.studio-directed[data-studio-focus="daily"] .studio-stage-glow { background: radial-gradient(ellipse, #4fdcff55 0%, #1e7fff18 45%, transparent 74%); opacity: .72; }
+.studio-menu--layered.studio-directed[data-studio-focus="burn"] .studio-stage-glow { background: radial-gradient(ellipse, #ff5c4555 0%, #ff971718 45%, transparent 74%); opacity: .72; }
+.studio-menu--layered.studio-directed[data-studio-focus="trials"] .studio-stage-glow { background: radial-gradient(ellipse, #be6cff55 0%, #6d30d718 45%, transparent 74%); opacity: .72; }
+.studio-menu--layered.studio-directed[data-studio-focus="together"] .studio-stage-glow { background: radial-gradient(ellipse, #54f39a55 0%, #12b86518 45%, transparent 74%); opacity: .72; }
+
+.studio-menu--layered.studio-directed[data-studio-focus] .studio-stage-beams i {
+  animation-duration: 1.4s;
+  opacity: .2;
+}
+
+body[data-studio-transition] #app {
+  animation: studio-transition-push .46s cubic-bezier(.16,.76,.22,1);
+}
+
+@keyframes studio-transition-push {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.008); filter: brightness(1.12); }
+  100% { transform: scale(1.02); filter: brightness(.9); }
+}
+
+/* Gameplay reactions: the presentation layer responds to the semantic events
+   already emitted by the game's DOM without owning the game rules. */
+#score-value.studio-score-punch {
+  animation: studio-score-punch .3s cubic-bezier(.15,.85,.18,1.2);
+}
+
+@keyframes studio-score-punch {
+  0% { transform: scale(1); filter: brightness(1); }
+  42% { transform: scale(1.2); filter: brightness(1.45); text-shadow: 0 0 16px #fff9; }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+body.studio-word-hit .playfield {
+  animation: studio-playfield-hit .34s ease-out;
+}
+
+body.studio-word-hit--major .playfield {
+  animation-name: studio-playfield-hit-major;
+}
+
+@keyframes studio-playfield-hit {
+  0% { filter: brightness(1); }
+  35% { filter: brightness(1.08) saturate(1.05); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes studio-playfield-hit-major {
+  0% { filter: brightness(1); transform: scale(1); }
+  28% { filter: brightness(1.16) saturate(1.12); transform: scale(1.003); }
+  100% { filter: brightness(1); transform: scale(1); }
+}
+
+body.studio-board-clear .phrase-display .phrase-letter {
+  animation: studio-letter-celebrate .62s cubic-bezier(.15,.75,.2,1) both;
+  animation-delay: calc(var(--deal-index, 0) * 18ms);
+}
+
+@keyframes studio-letter-celebrate {
+  0% { transform: translateY(0) rotate(0); filter: brightness(1); }
+  35% { transform: translateY(-13px) rotate(-2deg) scale(1.08); filter: brightness(1.35); }
+  70% { transform: translateY(3px) rotate(1deg) scale(.98); }
+  100% { transform: translateY(0) rotate(0) scale(1); filter: brightness(1); }
+}
+
+.phrase-display--entering .phrase-letter {
+  animation-timing-function: cubic-bezier(.14,.78,.18,1.12) !important;
+}
+
+@media (max-width: 700px) {
+  .studio-stage-beams i { width: 18%; opacity: .09; }
+  .studio-stage-beams i:nth-child(1) { left: 4%; }
+  .studio-stage-beams i:nth-child(2) { left: 23%; }
+  .studio-stage-beams i:nth-child(3) { left: 42%; }
+  .studio-stage-beams i:nth-child(4) { left: 61%; }
+  .studio-stage-beams i:nth-child(5) { left: 80%; }
+  .studio-stage-floor { left: 8%; right: 8%; bottom: 1%; height: 7%; }
+
+  .studio-menu--layered.studio-directed .studio-logo {
+    min-height: 82px !important;
+    gap: 2px;
+    overflow: visible;
+  }
+
+  .studio-menu--layered.studio-directed .studio-logo__tile {
+    width: clamp(27px, 9vw, 43px);
+    border-width: 2px;
+    border-radius: 5px;
+    font-size: clamp(20px, 7vw, 35px);
+    box-shadow: inset 0 0 0 1px #ffffff99, 0 3px 0 #8f5518, 0 6px 8px #0007;
+  }
+
+  .studio-menu--layered.studio-directed .studio-logo__tile--a {
+    width: clamp(30px, 9.8vw, 47px);
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode--directed-focus,
+  .studio-menu--layered.studio-directed .studio-mode--attract {
+    transform: translateY(-2px) scale(1.012) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-stage-beams i,
+  .studio-stage-floor,
+  .studio-menu--layered.studio-entered .studio-logo__tile,
+  .studio-menu--layered.studio-entered .studio-mode,
+  #score-value.studio-score-punch,
+  body.studio-word-hit .playfield,
+  body.studio-board-clear .phrase-display .phrase-letter {
+    animation: none !important;
+  }
+
+  .studio-menu--layered.studio-entering .studio-logo__tile,
+  .studio-menu--layered.studio-entering .studio-mode {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .studio-menu--layered.studio-directed .studio-mode {
+    transition-duration: .01ms !important;
+  }
+
+  .studio-director-canvas { display: none; }
+}
+
+.reduce-motion .studio-stage-beams i,
+.reduce-motion .studio-stage-floor,
+.reduce-motion .studio-menu--layered .studio-logo__tile,
+.reduce-motion .studio-menu--layered .studio-mode {
+  animation: none !important;
+}
