@@ -41,6 +41,15 @@ export function chainPayout(bank: number, chainLength: number): number {
   return Math.round(bank * multiplier);
 }
 
+export function burnBoardSettlement(totalLetters: number, remainingLetters: number): { boardClear: boolean; scoreDelta: number } {
+  const total = Math.max(0, Math.floor(totalLetters));
+  const remaining = Math.min(total, Math.max(0, Math.floor(remainingLetters)));
+  const spent = total - remaining;
+  const boardClear = total > 0 && remaining === 0;
+  const scoreDelta = 250 + spent * 35 - remaining * 60 + (boardClear ? 1000 : 0);
+  return { boardClear, scoreDelta };
+}
+
 export function burnLetters(phrase: string, word: string, burned: Set<number>): Set<number> {
   const next = new Set(burned);
   for (const letter of word) {
