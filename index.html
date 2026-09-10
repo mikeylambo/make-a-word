@@ -12,6 +12,10 @@
 <body>
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
-  <script type="module" src="/src/studio-director.ts"></script>
+  <script type="module">
+    if (new URLSearchParams(location.search).get("menu") === "layered") {
+      import("/src/studio-director.ts");
+    }
+  </script>
 </body>
 </html>
