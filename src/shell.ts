@@ -44,34 +44,94 @@ const DEFAULT_SAVE: SaveData = {
   settings: { sound: true, music: true, volume: 0.72, reducedMotion: false, analytics: true, classicDuration: 120, theme: "studio" }
 };
 
+const MEMORY_SAVES = new Map<string, SaveData>();
+
+function safeCount(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : fallback;
+}
+
+function safeRecord(value: unknown, maxValue = Number.MAX_SAFE_INTEGER): Record<string, number> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, number> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!key || typeof raw !== "number" || !Number.isFinite(raw)) continue;
+    output[key] = Math.min(maxValue, Math.max(0, Math.floor(raw)));
+  }
+  return output;
+}
+
+function safeIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((entry): entry is string => typeof entry === "string" && entry.length > 0).map((entry) => entry.slice(0, 128)))].slice(-500);
+}
+
+function sanitizeSave(value: unknown): SaveData {
+  const parsed = value && typeof value === "object" && !Array.isArray(value) ? value as Partial<SaveData> : {};
+  const bestScores = safeRecord(parsed.bestScores);
+  if (bestScores.blitz) bestScores["classic:60"] = Math.max(bestScores["classic:60"] ?? 0, bestScores.blitz);
+  const settings = parsed.settings && typeof parsed.settings === "object" ? parsed.settings : {} as Partial<SaveData["settings"]>;
+  const volume = typeof settings.volume === "number" && Number.isFinite(settings.volume)
+    ? Math.max(0, Math.min(1, settings.volume))
+    : DEFAULT_SAVE.settings.volume;
+  const classicDuration = settings.classicDuration === 60 || settings.classicDuration === 120 || settings.classicDuration === 180
+    ? settings.classicDuration
+    : DEFAULT_SAVE.settings.classicDuration;
+  const theme = settings.theme === "felt" || settings.theme === "studio" ? settings.theme : DEFAULT_SAVE.settings.theme;
+
+  return {
+    bestScores,
+    totalWords: safeCount(parsed.totalWords),
+    totalScore: safeCount(parsed.totalScore),
+    longestWord: typeof parsed.longestWord === "string" ? parsed.longestWord.replace(/[^a-z]/gi, "").slice(0, 24) : "",
+    roundsPlayed: safeCount(parsed.roundsPlayed),
+    daily: safeRecord(parsed.daily),
+    journeyScores: safeRecord(parsed.journeyScores),
+    journeyMedals: safeRecord(parsed.journeyMedals, 3),
+    journeyUnlocked: Math.max(1, safeCount(parsed.journeyUnlocked, 1)),
+    partyMatches: safeCount(parsed.partyMatches),
+    onlineMatches: safeCount(parsed.onlineMatches),
+    completedOnlineMatchIds: safeIds(parsed.completedOnlineMatchIds),
+    challengesCompleted: safeCount(parsed.challengesCompleted),
+    completedChallengeIds: safeIds(parsed.completedChallengeIds),
+    settings: {
+      sound: typeof settings.sound === "boolean" ? settings.sound : DEFAULT_SAVE.settings.sound,
+      music: typeof settings.music === "boolean" ? settings.music : DEFAULT_SAVE.settings.music,
+      volume,
+      reducedMotion: typeof settings.reducedMotion === "boolean" ? settings.reducedMotion : DEFAULT_SAVE.settings.reducedMotion,
+      analytics: typeof settings.analytics === "boolean" ? settings.analytics : DEFAULT_SAVE.settings.analytics,
+      classicDuration,
+      theme
+    }
+  };
+}
+
 export class SaveStore {
   constructor(private readonly key = "slu.make-a-word.save.v1") {}
 
   load(): SaveData {
+    const memory = MEMORY_SAVES.get(this.key);
+    if (memory) return structuredClone(memory);
     try {
       const raw = localStorage.getItem(this.key);
-      if (!raw) return structuredClone(DEFAULT_SAVE);
-      const parsed = JSON.parse(raw) as Partial<SaveData>;
-      const bestScores = { ...DEFAULT_SAVE.bestScores, ...(parsed.bestScores ?? {}) };
-      if (bestScores.blitz) bestScores["classic:60"] = Math.max(bestScores["classic:60"] ?? 0, bestScores.blitz);
-      return {
-        ...structuredClone(DEFAULT_SAVE),
-        ...parsed,
-        bestScores,
-        daily: { ...DEFAULT_SAVE.daily, ...(parsed.daily ?? {}) },
-        journeyScores: { ...DEFAULT_SAVE.journeyScores, ...(parsed.journeyScores ?? {}) },
-        journeyMedals: { ...DEFAULT_SAVE.journeyMedals, ...(parsed.journeyMedals ?? {}) },
-        completedOnlineMatchIds: Array.isArray(parsed.completedOnlineMatchIds) ? parsed.completedOnlineMatchIds : [],
-        completedChallengeIds: Array.isArray(parsed.completedChallengeIds) ? parsed.completedChallengeIds : [],
-        settings: { ...DEFAULT_SAVE.settings, ...(parsed.settings ?? {}) }
-      };
+      const save = sanitizeSave(raw ? JSON.parse(raw) : DEFAULT_SAVE);
+      MEMORY_SAVES.set(this.key, save);
+      return structuredClone(save);
     } catch {
-      return structuredClone(DEFAULT_SAVE);
+      const save = sanitizeSave(DEFAULT_SAVE);
+      MEMORY_SAVES.set(this.key, save);
+      return structuredClone(save);
     }
   }
 
   save(data: SaveData): void {
-    localStorage.setItem(this.key, JSON.stringify(data));
+    const safe = sanitizeSave(data);
+    MEMORY_SAVES.set(this.key, safe);
+    try {
+      localStorage.setItem(this.key, JSON.stringify(safe));
+    } catch {
+      // Restricted/private storage or a full quota must never terminate a round.
+      // The module-level memory copy keeps the session coherent until reload.
+    }
   }
 }
 
@@ -144,9 +204,11 @@ export class TinyAudio {
   private musicNodes: OscillatorNode[] = [];
 
   constructor() {
-    const wake = () => { if (this.context?.state === "suspended") void this.context.resume(); };
+    const wake = () => { if (this.context?.state === "suspended" && !document.hidden) void this.context.resume(); };
+    const sleep = () => { if (this.context?.state === "running") void this.context.suspend(); };
     window.addEventListener("pointerdown", wake, { passive: true });
-    window.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); });
+    document.addEventListener("visibilitychange", () => document.hidden ? sleep() : wake());
+    window.addEventListener("pagehide", sleep);
   }
 
   configure(volume: number, theme: "studio" | "felt" = this.theme): void {
@@ -156,14 +218,14 @@ export class TinyAudio {
 
   async resume(): Promise<void> {
     this.context ??= new AudioContext();
-    if (this.context.state === "suspended") await this.context.resume();
+    if (this.context.state === "suspended" && !document.hidden) await this.context.resume();
   }
 
   play(
     kind: "accept" | "reject" | "rule" | "soft-reject" | "tick" | "start" | "go" | "end" | "combo" | "board" | "bank" | "navigate" | "warning",
     enabled: boolean
   ): void {
-    if (!enabled) return;
+    if (!enabled || document.hidden) return;
     this.context ??= new AudioContext();
     const ctx = this.context;
     const soundMap = {
@@ -199,7 +261,7 @@ export class TinyAudio {
   }
 
   playAccept(length: number, rarity: number, chain: number, enabled: boolean): void {
-    if (!enabled) return;
+    if (!enabled || document.hidden) return;
     this.context ??= new AudioContext();
     const scale = this.theme === "studio" ? [262, 294, 330, 392, 440] : [220, 262, 294, 330, 392];
     const rung = Math.min(scale.length - 1, Math.max(0, length - 3 + Math.floor(chain / 2)));
@@ -213,7 +275,7 @@ export class TinyAudio {
   }
 
   private tone(frequency: number, delay: number, duration: number, level: number, type: OscillatorType): void {
-    if (!this.context) return;
+    if (!this.context || document.hidden) return;
     const start = this.context.currentTime + delay;
     const oscillator = this.context.createOscillator();
     const gain = this.context.createGain();
