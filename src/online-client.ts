@@ -15,9 +15,18 @@ async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): P
   }
 }
 
+function normalizeFinalLeaderboard(response: OnlineResponse): OnlineResponse {
+  if (!response.ok || response.room.phase !== "match-results") return response;
+  response.room.players.forEach((player) => {
+    player.foundCount = player.matchFoundCount;
+    player.longestWord = player.matchLongestWord;
+  });
+  return response;
+}
+
 async function parseResponse(response: Response): Promise<OnlineResponse> {
   const body = await response.json().catch(() => null) as OnlineResponse | null;
-  if (body && typeof body === "object" && "ok" in body) return body;
+  if (body && typeof body === "object" && "ok" in body) return normalizeFinalLeaderboard(body);
   return { ok: false, error: response.ok ? "The room sent an unreadable response." : "The room service is unavailable." };
 }
 
