@@ -1,8 +1,9 @@
 import { JOURNEY_PHRASES } from "./phrases";
 import { SaveStore, type SaveData } from "./shell";
 
-const root = document.querySelector<HTMLElement>("#app");
-if (!root) throw new Error("Missing #app root");
+const appRoot = document.querySelector<HTMLElement>("#app");
+if (!appRoot) throw new Error("Missing #app root");
+const root: HTMLElement = appRoot;
 
 const store = new SaveStore();
 
