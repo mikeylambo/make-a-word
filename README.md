@@ -4,7 +4,7 @@ A phrase-based word game built from the SLU Web Game Shell flow with a DOM-nativ
 
 ## Current playable build
 
-- Title → Main Menu → Mode Select → Game → Pause → Results
+- Main Menu → Mode Select → Game → Pause → Results
 - Classic: reusable phrase letters
 - Burn: submitted letters are permanently consumed
 - Classic: selectable 1-, 2-, or 3-minute rounds with separate best scores
@@ -15,7 +15,7 @@ A phrase-based word game built from the SLU Web Game Shell flow with a DOM-nativ
 - Online Word Race rooms for 2–8 players with live standings, readiness, host controls, and reconnectable sessions
 - Server-authoritative online word validation, scoring, combos, timers, and round progression backed by Upstash Redis
 - Shareable score challenges that preserve the exact phrase and rules
-- 376 phrases across classroom, nature, play, arts, adventure, and original challenge themes
+- 150 measured launch phrases, including 50 familiar/canonical phrases, with 147 verified Burn boards and 24 authored Trials
 - Offline validation against one shared 18,704-word client/server dictionary authority
 - Visible Burn letter progress, leftover costs, and a +1,000 Board Clear reward
 - Rank-weighted word values and a five-second bank-or-risk chain system
@@ -30,12 +30,14 @@ A phrase-based word game built from the SLU Web Game Shell flow with a DOM-nativ
 ```bash
 npm install
 npm run dictionary:build
-npm run phrases:build
+npm run phrases:bank
 npm run dev
 npm run build
 npm run doctor
 npm run verify
 ```
+
+`npm run verify` is the release gate and runs dictionary parity, phrase analysis/review, Phrase Doctor, Burn performance, scoring, theme, board, mobile/runtime, menu-routing, TypeScript, and production-build checks.
 
 ## Architecture
 
