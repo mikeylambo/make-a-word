@@ -67,7 +67,8 @@ need(main, 'player.lives = Math.max(0, player.lives - 1)', 'Last Word strikes ca
 need(main, 'if (active.length <= 1)', 'Last Word no longer resolves when one player remains');
 need(main, 'player.roundFound = []', 'local multiplayer does not reset round word state');
 need(main, 'player.lives = 2', 'Last Word lives do not reset between rounds');
-need(main, 'data-action="finish-together"', 'final local multiplayer round cannot reach match results');
+need(main, 'finalRound ? "finish-together" : "next-together-round"', 'final local multiplayer round cannot reach match results');
+need(main, 'else if (action === "finish-together") endTogetherMatch();', 'final local multiplayer action does not finalize the match');
 
 if (failures.length) {
   console.error(`Progression gate failed:\n- ${failures.join('\n- ')}`);
