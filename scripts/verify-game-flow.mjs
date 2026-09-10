@@ -18,11 +18,13 @@ need(main, 'if (round.timeLeft <= 0) endRound()', 'solo timer no longer resolves
 need(main, 'save.totalWords += round.found.length', 'solo completion no longer records found words');
 need(main, 'save.roundsPlayed += 1', 'solo completion no longer records rounds');
 
-// Burn must support both explicit and automatic board progression.
+// Burn must support both explicit/automatic board progression and settle the active board when the run ends.
 need(main, 'data-action="next-board"', 'Burn DEAL NEXT control is missing');
 need(main, 'void advanceBurnBoard(true)', 'manual Burn board advance is not routed');
 need(main, 'void advanceBurnBoard(false)', 'automatic exhausted-board advance is missing');
-need(main, 'boardClear ? 1000 : 0', 'Burn Board Clear bonus is missing');
+const burnSettlementCalls = main.split('burnBoardSettlement(total, remaining)').length - 1;
+if (burnSettlementCalls < 2) failures.push('Burn settlement is not shared by board transitions and final run settlement');
+need(main, 'round.score = Math.max(0, round.score + scoreDelta);', 'final Burn board score settlement is missing');
 
 // Local multiplayer lifecycle and all three rulesets.
 need(main, 'type TogetherMode = "relay" | "pass-play" | "last-word"', 'local multiplayer mode contract changed');
@@ -81,4 +83,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Game-flow gate passed: solo, Burn, local multiplayer, shared online scoring/progression/final totals, challenges, reconnect storage, and background-pause invariants are intact.');
+console.log('Game-flow gate passed: solo, Burn transition/final settlement, local multiplayer, shared online scoring/progression/final totals, challenges, reconnect storage, and background-pause invariants are intact.');

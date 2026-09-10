@@ -15,6 +15,7 @@ import type { OnlineCredentials, OnlinePlayerView, OnlineRoomView, OnlineSetting
 import { telemetry } from "./telemetry";
 import { applyTheme, THEMES, type ThemeId } from "./themes";
 import {
+  burnBoardSettlement,
   burnLetters,
   chainPayout,
   countsForText,
@@ -93,6 +94,7 @@ type RoundState = {
   boardCandidates: string[];
   journeyStage?: number;
   challengeTarget?: number;
+  dailyKey?: string;
   starting: boolean;
   dealing: boolean;
   paused: boolean;
@@ -198,8 +200,8 @@ function formatTime(totalSeconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
+function todayKey(date = new Date()): string {
+  return date.toISOString().slice(0, 10);
 }
 
 function dailyStreak(): number {
@@ -1326,7 +1328,8 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
   stopTimer();
   stopTogetherTimer();
   const token = ++flowToken;
-  const phrase = phraseOverride ?? choosePhrase(mode);
+  const dailyDate = mode === "daily" ? new Date() : undefined;
+  const phrase = phraseOverride ?? (dailyDate ? phraseForDay(dailyDate) : choosePhrase(mode));
   const phraseWords = new Set(phrase.text.toLowerCase().match(/[a-z]+/g)?.filter((word) => word.length >= 3) ?? []);
   const duration = durationOverride ?? modeDuration(mode);
   round = {
@@ -1351,6 +1354,7 @@ function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: n
     boardCandidates: mode === "burn" ? playableWords(countsForText(phrase.text), phraseWords) : [],
     journeyStage,
     challengeTarget,
+    dailyKey: dailyDate ? todayKey(dailyDate) : undefined,
     starting: true,
     dealing: false,
     paused: false,
@@ -1843,8 +1847,7 @@ async function advanceBurnBoard(manual: boolean): Promise<void> {
 
   const remaining = [...remainingCounts(state.phrase.text, state.burned).values()].reduce((sum, count) => sum + count, 0);
   const total = [...countsForText(state.phrase.text).values()].reduce((sum, count) => sum + count, 0);
-  const boardClear = remaining === 0;
-  const bonus = 250 + (total - remaining) * 35 - remaining * 60 + (boardClear ? 1000 : 0);
+  const { boardClear, scoreDelta: bonus } = burnBoardSettlement(total, remaining);
   const previousScore = state.score;
   state.score = Math.max(0, state.score + bonus);
   if (boardClear) state.boardsCleared += 1;
@@ -1953,6 +1956,13 @@ function stopTimer(): void {
 function endRound(): void {
   if (!round || round.ended) return;
   cashChain(false);
+  if (round.mode === "burn") {
+    const remaining = [...remainingCounts(round.phrase.text, round.burned).values()].reduce((sum, count) => sum + count, 0);
+    const total = [...countsForText(round.phrase.text).values()].reduce((sum, count) => sum + count, 0);
+    const { boardClear, scoreDelta } = burnBoardSettlement(total, remaining);
+    round.score = Math.max(0, round.score + scoreDelta);
+    if (boardClear) round.boardsCleared += 1;
+  }
   round.ended = true;
   flowToken += 1;
   stopTimer();
@@ -1965,7 +1975,10 @@ function endRound(): void {
     : save.bestScores[modeKey] ?? 0;
   round.newBest = round.score > previousBest;
   save.bestScores[modeKey] = Math.max(save.bestScores[modeKey] ?? 0, round.score);
-  if (round.mode === "daily") save.daily[todayKey()] = Math.max(save.daily[todayKey()] ?? 0, round.score);
+  if (round.mode === "daily") {
+    const key = round.dailyKey ?? todayKey();
+    save.daily[key] = Math.max(save.daily[key] ?? 0, round.score);
+  }
   if (round.mode === "journey" && round.journeyStage !== undefined) {
     const earned = medalCount(round.score, round.phrase.medals);
     save.journeyScores[round.phrase.id] = Math.max(previousBest, round.score);
