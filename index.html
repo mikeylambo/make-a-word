@@ -15,7 +15,12 @@
   <script type="module" src="/src/main.ts"></script>
   <script type="module">
     if (new URLSearchParams(location.search).get('menu') === 'layered') {
-      import('/src/studio-director.ts');
+      const three = document.createElement('script');
+      three.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+      three.crossOrigin = 'anonymous';
+      three.onload = () => import('/src/studio3d.ts');
+      three.onerror = () => import('/src/studio-director.ts');
+      document.head.appendChild(three);
     }
   </script>
 </body>
