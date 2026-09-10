@@ -425,7 +425,7 @@ class Studio3D {
       return;
     }
     const map:Record<ModeKey,[number,number,number]>={classic:[0,3.0,.82],daily:[0,.2,.92],burn:[0,-2.05,.82],trials:[0,-4.05,.9],together:[0,-5.55,.9]};
-    for(const item of this.interactives){const [x,y,s]=map[item.key];item.basePos.set(x,y,0);item.baseScale.set(s,s,s);item.group.scale.copy(item.baseScale);}
+    for(const item of this.interactives){const [x,y,s]=map[item.key as ModeKey];item.basePos.set(x,y,0);item.baseScale.set(s,s,s);item.group.scale.copy(item.baseScale);}
     if(this.logo){this.logo.position.set(0,6.65,.05);this.logo.scale.set(.72,.72,.72);}
     for(let i=0;i<this.utility.length;i++){const u=this.utility[i];u.basePos.set(-1.55+i*1.55,5.45,.1);u.group.position.copy(u.basePos);u.baseScale.set(.78,.78,.78);u.group.scale.copy(u.baseScale);}
   }
