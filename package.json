@@ -28,9 +28,10 @@
     "save:runtime": "node scripts/verify-save-runtime.mjs",
     "telemetry:verify": "node scripts/verify-telemetry.mjs",
     "online:verify": "node scripts/verify-online-hardening.mjs",
+    "progression:verify": "node scripts/verify-progression.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",
-    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run rules:runtime && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run menu:verify && npm run flow:verify && npm run shell:verify && npm run save:runtime && npm run telemetry:verify && npm run online:verify && npm run build"
+    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run rules:runtime && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run menu:verify && npm run flow:verify && npm run shell:verify && npm run save:runtime && npm run telemetry:verify && npm run online:verify && npm run progression:verify && npm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3"
