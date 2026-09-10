@@ -22,7 +22,7 @@ const required = [
 if (!stable.includes('hero-panel hero-panel--menu') || !stable.includes('class="menu-grid"')) failures.push('stable pre-studio menu structure is missing');
 for (const token of required) if (!stable.includes(token)) failures.push(`stable menu routing is missing ${token}`);
 if (!stable.includes('new SaveStore()') || !stable.includes('classicDuration') || !stable.includes('dailyStreak')) failures.push('stable menu is not reading current save state');
-if (!stable.includes('stableSettingsMarkup') || !stable.includes('class="settings-list"') || !stable.includes('data-action="settings-back"')) failures.push('stable pre-studio settings presentation is missing');
+if (!stable.includes('stableSettingsMarkup') || !stable.includes('class="settings-list"') || !stable.includes('{ back: "settings-back" }')) failures.push('stable pre-studio settings presentation is missing');
 if (!stable.includes('data-action="toggle-sound"') || !stable.includes('data-action="toggle-music"') || !stable.includes('data-action="toggle-motion"') || !stable.includes('data-action="toggle-analytics"')) failures.push('settings controls are not preserved');
 if (!stable.includes('MutationObserver') || !stable.includes('root.dataset.screen === "menu"') || !stable.includes('root.dataset.screen === "settings"')) failures.push('stable presentation replacement is not scoped to menu/settings screens');
 if (!css.includes('.menu-grid') || !css.includes('.menu-card--feature') || !css.includes('.hero-panel--menu')) failures.push('pre-studio menu styling is missing');
