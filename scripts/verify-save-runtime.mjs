@@ -25,26 +25,65 @@ const compiled = ts.transpileModule(shellSource, {
 const shellUrl = `data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`;
 const { SaveStore } = await import(shellUrl);
 
+// Two stale copies can both add legitimate progress. Their deltas must add;
+// taking only the larger absolute counter silently loses one completed run.
 const a = new SaveStore('test.concurrent');
 const b = new SaveStore('test.concurrent');
 const aSave = a.load();
 const bSave = b.load();
-aSave.totalWords = 7;
-aSave.totalScore = 4200;
-aSave.completedOnlineMatchIds.push('match-a');
+aSave.totalWords += 7;
+aSave.totalScore += 4200;
+aSave.roundsPlayed += 1;
 a.save(aSave);
 
-bSave.onlineMatches = 1;
-bSave.completedOnlineMatchIds.push('match-b');
+bSave.totalWords += 5;
+bSave.totalScore += 1800;
+bSave.roundsPlayed += 1;
 b.save(bSave);
-assert.equal(bSave.totalWords, 7, 'stale writer must not erase totalWords');
-assert.equal(bSave.totalScore, 4200, 'stale writer must not erase totalScore');
-assert.deepEqual(new Set(bSave.completedOnlineMatchIds), new Set(['match-a', 'match-b']), 'completion IDs must union');
+assert.equal(bSave.totalWords, 12, 'stale word-count increments must add');
+assert.equal(bSave.totalScore, 6000, 'stale score increments must add');
+assert.equal(bSave.roundsPlayed, 2, 'stale round increments must add');
 
 const reloaded = new SaveStore('test.concurrent').load();
-assert.equal(reloaded.totalWords, 7);
-assert.equal(reloaded.totalScore, 4200);
-assert.deepEqual(new Set(reloaded.completedOnlineMatchIds), new Set(['match-a', 'match-b']));
+assert.equal(reloaded.totalWords, 12);
+assert.equal(reloaded.totalScore, 6000);
+assert.equal(reloaded.roundsPlayed, 2);
+
+// Completion IDs are the idempotency authority for online/challenge counts.
+// Two stale writers reporting the same match must not double count it, while a
+// genuinely different match must still advance the total.
+const onlineA = new SaveStore('test.online');
+const onlineB = new SaveStore('test.online');
+const onlineASave = onlineA.load();
+const onlineBSave = onlineB.load();
+onlineASave.onlineMatches += 1;
+onlineASave.completedOnlineMatchIds.push('match-a');
+onlineA.save(onlineASave);
+onlineBSave.onlineMatches += 1;
+onlineBSave.completedOnlineMatchIds.push('match-a');
+onlineB.save(onlineBSave);
+assert.equal(onlineBSave.onlineMatches, 1, 'the same completed online match must be idempotent');
+assert.deepEqual(onlineBSave.completedOnlineMatchIds, ['match-a']);
+const onlineC = new SaveStore('test.online');
+const onlineCSave = onlineC.load();
+onlineCSave.onlineMatches += 1;
+onlineCSave.completedOnlineMatchIds.push('match-b');
+onlineC.save(onlineCSave);
+assert.equal(onlineCSave.onlineMatches, 2, 'a distinct completed online match must count');
+assert.deepEqual(new Set(onlineCSave.completedOnlineMatchIds), new Set(['match-a', 'match-b']));
+
+// A stale progress writer must not roll a newer setting back simply because its
+// old snapshot still contains the previous preference value.
+const settingsA = new SaveStore('test.settings');
+const settingsB = new SaveStore('test.settings');
+const settingsASave = settingsA.load();
+const settingsBSave = settingsB.load();
+settingsASave.settings.sound = false;
+settingsA.save(settingsASave);
+settingsBSave.totalWords += 1;
+settingsB.save(settingsBSave);
+assert.equal(settingsBSave.settings.sound, false, 'stale progress writes must preserve newer settings');
+assert.equal(settingsBSave.totalWords, 1);
 
 data.set('test.corrupt', JSON.stringify({
   totalWords: -99,
@@ -77,4 +116,4 @@ assert.doesNotThrow(() => privateStore.save(privateSave), 'blocked storage must 
 assert.equal(new SaveStore('test.private').load().totalWords, 3, 'memory fallback must preserve the active session');
 globalThis.localStorage = workingStorage;
 
-console.log('Save runtime passed: stale writers reconcile, malformed data is sanitized, and blocked storage keeps the session alive.');
+console.log('Save runtime passed: stale increments add without duplication, settings survive stale writers, malformed data is sanitized, and blocked storage keeps the session alive.');
