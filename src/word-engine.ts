@@ -1,6 +1,7 @@
 import shippedWords from "../content/server-dictionary.json";
 import shippedRanks from "../content/word-ranks.json";
 import {
+  burnBoardSettlement,
   burnLetters,
   canSpell,
   countsForText,
@@ -11,7 +12,7 @@ import {
   scoreWord
 } from "./word-rules";
 
-export { burnLetters, chainPayout, countsForText, rarityMultiplier, remainingCounts, scoreWord } from "./word-rules";
+export { burnBoardSettlement, burnLetters, chainPayout, countsForText, rarityMultiplier, remainingCounts, scoreWord } from "./word-rules";
 
 const WORDS = new Set(shippedWords);
 const WORD_RANKS = new Map(shippedWords.map((word, index) => [word, shippedRanks[index]]));
