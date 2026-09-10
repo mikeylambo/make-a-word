@@ -1,6 +1,11 @@
+import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
 
-type RequestLike = { method?: string; body?: unknown };
+type RequestLike = {
+  method?: string;
+  body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
+};
 type ResponseLike = { status(code: number): ResponseLike; json(body: unknown): void };
 
 const ALLOWED = new Set([
@@ -9,12 +14,23 @@ const ALLOWED = new Set([
   "reject_phrase_word", "invite_created", "invite_opened", "invite_accepted", "daily_played",
   "multiplayer_started", "first_word_10s", "first_word_30s", "first_word_later"
 ]);
+const REQUESTS_PER_MINUTE = 30;
 
 function redis(): Redis {
   const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
   if (!url || !token) throw new Error("Telemetry storage is not configured");
   return new Redis({ url, token });
+}
+
+async function withinRateLimit(request: RequestLike, db: Redis): Promise<boolean> {
+  const forwarded = String(request.headers?.["x-forwarded-for"] ?? "unknown").split(",")[0]?.trim() || "unknown";
+  const actor = createHash("sha256").update(forwarded).digest("hex").slice(0, 16);
+  const bucket = Math.floor(Date.now() / 60_000);
+  const key = `make-a-word:metrics-rate:${actor}:${bucket}`;
+  const count = await db.incr(key);
+  if (count === 1) await db.expire(key, 90);
+  return count <= REQUESTS_PER_MINUTE;
 }
 
 export default async function handler(request: RequestLike, response: ResponseLike): Promise<void> {
@@ -34,8 +50,10 @@ export default async function handler(request: RequestLike, response: ResponseLi
     && Number.isSafeInteger(value) && Number(value) > 0 && Number(value) <= 10_000);
   if (!entries.length || entries.length > ALLOWED.size) return response.status(400).json({ ok: false });
 
+  const db = redis();
+  if (!(await withinRateLimit(request, db))) return response.status(429).json({ ok: false });
   const args = entries.flatMap(([name, value]) => [name, String(value)]);
-  await redis().eval(
+  await db.eval(
     "for i=1,#ARGV,2 do redis.call('HINCRBY',KEYS[1],ARGV[i],ARGV[i+1]) end return #ARGV/2",
     [`make-a-word:metrics:${today}`],
     args
