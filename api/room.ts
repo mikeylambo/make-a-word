@@ -80,7 +80,13 @@ const WORD_RANKS = new Map<string, number | undefined>(dictionary.map((word, ind
 const BLOCKED_CODE_PARTS = blockedWords.filter((word) => word.length >= 3);
 const ROOM_TTL_SECONDS = 6 * 60 * 60;
 const PRESENCE_WINDOW_MS = 20_000;
+const HOST_FAILOVER_MS = 28_000;
+const ROOM_LOCK_TTL_MS = 5_000;
+const MAX_REQUEST_BYTES = 8_192;
 const CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+const VALID_ACTIONS = new Set<OnlineAction["action"]>([
+  "create", "join", "ready", "heartbeat", "kick", "start", "submit", "next-round", "rematch", "leave"
+]);
 let redisClient: Redis | null = null;
 
 class RoomError extends Error {
@@ -220,7 +226,7 @@ function advanceExpiredRound(room: StoredRoom): boolean {
 function ensureActiveHost(room: StoredRoom): void {
   const now = Date.now();
   const host = room.players.find((player) => player.id === room.hostPlayerId);
-  if (host && now - host.lastSeen < 60_000) return;
+  if (host && now - host.lastSeen < HOST_FAILOVER_MS) return;
   const replacement = room.players.find((player) => now - player.lastSeen < PRESENCE_WINDOW_MS);
   if (replacement) {
     room.hostPlayerId = replacement.id;
@@ -287,10 +293,10 @@ async function acquireLock(code: string): Promise<string> {
   const redis = getRedis();
   const key = `${roomKey(code)}:lock`;
   const token = makeId(12);
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const acquired = await redis.set(key, token, { nx: true, px: 2_000 });
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const acquired = await redis.set(key, token, { nx: true, px: ROOM_LOCK_TTL_MS });
     if (acquired) return token;
-    await new Promise((resolve) => setTimeout(resolve, 35 + attempt * 20));
+    await new Promise((resolve) => setTimeout(resolve, 30 + attempt * 25));
   }
   throw new RoomError("The room is busy. Try that again.", 409, "ROOM_BUSY");
 }
@@ -338,31 +344,25 @@ async function createRoom(action: Extract<OnlineAction, { action: "create" }>): 
   const redis = getRedis();
   const name = cleanName(action.name);
   if (name.length < 1) throw new RoomError("Enter a player name.");
-  let code = "";
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    const candidate = makeCode();
-    if (!(await redis.exists(roomKey(candidate)))) {
-      code = candidate;
-      break;
-    }
-  }
-  if (!code) throw new RoomError("Could not create a room. Try again.", 503);
   const { player, credentials } = newPlayer(name, true);
-  const room: StoredRoom = {
-    code,
-    matchId: makeId(8),
-    version: 1,
-    createdAt: Date.now(),
-    hostPlayerId: player.id,
-    phase: "lobby",
-    settings: normalizeSettings(action.settings),
-    roundNumber: 0,
-    usedPhraseIds: [],
-    players: [player]
-  };
-  const created = await redis.set(roomKey(code), room, { nx: true, ex: ROOM_TTL_SECONDS });
-  if (!created) throw new RoomError("Could not create a room. Try again.", 503);
-  return { room, credentials: { code, ...credentials } };
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const code = makeCode();
+    const room: StoredRoom = {
+      code,
+      matchId: makeId(8),
+      version: 1,
+      createdAt: Date.now(),
+      hostPlayerId: player.id,
+      phase: "lobby",
+      settings: normalizeSettings(action.settings),
+      roundNumber: 0,
+      usedPhraseIds: [],
+      players: [player]
+    };
+    const created = await redis.set(roomKey(code), room, { nx: true, ex: ROOM_TTL_SECONDS });
+    if (created) return { room, credentials: { code, ...credentials } };
+  }
+  throw new RoomError("Could not create a room. Try again.", 503);
 }
 
 async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ room: StoredRoom; viewerId: string; credentials?: OnlineCredentials }> {
@@ -491,8 +491,10 @@ function send(res: ApiResponse, status: number, body: OnlineResponse): void {
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   try {
     if (req.method === "GET") {
+      const code = cleanCode(req.query.code);
+      if (code.length !== 6) throw new RoomError("Enter a six-character room code.");
       const credentials: OnlineCredentials = {
-        code: cleanCode(req.query.code),
+        code,
         playerId: String(req.headers["x-room-player"] ?? ""),
         token: String(req.headers.authorization ?? "").replace(/^Bearer\s+/i, "")
       };
@@ -508,10 +510,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     }
 
     if (req.method === "POST") {
-      const size = Number(req.headers["content-length"] ?? 0);
-      if (size > 8_192) throw new RoomError("That request is too large.", 413);
+      const declaredSize = Number(req.headers["content-length"] ?? 0);
+      const actualSize = Buffer.byteLength(typeof req.body === "string" ? req.body : JSON.stringify(req.body ?? null), "utf8");
+      if (declaredSize > MAX_REQUEST_BYTES || actualSize > MAX_REQUEST_BYTES) throw new RoomError("That request is too large.", 413);
       const action = req.body as OnlineAction;
-      if (!action || typeof action !== "object" || typeof action.action !== "string") throw new RoomError("Invalid room request.");
+      if (!action || typeof action !== "object" || typeof action.action !== "string" || !VALID_ACTIONS.has(action.action as OnlineAction["action"])) {
+        throw new RoomError("Invalid room request.");
+      }
       const result = await handleAction(action, req);
       send(res, 200, {
         ok: true,
