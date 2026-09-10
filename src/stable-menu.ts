@@ -1,5 +1,6 @@
 import { JOURNEY_PHRASES } from "./phrases";
 import { SaveStore, type SaveData } from "./shell";
+import { THEMES, type ThemeId } from "./themes";
 
 const appRoot = document.querySelector<HTMLElement>("#app");
 if (!appRoot) throw new Error("Missing #app root");
@@ -32,11 +33,11 @@ function playerLevel(save: SaveData): number {
   return Math.max(1, Math.floor(Math.sqrt(save.totalScore / 5000)) + 1);
 }
 
-function shell(title: string, content: string): string {
+function shell(title: string, content: string, options: { back?: string } = {}): string {
   return `
     <main class="shell">
       <header class="topbar">
-        <span class="brand-mark">MW</span>
+        ${options.back ? `<button class="icon-button" data-nav data-action="${options.back}" aria-label="Back">←</button>` : `<span class="brand-mark">MW</span>`}
         <div class="topbar__title">${title}</div>
         <button class="icon-button" data-nav data-action="settings" aria-label="Settings">⚙</button>
       </header>
@@ -114,17 +115,27 @@ function stableMenuMarkup(save: SaveData): string {
   `);
 }
 
+function stableSettingsMarkup(save: SaveData): string {
+  const themeButtons = (Object.keys(THEMES) as ThemeId[])
+    .map((id) => `<button data-nav data-theme="${id}" class="${save.settings.theme === id ? "selected" : ""}">${THEMES[id].name}</button>`)
+    .join("");
+
+  return shell("SETTINGS", `
+    <section class="settings-list">
+      <button class="setting-row" data-nav data-action="toggle-sound"><span><strong>Sound</strong><small>Game tones and feedback</small></span><b>${save.settings.sound ? "ON" : "OFF"}</b></button>
+      <button class="setting-row" data-nav data-action="toggle-music"><span><strong>Music</strong><small>Theme ambience</small></span><b>${save.settings.music ? "ON" : "OFF"}</b></button>
+      <label class="setting-row setting-row--slider"><span><strong>Volume</strong><small>All game audio</small></span><input id="volume-setting" type="range" min="0" max="1" step="0.05" value="${save.settings.volume}" aria-label="Volume" /></label>
+      <div class="theme-setting"><span><strong>Table Theme</strong><small>Choose the room your words live in</small></span><div>${themeButtons}</div></div>
+      <button class="setting-row" data-nav data-action="toggle-motion"><span><strong>Reduced Motion</strong><small>Minimize movement and impact animation</small></span><b>${save.settings.reducedMotion ? "ON" : "OFF"}</b></button>
+      <button class="setting-row" data-nav data-action="toggle-analytics"><span><strong>Anonymous Analytics</strong><small>Share aggregate play counts; never words or names</small></span><b>${save.settings.analytics ? "ON" : "OFF"}</b></button>
+    </section>
+    <p class="settings-note">Progress is saved on this device.</p>
+  `, { back: "settings-back" });
+}
+
 let rendering = false;
 
-function restoreStableMenu(): void {
-  if (rendering || root.dataset.screen !== "menu") return;
-  if (!root.querySelector(".studio-menu")) return;
-
-  rendering = true;
-  root.innerHTML = stableMenuMarkup(store.load());
-  root.dataset.menuPresentation = "stable";
-  rendering = false;
-
+function focusFirst(): void {
   requestAnimationFrame(() => {
     const first = [...root.querySelectorAll<HTMLElement>("[data-nav]:not([disabled])")]
       .find((item) => item.getClientRects().length > 0);
@@ -132,6 +143,27 @@ function restoreStableMenu(): void {
   });
 }
 
-const observer = new MutationObserver(restoreStableMenu);
+function restoreStablePresentation(): void {
+  if (rendering) return;
+
+  if (root.dataset.screen === "menu" && root.querySelector(".studio-menu")) {
+    rendering = true;
+    root.innerHTML = stableMenuMarkup(store.load());
+    root.dataset.menuPresentation = "stable";
+    rendering = false;
+    focusFirst();
+    return;
+  }
+
+  if (root.dataset.screen === "settings" && root.querySelector(".studio-subscreen")) {
+    rendering = true;
+    root.innerHTML = stableSettingsMarkup(store.load());
+    root.dataset.settingsPresentation = "stable";
+    rendering = false;
+    focusFirst();
+  }
+}
+
+const observer = new MutationObserver(restoreStablePresentation);
 observer.observe(root, { childList: true, subtree: true });
-restoreStableMenu();
+restoreStablePresentation();
