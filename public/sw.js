@@ -1,9 +1,11 @@
-const CACHE_NAME = "make-a-word-runtime-v1";
+const CACHE_NAME = "make-a-word-runtime-v2";
 const CORE_URLS = [
   "/",
   "/manifest.webmanifest",
-  "/icons/icon-192.svg",
-  "/icons/icon-512.svg"
+  "/icons/icon-180.png",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/icon-192.svg"
 ];
 
 async function cacheResponse(cache, request, response) {
