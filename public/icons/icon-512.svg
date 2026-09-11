@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Make a Word">
+  <rect width="512" height="512" rx="106" fill="#0b1020"/>
+  <rect x="64" y="64" width="384" height="384" rx="74" fill="#f4efe2"/>
+  <rect x="90" y="90" width="332" height="332" rx="54" fill="#173b72"/>
+  <text x="256" y="298" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-size="166" font-weight="900" letter-spacing="-18" fill="#f4efe2">MW</text>
+  <rect x="171" y="348" width="170" height="18" rx="9" fill="#d99a22"/>
+</svg>
