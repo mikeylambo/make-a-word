@@ -15,12 +15,16 @@ async function waitForPlayableWordInput(page) {
   }, null, { timeout: 15_000 });
 }
 
-async function desktopJourney(browser, engine) {
-  const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+async function freshPage(browser, options = { viewport: { width: 1366, height: 900 } }) {
+  const context = await browser.newContext(options);
   const page = await context.newPage();
-
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await waitForScreen(page, 'menu');
+  return { context, page };
+}
+
+async function desktopJourney(browser, engine) {
+  const { context, page } = await freshPage(browser);
   assert.equal(await page.locator('[data-mode="classic"]').count(), 1, `${engine}: Classic must be directly available from the menu`);
   assert.equal(await page.locator('[data-mode="daily"]').count(), 1, `${engine}: Daily must be directly available from the menu`);
   assert.equal(await page.locator('[data-mode="burn"]').count(), 1, `${engine}: Burn must be directly available from the menu`);
@@ -53,17 +57,72 @@ async function desktopJourney(browser, engine) {
   await context.close();
 }
 
+async function modeRoutingJourney(browser) {
+  {
+    const { context, page } = await freshPage(browser);
+    await page.locator('[data-mode="daily"]').click();
+    await waitForScreen(page, 'game');
+    await waitForPlayableWordInput(page);
+    assert.equal(await page.locator('.word-entry input').count(), 1, 'Daily must reach a playable round');
+    await context.close();
+  }
+
+  {
+    const { context, page } = await freshPage(browser);
+    await page.locator('[data-mode="burn"]').click();
+    await waitForScreen(page, 'game');
+    await waitForPlayableWordInput(page);
+    assert.equal(await page.locator('[data-action="next-board"]').count(), 1, 'Burn must expose DEAL NEXT during play');
+    await context.close();
+  }
+
+  {
+    const { context, page } = await freshPage(browser);
+    await page.locator('[data-action="journey"]').click();
+    await waitForScreen(page, 'journey');
+    assert.equal(await page.locator('[data-journey-stage]').count(), 24, 'Trials must expose all 24 authored stages');
+    await page.locator('[data-journey-stage="0"]').click();
+    await waitForScreen(page, 'game');
+    await waitForPlayableWordInput(page);
+    assert.equal(await page.locator('.word-entry input').count(), 1, 'Unlocked Trial 1 must reach a playable round');
+    await context.close();
+  }
+
+  {
+    const { context, page } = await freshPage(browser);
+    await page.locator('[data-action="multiplayer"]').click();
+    await waitForScreen(page, 'multiplayer');
+    assert.equal(await page.locator('[data-together-mode]').count(), 3, 'Play Together must expose all three local rulesets');
+    assert.equal(await page.locator('[data-action="online"]').count(), 1, 'Play Together must expose online rooms');
+    await page.locator('[data-together-mode="relay"]').click();
+    await waitForScreen(page, 'multiplayer-game');
+    assert.equal(await page.locator('[data-action="begin-together"]').count(), 1, 'Relay must enter the privacy/start handoff');
+    await page.locator('[data-action="begin-together"]').click();
+    await waitForPlayableWordInput(page);
+    assert.equal(await page.locator('.word-entry input').count(), 1, 'Relay must reach a playable local turn');
+    await context.close();
+  }
+
+  {
+    const { context, page } = await freshPage(browser);
+    await page.locator('[data-action="multiplayer"]').click();
+    await waitForScreen(page, 'multiplayer');
+    await page.locator('[data-action="online"]').click();
+    await waitForScreen(page, 'online');
+    assert.equal(await page.locator('[data-action="online-create"]').count(), 1, 'Online home must expose room creation');
+    assert.equal(await page.locator('[data-action="online-join"]').count(), 1, 'Online home must expose room join');
+    await context.close();
+  }
+}
+
 async function mobileJourney(browser, engine) {
-  const context = await browser.newContext({
+  const { context, page } = await freshPage(browser, {
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 3,
     isMobile: true,
     hasTouch: true
   });
-  const page = await context.newPage();
 
-  await page.goto(baseURL, { waitUntil: 'networkidle' });
-  await waitForScreen(page, 'menu');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   assert.ok(overflow <= 1, `${engine}: mobile menu overflows horizontally by ${overflow}px`);
 
@@ -92,11 +151,7 @@ async function mobileJourney(browser, engine) {
 }
 
 async function offlineJourney(browser) {
-  const context = await browser.newContext({ viewport: { width: 1024, height: 768 } });
-  const page = await context.newPage();
-
-  await page.goto(baseURL, { waitUntil: 'networkidle' });
-  await waitForScreen(page, 'menu');
+  const { context, page } = await freshPage(browser, { viewport: { width: 1024, height: 768 } });
   await page.waitForFunction(async () => {
     if (!('serviceWorker' in navigator)) return false;
     await navigator.serviceWorker.ready;
@@ -121,6 +176,7 @@ for (const [name, browserType, runMobile] of engines) {
   const browser = await browserType.launch({ headless: true });
   try {
     await desktopJourney(browser, name);
+    if (name === 'Chromium') await modeRoutingJourney(browser);
     if (runMobile) await mobileJourney(browser, name);
     if (name === 'Chromium') await offlineJourney(browser);
     console.log(`${name} browser smoke passed.`);
@@ -129,4 +185,4 @@ for (const [name, browserType, runMobile] of engines) {
   }
 }
 
-console.log('Cross-browser smoke passed: Chromium, Firefox, and WebKit desktop journeys are stable; Chromium/WebKit mobile behavior is stable; Chromium offline app-shell recovery works.');
+console.log('Cross-browser smoke passed: core navigation/reload works in Chromium, Firefox, and WebKit; Daily/Burn/Trials/local/online routes boot correctly in Chromium; Chromium/WebKit mobile behavior is stable; Chromium offline recovery works.');
