@@ -16,3 +16,32 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run verify
+
+  browser-smoke:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - name: Install temporary browser harness
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run Chromium release smoke
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 > /tmp/make-a-word-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..40}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              break
+            fi
+            sleep 0.5
+          done
+          curl -fsS http://127.0.0.1:4173/ >/dev/null || { cat /tmp/make-a-word-preview.log; exit 1; }
+          BASE_URL=http://127.0.0.1:4173 node scripts/browser-smoke.mjs
