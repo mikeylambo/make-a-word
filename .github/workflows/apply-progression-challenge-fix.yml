@@ -1,0 +1,112 @@
+name: Apply progression and challenge contract patch
+
+on:
+  push:
+    branches: [fix/progression-challenges]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/progression-challenges
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Patch progression and challenge contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/main.ts')
+          source = path.read_text()
+
+          def replace_once(old, new, label):
+              global source
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              source = source.replace(old, new, 1)
+
+          replace_once('version: 1 | 2;', 'version: 1 | 2 | 3;', 'challenge version type')
+          replace_once(
+              'if (parsed.version !== 1 && parsed.version !== 2 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;',
+              'if (parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;',
+              'challenge version decoder'
+          )
+          replace_once(
+              '    if (parsed.mode !== "classic" && parsed.mode !== "blitz") return null;\n    if (!PHRASES.some((phrase) => phrase.id === parsed.phraseId)) return null;',
+              '    if (parsed.mode !== "classic" && parsed.mode !== "blitz") return null;\n    if (parsed.duration !== undefined && parsed.duration !== 60 && parsed.duration !== 120 && parsed.duration !== 180) return null;\n    if (parsed.mode === "blitz" && parsed.duration !== undefined && parsed.duration !== 60) return null;\n    if (!PHRASES.some((phrase) => phrase.id === parsed.phraseId)) return null;',
+              'challenge duration validation'
+          )
+          replace_once(
+              '  const words = together.players.reduce((sum, player) => sum + player.found.length, 0);\n  const score = together.players.reduce((sum, player) => sum + player.score, 0);\n  save.totalWords += words;\n  save.totalScore += score;\n  save.roundsPlayed += 1;\n  save.partyMatches += 1;',
+              '  // A local match belongs to everyone sharing the device, so it must not\n  // masquerade as the save owner\'s personal word/score/round progression.\n  save.partyMatches += 1;',
+              'local progression ownership'
+          )
+          replace_once(
+              '<p>You will get the exact same phrase and ${challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120)}-second Classic rules.</p>',
+              '<p>You will get the exact same phrase and ${challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120)}-second ${challenge.mode === "blitz" ? "Blitz" : "Classic"} rules.</p>',
+              'challenge landing rules copy'
+          )
+          replace_once(
+              '    version: 2,\n    phraseId: result.phrase.id,\n    target: result.score,\n    mode: "classic",\n    duration: result.duration === 60 || result.duration === 180 ? result.duration : 120',
+              '    version: 3,\n    phraseId: result.phrase.id,\n    target: result.score,\n    mode: result.mode === "blitz" ? "blitz" : "classic",\n    duration: result.mode === "blitz" ? 60 : result.duration === 60 || result.duration === 180 ? result.duration : 120',
+              'challenge share payload'
+          )
+          replace_once(
+              '  if (!result || result.mode === "burn") return;',
+              '  if (!result || (result.mode !== "classic" && result.mode !== "blitz")) return;',
+              'challenge share eligibility'
+          )
+          replace_once(
+              '    const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}`;',
+              '    const challengeDuration = round.mode === "blitz" ? 60 : round.duration === 60 || round.duration === 180 ? round.duration : 120;\n    const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}:${challengeDuration}`;',
+              'challenge completion identity'
+          )
+          replace_once(
+              '        <button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>\n        <button class="text-button" data-nav data-action="journey">BACK TO TRIALS</button>',
+              '        <button class="text-button" data-nav data-action="journey">BACK TO TRIALS</button>',
+              'trial challenge button'
+          )
+          replace_once(
+              '${result.mode !== "burn" ? `<button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>` : ""}',
+              '${result.mode === "classic" || result.mode === "blitz" ? `<button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>` : ""}',
+              'challenge result button eligibility'
+          )
+          path.write_text(source)
+
+          gate = Path('scripts/verify-game-flow.mjs')
+          verify = gate.read_text()
+          old = "need(main, 'function endTogetherMatch(): void', 'local final-match persistence is missing');\nneed(main, 'data-action=\"again-together\"', 'local rematch route is missing');"
+          new = "need(main, 'function endTogetherMatch(): void', 'local final-match persistence is missing');\nconst localMatchStart = main.indexOf('function endTogetherMatch(): void');\nconst localMatchEnd = main.indexOf('function showTogetherResults(): void', localMatchStart);\nconst localMatchCompletion = localMatchStart >= 0 && localMatchEnd > localMatchStart ? main.slice(localMatchStart, localMatchEnd) : '';\nneed(localMatchCompletion, 'save.partyMatches += 1', 'local completion no longer records Party Matches');\nfor (const token of ['save.totalWords', 'save.totalScore', 'save.roundsPlayed']) {\n  if (localMatchCompletion.includes(token)) failures.push(`local multiplayer still contaminates personal progression via ${token}`);\n}\nneed(main, 'data-action=\"again-together\"', 'local rematch route is missing');"
+          if verify.count(old) != 1:
+              raise SystemExit('game-flow local contract patch did not match exactly once')
+          verify = verify.replace(old, new, 1)
+
+          old = "// Challenge links must preserve a deterministic phrase/rules target.\nneed(main, 'phraseId: result.phrase.id', 'challenge links no longer preserve the phrase');\nneed(main, 'target: result.score', 'challenge links no longer preserve the target score');\nneed(main, 'duration: result.duration === 60 || result.duration === 180 ? result.duration : 120', 'challenge links no longer preserve supported Classic durations');"
+          new = "// Challenge links must preserve a deterministic phrase/rules target without converting Daily or Trials into fake Classic runs.\nneed(main, 'version: 1 | 2 | 3;', 'challenge payload version contract is not backward compatible');\nneed(main, 'parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3', 'challenge decoder does not accept the current payload version');\nneed(main, 'parsed.duration !== undefined && parsed.duration !== 60 && parsed.duration !== 120 && parsed.duration !== 180', 'challenge decoder accepts unsupported durations');\nneed(main, 'parsed.mode === \"blitz\" && parsed.duration !== undefined && parsed.duration !== 60', 'Blitz challenges can drift from the 60-second ruleset');\nneed(main, 'phraseId: result.phrase.id', 'challenge links no longer preserve the phrase');\nneed(main, 'target: result.score', 'challenge links no longer preserve the target score');\nneed(main, 'mode: result.mode === \"blitz\" ? \"blitz\" : \"classic\"', 'challenge links no longer preserve Classic versus Blitz rules');\nneed(main, 'duration: result.mode === \"blitz\" ? 60 : result.duration === 60 || result.duration === 180 ? result.duration : 120', 'challenge links no longer preserve the supported source duration');\nneed(main, 'if (!result || (result.mode !== \"classic\" && result.mode !== \"blitz\")) return;', 'Daily/Trials/Burn results can still be shared as misleading score challenges');\nneed(main, 'result.mode === \"classic\" || result.mode === \"blitz\" ? `<button class=\"secondary-button\" data-nav data-action=\"share-result\">CHALLENGE A FRIEND</button>` : \"\"', 'challenge CTA is not restricted to shareable rulesets');\nneed(main, 'const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}:${challengeDuration}`;', 'challenge completion identity does not distinguish duration/rules contracts');"
+          if verify.count(old) != 1:
+              raise SystemExit('game-flow challenge contract patch did not match exactly once')
+          verify = verify.replace(old, new, 1)
+          gate.write_text(verify)
+          PY
+      - name: Compile patched source
+        run: |
+          npm ci
+          npm run build
+      - name: Commit source patch
+        run: |
+          if git diff --quiet; then
+            echo "No patch required"
+            exit 0
+          fi
+          git config user.name "Make a Word CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/main.ts scripts/verify-game-flow.mjs
+          git commit -m "Separate local progression and harden score challenges"
+          git push origin HEAD:fix/progression-challenges
