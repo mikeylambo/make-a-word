@@ -26,8 +26,9 @@ assert.ok(mobileCss.includes('.keyboard-open'), 'software-keyboard layout is mis
 assert.ok(mobileCss.includes('touch-action: manipulation'), 'tap delay suppression is missing');
 assert.ok(mobileCss.includes('font-size:16px'), 'mobile form controls need a 16px floor to avoid iOS focus zoom');
 
-assert.ok(guard.includes('window.addEventListener("pagehide", () => armBackgroundPause(true))'), 'pagehide must force a local pause attempt');
-assert.ok(guard.includes('document.addEventListener("visibilitychange", () => armBackgroundPause(false))'), 'visibility changes must pause local play');
+assert.ok(guard.includes('window.addEventListener("pagehide", forcePagehidePause)'), 'pagehide must force a local pause attempt');
+assert.ok(guard.includes('ensureBackgroundPaused(true)'), 'pagehide must bypass an early document.hidden state');
+assert.ok(guard.includes('document.addEventListener("visibilitychange", armBackgroundPause)'), 'visibility changes must pause local play');
 assert.ok(guard.includes('screen !== "game" && screen !== "multiplayer-game"'), 'background guard must stay scoped to local play');
 assert.ok(!guard.includes('online-room'), 'server-authoritative online play must not be locally paused');
 
