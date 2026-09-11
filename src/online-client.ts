@@ -109,7 +109,9 @@ function reconcileCompletedMatch(response: OnlineResponse, credentials?: OnlineC
   save.onlineMatches += 1;
   save.totalWords += self.matchFoundCount;
   save.totalScore += self.score;
-  save.roundsPlayed += 1;
+  // Lifetime score stores the whole match, so round count must advance by
+  // the actual number of timed rounds to keep average-score semantics coherent.
+  save.roundsPlayed += response.room.settings.rounds;
   if (self.matchLongestWord.length > save.longestWord.length) save.longestWord = self.matchLongestWord;
   store.save(save);
 }
