@@ -31,10 +31,10 @@ function ensureBackgroundPaused(force = false): void {
   }
 }
 
-function armBackgroundPause(force = false): void {
+function armBackgroundPause(): void {
   clearBackgroundPauseTimer();
-  if (!document.hidden && !force) return;
-  ensureBackgroundPaused(force);
+  if (!document.hidden) return;
+  ensureBackgroundPaused(false);
   // If the app was backgrounded during a countdown/deal, the pause control can
   // still be disabled. Keep checking until the playable state becomes pausable.
   if (document.hidden && !root?.querySelector(".pause-card")) {
@@ -42,8 +42,13 @@ function armBackgroundPause(force = false): void {
   }
 }
 
-document.addEventListener("visibilitychange", () => armBackgroundPause(false));
-// iOS can dispatch pagehide before document.hidden flips. Treat pagehide itself
-// as authoritative so a BFCache/app-switch transition cannot leave local play running.
-window.addEventListener("pagehide", () => armBackgroundPause(true));
+function forcePagehidePause(): void {
+  clearBackgroundPauseTimer();
+  // iOS can dispatch pagehide before document.hidden flips. Treat pagehide itself
+  // as authoritative so a BFCache/app-switch transition cannot leave local play running.
+  ensureBackgroundPaused(true);
+}
+
+document.addEventListener("visibilitychange", armBackgroundPause);
+window.addEventListener("pagehide", forcePagehidePause);
 window.addEventListener("pageshow", clearBackgroundPauseTimer);
