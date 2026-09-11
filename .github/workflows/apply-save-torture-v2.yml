@@ -26,7 +26,7 @@ jobs:
           fi
           python3 - <<'PY'
           from pathlib import Path
-          import re, subprocess
+          import subprocess
 
           text = Path('.github/workflows/apply-save-reload-torture.yml').read_text()
           text = text.replace(
@@ -39,11 +39,33 @@ jobs:
               'assert.deepEqual(sanitized.burned, [3]);',
               1,
           )
-          blocks = re.findall(r'(?ms)^        run: \|\n((?:(?:          .*|          )\n)+)', text)
+
+          lines = text.splitlines()
+          blocks = []
+          i = 0
+          while i < len(lines):
+              line = lines[i]
+              if line == '        run: |':
+                  i += 1
+                  block = []
+                  while i < len(lines):
+                      current = lines[i]
+                      if current.startswith('          '):
+                          block.append(current[10:])
+                          i += 1
+                          continue
+                      if current.strip() == '':
+                          block.append('')
+                          i += 1
+                          continue
+                      break
+                  blocks.append('\n'.join(block))
+                  continue
+              i += 1
+
           if len(blocks) < 3:
               raise SystemExit(f'Expected at least three staging run blocks, found {len(blocks)}')
-          for index, raw in enumerate(blocks[:3], start=1):
-              script = '\n'.join(line[10:] if line.startswith('          ') else line for line in raw.splitlines())
+          for index, script in enumerate(blocks[:3], start=1):
               print(f'Executing staging block {index}')
               subprocess.run(['bash', '-euo', 'pipefail', '-c', script], check=True)
           PY
