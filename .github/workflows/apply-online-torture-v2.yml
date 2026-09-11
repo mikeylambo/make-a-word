@@ -1,0 +1,238 @@
+name: Apply online failure torture v2
+
+on:
+  push:
+    branches: [fix/online-failure-torture]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/online-failure-torture
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply online recovery fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def ensure_replace(source, old, new, label):
+              if new in source:
+                  return source
+              if old not in source:
+                  raise SystemExit(f'{label}: neither old nor new form found')
+              return source.replace(old, new, 1)
+
+          room_path = Path('api/room.ts')
+          room = room_path.read_text()
+          room = ensure_replace(room,
+              'const ROOM_TTL_SECONDS = 6 * 60 * 60;\nconst PRESENCE_WINDOW_MS = 20_000;',
+              'const ROOM_TTL_SECONDS = 6 * 60 * 60;\nconst ROOM_TTL_MS = ROOM_TTL_SECONDS * 1_000;\nconst PRESENCE_WINDOW_MS = 20_000;',
+              'absolute room TTL constant')
+          room = ensure_replace(room,
+              'let redisClient: Redis | null = null;\n\nclass RoomError',
+              'let redisClient: Redis | null = null;\n\nexport function __setRedisClientForTests(client: Redis | null): void {\n  redisClient = client;\n}\n\nclass RoomError',
+              'redis test injection')
+          room = ensure_replace(room,
+              'function roomKey(code: string): string {\n  return `make-a-word:room:${code}`;\n}\n\nfunction cleanCode',
+              'function roomKey(code: string): string {\n  return `make-a-word:room:${code}`;\n}\n\nfunction roomTtlSeconds(room: StoredRoom): number {\n  return Math.max(0, Math.ceil((room.createdAt + ROOM_TTL_MS - Date.now()) / 1_000));\n}\n\nfunction roomExpiredError(): RoomError {\n  return new RoomError("That room has expired. Create a new room.", 404, "ROOM_EXPIRED");\n}\n\nfunction cleanCode',
+              'room expiry helpers')
+          room = ensure_replace(room,
+              'for (let attempt = 0; attempt < 10; attempt += 1) {',
+              'for (let attempt = 0; attempt < 16; attempt += 1) {',
+              'lock retries')
+          room = ensure_replace(room,
+              '    const room = await redis.get<StoredRoom>(roomKey(normalizedCode));\n    if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");\n    advanceExpiredRound(room);',
+              '    const room = await redis.get<StoredRoom>(roomKey(normalizedCode));\n    if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");\n    let ttl = roomTtlSeconds(room);\n    if (ttl <= 0) {\n      await redis.del(roomKey(normalizedCode));\n      throw roomExpiredError();\n    }\n    advanceExpiredRound(room);',
+              'mutation expiry check')
+          room = ensure_replace(room,
+              '    room.version += 1;\n    await redis.set(roomKey(normalizedCode), room, { ex: ROOM_TTL_SECONDS });',
+              '    room.version += 1;\n    ttl = roomTtlSeconds(room);\n    if (ttl <= 0) {\n      await redis.del(roomKey(normalizedCode));\n      throw roomExpiredError();\n    }\n    await redis.set(roomKey(normalizedCode), room, { ex: ttl });',
+              'absolute expiry write')
+          room = ensure_replace(room,
+              '    if (action.action === "rematch") {\n      requireHost(room, credentials);\n      if (room.phase !== "match-results") throw new RoomError("The rematch is not ready yet.", 409);\n      room.phase = "lobby";',
+              '    if (action.action === "rematch") {\n      requireHost(room, credentials);\n      if (room.phase !== "match-results") throw new RoomError("The rematch is not ready yet.", 409);\n      const now = Date.now();\n      room.players = room.players.filter((entry) => entry.id === room.hostPlayerId || now - entry.lastSeen < HOST_FAILOVER_MS);\n      room.phase = "lobby";',
+              'rematch stale player pruning')
+          room = ensure_replace(room,
+              '      } else {\n        player.lastSeen = 0;\n      }\n    }',
+              '      } else {\n        player.lastSeen = 0;\n        if (player.id === room.hostPlayerId) ensureActiveHost(room);\n      }\n    }',
+              'host leave transfer')
+          room = ensure_replace(room,
+              '      let room = await redis.get<StoredRoom>(roomKey(credentials.code));\n      if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");\n      requirePlayer(room, credentials);',
+              '      let room = await redis.get<StoredRoom>(roomKey(credentials.code));\n      if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");\n      if (roomTtlSeconds(room) <= 0) {\n        await redis.del(roomKey(credentials.code));\n        throw roomExpiredError();\n      }\n      requirePlayer(room, credentials);',
+              'GET expiry check')
+          room_path.write_text(room)
+
+          main_path = Path('src/main.ts')
+          main = main_path.read_text()
+          main = ensure_replace(main,
+              'function setOnlineMessage(message: string, bad = true): void {\n  onlineError = message;',
+              'function onlineFailureEndsSession(code?: string): boolean {\n  return code === "SESSION_EXPIRED" || code === "ROOM_NOT_FOUND" || code === "ROOM_EXPIRED";\n}\n\nfunction setOnlineMessage(message: string, bad = true): void {\n  onlineError = message;',
+              'terminal failure classification')
+          main = ensure_replace(main,
+              '  const response = await fetchOnlineRoom(credentials);\n  if (!response.ok) {\n    clearOnlineCredentials();\n    onlineCredentials = null;\n    showOnlineHome(code);\n    setOnlineMessage(response.error);\n    return;\n  }\n  enterOnlineRoom(response.room, credentials);',
+              '  const response = await fetchOnlineRoom(credentials);\n  if (!response.ok) {\n    if (onlineFailureEndsSession(response.code)) {\n      clearOnlineCredentials();\n      onlineCredentials = null;\n      showOnlineHome(code);\n      setOnlineMessage(response.error);\n      return;\n    }\n    onlineError = response.error;\n    const status = document.querySelector<HTMLElement>(".online-connecting p");\n    if (status) status.textContent = "Connection interrupted. Reconnecting…";\n    startOnlineSync();\n    return;\n  }\n  enterOnlineRoom(response.room, credentials);',
+              'transient reload recovery')
+          main = ensure_replace(main,
+              '  if (!response.ok) {\n    const signal = document.querySelector<HTMLElement>("#online-signal");\n    if (signal) {\n      signal.textContent = "RECONNECTING";\n      signal.classList.add("offline");\n    }\n    if (response.code === "SESSION_EXPIRED" || response.code === "ROOM_NOT_FOUND") setOnlineMessage(response.error);\n    return;\n  }',
+              '  if (!response.ok) {\n    if (onlineFailureEndsSession(response.code)) {\n      const code = onlineCredentials.code;\n      stopOnlineSync();\n      clearOnlineCredentials();\n      onlineCredentials = null;\n      onlineRoom = null;\n      showOnlineHome(code);\n      setOnlineMessage(response.error);\n      return;\n    }\n    const signal = document.querySelector<HTMLElement>("#online-signal");\n    if (signal) {\n      signal.textContent = "RECONNECTING";\n      signal.classList.add("offline");\n    }\n    return;\n  }',
+              'terminal sync cleanup')
+          main_path.write_text(main)
+
+          hard_path = Path('scripts/verify-online-hardening.mjs')
+          hard = hard_path.read_text()
+          hard = hard.replace("need(room, 'for (let attempt = 0; attempt < 10; attempt += 1)', 'lock acquisition does not retry through short contention');", "need(room, 'for (let attempt = 0; attempt < 16; attempt += 1)', 'lock acquisition does not retry through burst submission contention');")
+          if 'absolute room expiry helper is missing' not in hard:
+              marker = "need(room, 'const MAX_REQUEST_BYTES = 8_192;', 'room request body limit is missing');"
+              insert = marker + "\nneed(room, 'const ROOM_TTL_MS = ROOM_TTL_SECONDS * 1_000;', 'room lifetime is not modeled as an absolute six-hour window');\nneed(room, 'function roomTtlSeconds(room: StoredRoom): number', 'absolute room expiry helper is missing');\nneed(room, 'await redis.set(roomKey(normalizedCode), room, { ex: ttl });', 'heartbeats can still extend rooms beyond the six-hour lifetime');\nneed(room, 'if (player.id === room.hostPlayerId) ensureActiveHost(room);', 'intentional host leave does not transfer control immediately');\nneed(room, 'room.players = room.players.filter((entry) => entry.id === room.hostPlayerId || now - entry.lastSeen < HOST_FAILOVER_MS);', 'rematches retain stale disconnected players');"
+              hard = hard.replace(marker, insert, 1)
+          if 'client does not classify permanent versus transient room failures' not in hard:
+              marker = "if (!Number.isFinite(lockTtl) || lockTtl < 5_000) failures.push('room lock TTL must tolerate at least five seconds of backend latency');"
+              insert = marker + "\n\nconst main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');\nneed(main, 'function onlineFailureEndsSession(code?: string): boolean', 'client does not classify permanent versus transient room failures');\nneed(main, 'status.textContent = \"Connection interrupted. Reconnecting…\"', 'reload during a transient outage abandons the room instead of retrying');\nneed(main, 'code === \"ROOM_EXPIRED\"', 'client does not terminate an absolutely expired room session');"
+              hard = hard.replace(marker, insert, 1)
+          hard_path.write_text(hard)
+
+          pkg_path = Path('package.json')
+          pkg = pkg_path.read_text()
+          pkg = pkg.replace('"online:verify": "node scripts/verify-online-hardening.mjs",', '"online:verify": "node scripts/verify-online-hardening.mjs && node scripts/verify-online-torture.mjs",')
+          pkg_path.write_text(pkg)
+          PY
+      - name: Write executable online torture test
+        run: |
+          cat > scripts/verify-online-torture.mjs <<'EOF'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import { canSpell, countsForText } from '../src/word-rules.ts';
+
+          const runtimePath = new URL('../api/room.test-runtime.ts', import.meta.url);
+          const sourcePath = new URL('../api/room.ts', import.meta.url);
+          const roomSource = fs.readFileSync(sourcePath, 'utf8').replace('../src/word-rules.js', '../src/word-rules.ts');
+          fs.writeFileSync(runtimePath, roomSource);
+          const { default: handler, __setRedisClientForTests } = await import(`${runtimePath.href}?run=${Date.now()}`);
+
+          const dictionary = JSON.parse(fs.readFileSync(new URL('../content/server-dictionary.json', import.meta.url), 'utf8'));
+          const originalNow = Date.now;
+          let now = 1_800_000_000_000;
+          Date.now = () => now;
+          const clone = (value) => value === undefined ? undefined : structuredClone(value);
+
+          class FakeRedis {
+            constructor() { this.data = new Map(); }
+            clean(key) { const e = this.data.get(key); if (e?.expiresAt !== undefined && e.expiresAt <= Date.now()) this.data.delete(key); }
+            async get(key) { this.clean(key); return clone(this.data.get(key)?.value ?? null); }
+            async set(key, value, options = {}) { this.clean(key); if (options.nx && this.data.has(key)) return null; let expiresAt; if (options.ex !== undefined) expiresAt = Date.now() + Number(options.ex) * 1000; if (options.px !== undefined) expiresAt = Date.now() + Number(options.px); this.data.set(key, { value: clone(value), expiresAt }); return 'OK'; }
+            async del(key) { return this.data.delete(key) ? 1 : 0; }
+            async incr(key) { this.clean(key); const value = Number(this.data.get(key)?.value ?? 0) + 1; const expiresAt = this.data.get(key)?.expiresAt; this.data.set(key, { value, expiresAt }); return value; }
+            async expire(key, seconds) { this.clean(key); const e = this.data.get(key); if (!e) return 0; e.expiresAt = Date.now() + Number(seconds) * 1000; return 1; }
+            async eval(_script, keys, args) { const key = keys[0]; this.clean(key); const e = this.data.get(key); if (e?.value === args[0]) { this.data.delete(key); return 1; } return 0; }
+            peek(key) { this.clean(key); return clone(this.data.get(key)?.value); }
+            expiresAt(key) { this.clean(key); return this.data.get(key)?.expiresAt; }
+          }
+
+          const redis = new FakeRedis();
+          __setRedisClientForTests(redis);
+          async function call(method, { body, query = {}, headers = {} } = {}) {
+            let statusCode = 200; let payload;
+            const req = { method, query, body, headers: { 'x-forwarded-for': '203.0.113.9', ...headers } };
+            const res = { setHeader() {}, status(code) { statusCode = code; return this; }, json(value) { payload = value; } };
+            await handler(req, res);
+            return { status: statusCode, body: payload };
+          }
+          const post = (body) => call('POST', { body });
+          const get = (credentials) => call('GET', { query: { code: credentials.code }, headers: { authorization: `Bearer ${credentials.token}`, 'x-room-player': credentials.playerId } });
+
+          try {
+            const created = await post({ action: 'create', name: 'Host', settings: { rounds: 1, roundSeconds: 60, maxPlayers: 8 } });
+            assert.equal(created.body.ok, true);
+            const host = created.body.credentials;
+            const credentials = [host];
+            for (let i = 1; i < 8; i += 1) {
+              const joined = await post({ action: 'join', code: host.code, name: `Guest ${i}` });
+              assert.equal(joined.body.ok, true);
+              credentials.push(joined.body.credentials);
+            }
+            for (const guest of credentials.slice(1)) assert.equal((await post({ action: 'ready', credentials: guest, ready: true })).body.ok, true);
+            const started = await post({ action: 'start', credentials: host });
+            assert.equal(started.body.room.phase, 'playing');
+            const matchId = started.body.room.matchId;
+            now = started.body.room.startsAt + 1000;
+            const available = countsForText(started.body.room.phrase.text);
+            const playable = dictionary.filter((word) => word.length >= 3 && canSpell(word, available));
+            assert.ok(playable.length >= 12);
+
+            const simultaneous = await Promise.all(credentials.map((identity, i) => post({ action: 'submit', credentials: identity, word: playable[i] })));
+            assert.equal(simultaneous.filter((r) => r.body.ok).length, 8, 'eight-player burst should serialize');
+            const duplicateWord = playable[8];
+            const dupe = await Promise.all([post({ action: 'submit', credentials: host, word: duplicateWord }), post({ action: 'submit', credentials: host, word: duplicateWord })]);
+            assert.equal(dupe.filter((r) => r.body.ok).length, 1, 'duplicate race must score once');
+            assert.equal(dupe.filter((r) => !r.body.ok && r.body.code === 'DUPLICATE').length, 1);
+
+            const hostLeave = await post({ action: 'leave', credentials: host });
+            const promoted = hostLeave.body.room.players.find((p) => p.isHost);
+            assert.ok(promoted && promoted.id !== host.playerId, 'intentional host leave must transfer immediately');
+            const promotedCredentials = credentials.find((c) => c.playerId === promoted.id);
+            now = hostLeave.body.room.endsAt - 1000;
+            assert.equal((await post({ action: 'heartbeat', credentials: promotedCredentials })).body.ok, true);
+            now = hostLeave.body.room.endsAt + 1;
+            const resultsReload = await get(promotedCredentials);
+            assert.equal(resultsReload.body.room.phase, 'match-results');
+            assert.equal(resultsReload.body.room.matchId, matchId);
+            const rematch = await post({ action: 'rematch', credentials: promotedCredentials });
+            assert.equal(rematch.body.room.phase, 'lobby');
+            assert.notEqual(rematch.body.room.matchId, matchId);
+            assert.ok(!rematch.body.room.players.some((p) => p.id === host.playerId), 'departed host must not ghost the rematch lobby');
+
+            const key = `make-a-word:room:${host.code}`;
+            const stored = redis.peek(key);
+            now = stored.createdAt + 5 * 60 * 60 * 1000;
+            assert.equal((await post({ action: 'heartbeat', credentials: promotedCredentials })).body.ok, true);
+            assert.equal(redis.expiresAt(key), stored.createdAt + 6 * 60 * 60 * 1000, 'heartbeat must not extend six-hour absolute expiry');
+            now = stored.createdAt + 6 * 60 * 60 * 1000 + 1;
+            assert.equal((await get(promotedCredentials)).body.ok, false, 'expired room must not reconnect');
+
+            now = 1_900_000_000_000;
+            const created2 = await post({ action: 'create', name: 'Host 2', settings: { rounds: 1, roundSeconds: 60, maxPlayers: 4 } });
+            const host2 = created2.body.credentials;
+            const joined2 = await post({ action: 'join', code: host2.code, name: 'Guest 2' });
+            const guest2 = joined2.body.credentials;
+            await post({ action: 'ready', credentials: guest2, ready: true });
+            const started2 = await post({ action: 'start', credentials: host2 });
+            const baseline = started2.body.room.serverNow;
+            now = baseline + 15_000;
+            await post({ action: 'heartbeat', credentials: guest2 });
+            now = baseline + 29_000;
+            const migrated = await post({ action: 'heartbeat', credentials: guest2 });
+            assert.equal(migrated.body.room.players.find((p) => p.id === guest2.playerId)?.isHost, true, 'stale host should migrate within bounded grace');
+            assert.equal((await get(guest2)).body.ok, true, 'promoted host should reload successfully');
+
+            const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+            assert.ok(main.includes('Connection interrupted. Reconnecting…'));
+            assert.ok(main.includes('ROOM_EXPIRED'));
+            console.log('Online torture passed: burst submits, duplicate races, host failover, reload/results/rematch, ghost pruning, and absolute expiry are stable.');
+          } finally {
+            Date.now = originalNow;
+            __setRedisClientForTests(null);
+            fs.rmSync(runtimePath, { force: true });
+          }
+          EOF
+      - name: Verify
+        env:
+          NODE_OPTIONS: --experimental-transform-types
+        run: |
+          npm ci
+          npm run online:verify
+          npm run build
+      - name: Commit
+        run: |
+          git config user.name "Make a Word CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add api/room.ts src/main.ts scripts/verify-online-hardening.mjs scripts/verify-online-torture.mjs package.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Harden online recovery and add failure torture tests"
+          git push origin HEAD:fix/online-failure-torture
