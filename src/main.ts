@@ -205,7 +205,7 @@ function todayKey(date = new Date()): string {
 }
 
 function dailyStreak(): number {
-  const played = new Set(Object.keys(save.daily).filter((key) => (save.daily[key] ?? 0) > 0));
+  const played = new Set(Object.keys(save.daily));
   let streak = 0;
   const cursor = new Date();
   if (!played.has(cursor.toISOString().slice(0, 10))) cursor.setUTCDate(cursor.getUTCDate() - 1);
@@ -280,7 +280,9 @@ function showMenu(): void {
   stopTogetherTimer();
   stopOnlineSync();
   flowToken += 1;
-  const dailyDone = save.daily[todayKey()] ?? 0;
+  const dailyKey = todayKey();
+  const dailyPlayed = Object.prototype.hasOwnProperty.call(save.daily, dailyKey);
+  const dailyDone = save.daily[dailyKey] ?? 0;
   const streak = dailyStreak();
   const journeyMedals = Object.values(save.journeyMedals).reduce((sum, count) => sum + count, 0);
   const best = Math.max(0, ...Object.values(save.bestScores));
@@ -326,7 +328,7 @@ function showMenu(): void {
           </button>
           <button class="studio-mode studio-mode--daily" data-nav data-mode="daily">
             <span class="studio-mode__icon" aria-hidden="true">★</span>
-            <span class="studio-mode__content"><strong>DAILY<br>PHRASE</strong><small>${dailyDone ? `BEST ${dailyDone.toLocaleString()}` : "A NEW PUZZLE EVERY DAY"}<br>${streak} DAY STREAK</small><b>PLAY DAILY PHRASE <i>›</i></b></span>
+            <span class="studio-mode__content"><strong>DAILY<br>PHRASE</strong><small>${dailyPlayed ? `BEST ${dailyDone.toLocaleString()}` : "A NEW PUZZLE EVERY DAY"}<br>${streak} DAY STREAK</small><b>PLAY DAILY PHRASE <i>›</i></b></span>
             <span class="studio-scatter studio-scatter--daily" aria-hidden="true">${scatterLetters("PHRASE")}</span>
           </button>
           <button class="studio-mode studio-mode--burn" data-nav data-mode="burn">

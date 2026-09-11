@@ -70,6 +70,7 @@ need(online, 'player.longestWord = player.matchLongestWord', 'final online leade
 need(online, 'function reconcileCompletedMatch', 'completed online matches are not reconciled into lifetime progression');
 need(online, 'save.totalWords += self.matchFoundCount', 'online words are not counted in lifetime progression');
 need(online, 'save.totalScore += self.score', 'online score is not counted in lifetime progression');
+need(online, 'save.roundsPlayed += response.room.settings.rounds', 'online lifetime rounds do not match the number of completed timed rounds');
 need(online, 'save.completedOnlineMatchIds.push(response.room.matchId)', 'online match completion is not idempotent');
 
 // Challenge links must preserve a deterministic phrase/rules target without converting Daily or Trials into fake Classic runs.

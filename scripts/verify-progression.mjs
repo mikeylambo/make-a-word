@@ -54,6 +54,8 @@ need(main, 'if (earned >= 1) save.journeyUnlocked = Math.min(JOURNEY_PHRASES.len
 need(main, 'save.journeyMedals[round.phrase.id] = Math.max', 'Trial replay can regress earned medals');
 need(main, 'if (phrase && stage < save.journeyUnlocked) startRound("journey", phrase, stage);', 'locked Trial stages can bypass the progression gate');
 
+need(main, 'const played = new Set(Object.keys(save.daily));', 'zero-score Daily completions do not count toward streaks');
+need(main, 'const dailyPlayed = Object.prototype.hasOwnProperty.call(save.daily, dailyKey);', 'Daily menu cannot distinguish an unplayed day from a completed zero-score day');
 need(main, 'function todayKey(date = new Date()): string', 'Daily keys cannot be derived from the exact round-start instant');
 need(main, 'const dailyDate = mode === "daily" ? new Date() : undefined;', 'Daily round start does not capture a stable calendar instant');
 need(main, 'const phrase = phraseOverride ?? (dailyDate ? phraseForDay(dailyDate) : choosePhrase(mode));', 'Daily phrase selection is not pinned to the captured round-start instant');
