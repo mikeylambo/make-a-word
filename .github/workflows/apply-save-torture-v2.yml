@@ -1,0 +1,62 @@
+name: Apply save torture v2
+
+on:
+  push:
+    branches: [fix/save-reload-torture]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/save-reload-torture
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply corrected save torture patch
+        run: |
+          if [ -f src/run-store.ts ]; then
+            echo "Save torture patch already applied."
+            exit 0
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+
+          text = Path('.github/workflows/apply-save-reload-torture.yml').read_text()
+          text = text.replace(
+              '? [...new Set(input.burned.map((entry) => safeInt(entry, 0, 512, -1)).filter((entry) => entry >= 0))].slice(0, 512)',
+              '? [...new Set(input.burned.filter((entry): entry is number => typeof entry === "number" && Number.isInteger(entry) && entry >= 0 && entry <= 512))].slice(0, 512)',
+              1,
+          )
+          text = text.replace(
+              'assert.deepEqual(sanitized.burned, [3, 512]);',
+              'assert.deepEqual(sanitized.burned, [3]);',
+              1,
+          )
+          blocks = re.findall(r'(?ms)^        run: \|\n((?:(?:          .*|          )\n)+)', text)
+          if len(blocks) < 3:
+              raise SystemExit(f'Expected at least three staging run blocks, found {len(blocks)}')
+          for index, raw in enumerate(blocks[:3], start=1):
+              script = '\n'.join(line[10:] if line.startswith('          ') else line for line in raw.splitlines())
+              print(f'Executing staging block {index}')
+              subprocess.run(['bash', '-euo', 'pipefail', '-c', script], check=True)
+          PY
+      - name: Verify full release gate
+        run: |
+          if [ ! -f src/run-store.ts ]; then exit 1; fi
+          npm ci
+          npm run verify
+      - name: Commit verified save and reload pass
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "Make a Word CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/run-store.ts src/shell.ts src/main.ts scripts/verify-save-runtime.mjs scripts/verify-run-store.mjs package.json
+          git commit -m "Harden save and reload recovery"
+          git push origin HEAD:fix/save-reload-torture
