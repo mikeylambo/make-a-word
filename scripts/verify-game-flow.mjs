@@ -33,6 +33,13 @@ need(main, 'function showTogetherHandoff(firstTurn = false): void', 'local hando
 need(main, 'function completeTogetherRound(): void', 'local round completion is missing');
 need(main, 'function nextTogetherRound(): void', 'local next-round lifecycle is missing');
 need(main, 'function endTogetherMatch(): void', 'local final-match persistence is missing');
+const localMatchStart = main.indexOf('function endTogetherMatch(): void');
+const localMatchEnd = main.indexOf('function showTogetherResults(): void', localMatchStart);
+const localMatchCompletion = localMatchStart >= 0 && localMatchEnd > localMatchStart ? main.slice(localMatchStart, localMatchEnd) : '';
+need(localMatchCompletion, 'save.partyMatches += 1', 'local completion no longer records Party Matches');
+for (const token of ['save.totalWords', 'save.totalScore', 'save.roundsPlayed']) {
+  if (localMatchCompletion.includes(token)) failures.push(`local multiplayer still contaminates personal progression via ${token}`);
+}
 need(main, 'data-action="again-together"', 'local rematch route is missing');
 need(main, 'state.sharedSubmitted.add(result.word)', 'shared-word duplicate protection is missing');
 need(main, 'player.lives = Math.max(0, player.lives - 1)', 'Last Word strike/elimination logic is missing');
@@ -65,10 +72,18 @@ need(online, 'save.totalWords += self.matchFoundCount', 'online words are not co
 need(online, 'save.totalScore += self.score', 'online score is not counted in lifetime progression');
 need(online, 'save.completedOnlineMatchIds.push(response.room.matchId)', 'online match completion is not idempotent');
 
-// Challenge links must preserve a deterministic phrase/rules target.
+// Challenge links must preserve a deterministic phrase/rules target without converting Daily or Trials into fake Classic runs.
+need(main, 'version: 1 | 2 | 3;', 'challenge payload version contract is not backward compatible');
+need(main, 'parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3', 'challenge decoder does not accept the current payload version');
+need(main, 'parsed.duration !== undefined && parsed.duration !== 60 && parsed.duration !== 120 && parsed.duration !== 180', 'challenge decoder accepts unsupported durations');
+need(main, 'parsed.mode === "blitz" && parsed.duration !== undefined && parsed.duration !== 60', 'Blitz challenges can drift from the 60-second ruleset');
 need(main, 'phraseId: result.phrase.id', 'challenge links no longer preserve the phrase');
 need(main, 'target: result.score', 'challenge links no longer preserve the target score');
-need(main, 'duration: result.duration === 60 || result.duration === 180 ? result.duration : 120', 'challenge links no longer preserve supported Classic durations');
+need(main, 'mode: result.mode === "blitz" ? "blitz" : "classic"', 'challenge links no longer preserve Classic versus Blitz rules');
+need(main, 'duration: result.mode === "blitz" ? 60 : result.duration === 60 || result.duration === 180 ? result.duration : 120', 'challenge links no longer preserve the supported source duration');
+need(main, 'if (!result || (result.mode !== "classic" && result.mode !== "blitz")) return;', 'Daily/Trials/Burn results can still be shared as misleading score challenges');
+need(main, 'result.mode === "classic" || result.mode === "blitz" ? `<button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>` : ""', 'challenge CTA is not restricted to shareable rulesets');
+need(main, 'const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}:${challengeDuration}`;', 'challenge completion identity does not distinguish duration/rules contracts');
 
 // Leaving the tab during local/solo play must not burn live timers in the background.
 need(index, '/src/runtime-guard.ts', 'runtime safety guard is not loaded');

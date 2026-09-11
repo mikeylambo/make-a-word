@@ -65,7 +65,7 @@ type TogetherState = {
 };
 
 type ChallengePayload = {
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   phraseId: string;
   target: number;
   mode: "classic" | "blitz";
@@ -235,9 +235,11 @@ function decodeChallenge(value: string | null): ChallengePayload | null {
   try {
     const padded = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
     const parsed = JSON.parse(atob(padded)) as Partial<ChallengePayload>;
-    if (parsed.version !== 1 && parsed.version !== 2 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;
+    if (parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3 || typeof parsed.phraseId !== "string" || typeof parsed.target !== "number") return null;
     if (!Number.isSafeInteger(parsed.target) || parsed.target < 0 || parsed.target > 10_000_000) return null;
     if (parsed.mode !== "classic" && parsed.mode !== "blitz") return null;
+    if (parsed.duration !== undefined && parsed.duration !== 60 && parsed.duration !== 120 && parsed.duration !== 180) return null;
+    if (parsed.mode === "blitz" && parsed.duration !== undefined && parsed.duration !== 60) return null;
     if (!PHRASES.some((phrase) => phrase.id === parsed.phraseId)) return null;
     return parsed as ChallengePayload;
   } catch {
@@ -1213,11 +1215,8 @@ function endTogetherMatch(): void {
   together.ended = true;
   stopTogetherTimer();
   audio.play("end", save.settings.sound);
-  const words = together.players.reduce((sum, player) => sum + player.found.length, 0);
-  const score = together.players.reduce((sum, player) => sum + player.score, 0);
-  save.totalWords += words;
-  save.totalScore += score;
-  save.roundsPlayed += 1;
+  // A local match belongs to everyone sharing the device, so it must not
+  // masquerade as the save owner's personal word/score/round progression.
   save.partyMatches += 1;
   store.save(save);
   showTogetherResults();
@@ -1259,7 +1258,7 @@ function showChallengeLanding(): void {
     <section class="challenge-hero">
       <span class="eyebrow">A PLAYER CHALLENGED YOU</span>
       <h2>Can you beat<br>${challenge.target.toLocaleString()}?</h2>
-      <p>You will get the exact same phrase and ${challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120)}-second Classic rules.</p>
+      <p>You will get the exact same phrase and ${challenge.duration ?? (challenge.mode === "blitz" ? 60 : 120)}-second ${challenge.mode === "blitz" ? "Blitz" : "Classic"} rules.</p>
       <div class="challenge-preview"><span>THE PHRASE</span><strong>${escapeHtml(phraseDisplayText(phrase))}</strong><small>${escapeHtml(phrase.label)}</small></div>
       <div class="challenge-actions"><button class="primary-button primary-button--wide" data-nav data-action="play-challenge">PLAY CHALLENGE</button><button class="text-button" data-nav data-action="dismiss-challenge">NOT NOW</button></div>
     </section>
@@ -1282,11 +1281,11 @@ function dismissChallenge(): void {
 
 function challengeUrlFor(result: RoundState): string {
   const payload: ChallengePayload = {
-    version: 2,
+    version: 3,
     phraseId: result.phrase.id,
     target: result.score,
-    mode: "classic",
-    duration: result.duration === 60 || result.duration === 180 ? result.duration : 120
+    mode: result.mode === "blitz" ? "blitz" : "classic",
+    duration: result.mode === "blitz" ? 60 : result.duration === 60 || result.duration === 180 ? result.duration : 120
   };
   const url = new URL(location.href);
   url.search = "";
@@ -1297,7 +1296,7 @@ function challengeUrlFor(result: RoundState): string {
 
 async function shareLastResult(button: HTMLElement): Promise<void> {
   const result = lastResult;
-  if (!result || result.mode === "burn") return;
+  if (!result || (result.mode !== "classic" && result.mode !== "blitz")) return;
   const url = challengeUrlFor(result);
   const text = `I scored ${result.score.toLocaleString()} in Make a Word. Can you beat me?`;
   const canShare = typeof navigator.share === "function";
@@ -1986,7 +1985,8 @@ function endRound(): void {
     if (earned >= 1) save.journeyUnlocked = Math.min(JOURNEY_PHRASES.length, Math.max(save.journeyUnlocked, round.journeyStage + 2));
   }
   if (round.challengeTarget !== undefined && round.score > round.challengeTarget) {
-    const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}`;
+    const challengeDuration = round.mode === "blitz" ? 60 : round.duration === 60 || round.duration === 180 ? round.duration : 120;
+    const challengeId = `${round.phrase.id}:${round.challengeTarget}:${round.mode}:${challengeDuration}`;
     if (!save.completedChallengeIds.includes(challengeId)) {
       save.completedChallengeIds.push(challengeId);
       save.challengesCompleted += 1;
@@ -2039,12 +2039,11 @@ function showResults(): void {
       ${result.mode === "journey" ? `
         ${hasNextJourneyStage && journeyMedals ? `<button class="primary-button" data-nav data-action="journey-next">NEXT TRIAL</button>` : `<button class="primary-button" data-nav data-action="again">REPLAY TRIAL</button>`}
         ${hasNextJourneyStage && journeyMedals ? `<button class="secondary-button" data-nav data-action="again">REPLAY TRIAL</button>` : ""}
-        <button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>
         <button class="text-button" data-nav data-action="journey">BACK TO TRIALS</button>
       ` : `
         <button class="primary-button" data-nav data-action="again">PLAY AGAIN</button>
         <button class="secondary-button" data-nav data-action="modes">CHANGE MODE</button>
-        ${result.mode !== "burn" ? `<button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>` : ""}
+        ${result.mode === "classic" || result.mode === "blitz" ? `<button class="secondary-button" data-nav data-action="share-result">CHALLENGE A FRIEND</button>` : ""}
         <button class="text-button" data-nav data-action="menu">MAIN MENU</button>
       `}
     </section>
