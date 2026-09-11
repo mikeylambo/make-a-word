@@ -539,6 +539,10 @@ function showOnlineConnecting(code: string): void {
   `, { back: "online-cancel" }));
 }
 
+function onlineFailureEndsSession(code?: string): boolean {
+  return code === "SESSION_EXPIRED" || code === "ROOM_NOT_FOUND" || code === "ROOM_EXPIRED";
+}
+
 function setOnlineMessage(message: string, bad = true): void {
   onlineError = message;
   const element = document.querySelector<HTMLElement>("#online-message, #online-feedback");
@@ -603,10 +607,17 @@ async function resumeOnlineRoom(code: string): Promise<void> {
   showOnlineConnecting(code);
   const response = await fetchOnlineRoom(credentials);
   if (!response.ok) {
-    clearOnlineCredentials();
-    onlineCredentials = null;
-    showOnlineHome(code);
-    setOnlineMessage(response.error);
+    if (onlineFailureEndsSession(response.code)) {
+      clearOnlineCredentials();
+      onlineCredentials = null;
+      showOnlineHome(code);
+      setOnlineMessage(response.error);
+      return;
+    }
+    onlineError = response.error;
+    const status = document.querySelector<HTMLElement>(".online-connecting p");
+    if (status) status.textContent = "Connection interrupted. Reconnecting…";
+    startOnlineSync();
     return;
   }
   enterOnlineRoom(response.room, credentials);
@@ -629,12 +640,21 @@ async function syncOnlineRoom(): Promise<void> {
   if (heartbeat) onlineNextHeartbeatAt = Date.now() + 8_000;
   onlineBusy = false;
   if (!response.ok) {
+    if (onlineFailureEndsSession(response.code)) {
+      const code = onlineCredentials.code;
+      stopOnlineSync();
+      clearOnlineCredentials();
+      onlineCredentials = null;
+      onlineRoom = null;
+      showOnlineHome(code);
+      setOnlineMessage(response.error);
+      return;
+    }
     const signal = document.querySelector<HTMLElement>("#online-signal");
     if (signal) {
       signal.textContent = "RECONNECTING";
       signal.classList.add("offline");
     }
-    if (response.code === "SESSION_EXPIRED" || response.code === "ROOM_NOT_FOUND") setOnlineMessage(response.error);
     return;
   }
   applyOnlineRoom(response.room);

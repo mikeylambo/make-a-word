@@ -79,6 +79,7 @@ const WORDS = new Set<string>(dictionary);
 const WORD_RANKS = new Map<string, number | undefined>(dictionary.map((word, index) => [word, wordRanks[index]]));
 const BLOCKED_CODE_PARTS = blockedWords.filter((word) => word.length >= 3);
 const ROOM_TTL_SECONDS = 6 * 60 * 60;
+const ROOM_TTL_MS = ROOM_TTL_SECONDS * 1_000;
 const PRESENCE_WINDOW_MS = 20_000;
 const HOST_FAILOVER_MS = 28_000;
 const ROOM_LOCK_TTL_MS = 5_000;
@@ -88,6 +89,10 @@ const VALID_ACTIONS = new Set<OnlineAction["action"]>([
   "create", "join", "ready", "heartbeat", "kick", "start", "submit", "next-round", "rematch", "leave"
 ]);
 let redisClient: Redis | null = null;
+
+export function __setRedisClientForTests(client: Redis | null): void {
+  redisClient = client;
+}
 
 class RoomError extends Error {
   constructor(message: string, readonly status = 400, readonly code?: string) {
@@ -106,6 +111,14 @@ function getRedis(): Redis {
 
 function roomKey(code: string): string {
   return `make-a-word:room:${code}`;
+}
+
+function roomTtlSeconds(room: StoredRoom): number {
+  return Math.max(0, Math.ceil((room.createdAt + ROOM_TTL_MS - Date.now()) / 1_000));
+}
+
+function roomExpiredError(): RoomError {
+  return new RoomError("That room has expired. Create a new room.", 404, "ROOM_EXPIRED");
 }
 
 function cleanCode(value: unknown): string {
@@ -293,7 +306,7 @@ async function acquireLock(code: string): Promise<string> {
   const redis = getRedis();
   const key = `${roomKey(code)}:lock`;
   const token = makeId(12);
-  for (let attempt = 0; attempt < 10; attempt += 1) {
+  for (let attempt = 0; attempt < 16; attempt += 1) {
     const acquired = await redis.set(key, token, { nx: true, px: ROOM_LOCK_TTL_MS });
     if (acquired) return token;
     await new Promise((resolve) => setTimeout(resolve, 30 + attempt * 25));
@@ -319,11 +332,21 @@ async function mutateRoom<T>(code: string, mutation: (room: StoredRoom) => Promi
   try {
     const room = await redis.get<StoredRoom>(roomKey(normalizedCode));
     if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");
+    let ttl = roomTtlSeconds(room);
+    if (ttl <= 0) {
+      await redis.del(roomKey(normalizedCode));
+      throw roomExpiredError();
+    }
     advanceExpiredRound(room);
     ensureActiveHost(room);
     const value = await mutation(room);
     room.version += 1;
-    await redis.set(roomKey(normalizedCode), room, { ex: ROOM_TTL_SECONDS });
+    ttl = roomTtlSeconds(room);
+    if (ttl <= 0) {
+      await redis.del(roomKey(normalizedCode));
+      throw roomExpiredError();
+    }
+    await redis.set(roomKey(normalizedCode), room, { ex: ttl });
     return { room, value };
   } finally {
     await releaseLock(normalizedCode, lock).catch(() => undefined);
@@ -454,6 +477,8 @@ async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ ro
     if (action.action === "rematch") {
       requireHost(room, credentials);
       if (room.phase !== "match-results") throw new RoomError("The rematch is not ready yet.", 409);
+      const now = Date.now();
+      room.players = room.players.filter((entry) => entry.id === room.hostPlayerId || now - entry.lastSeen < HOST_FAILOVER_MS);
       room.phase = "lobby";
       room.matchId = makeId(8);
       room.roundNumber = 0;
@@ -476,6 +501,7 @@ async function handleAction(action: OnlineAction, req: ApiRequest): Promise<{ ro
         }
       } else {
         player.lastSeen = 0;
+        if (player.id === room.hostPlayerId) ensureActiveHost(room);
       }
     }
   });
@@ -501,6 +527,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
       const redis = getRedis();
       let room = await redis.get<StoredRoom>(roomKey(credentials.code));
       if (!room) throw new RoomError("That room could not be found. Check the code and try again.", 404, "ROOM_NOT_FOUND");
+      if (roomTtlSeconds(room) <= 0) {
+        await redis.del(roomKey(credentials.code));
+        throw roomExpiredError();
+      }
       requirePlayer(room, credentials);
       if (room.phase === "playing" && room.endsAt && Date.now() >= room.endsAt) {
         room = (await mutateRoom(credentials.code, (current) => requirePlayer(current, credentials))).room;
