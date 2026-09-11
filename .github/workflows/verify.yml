@@ -20,7 +20,7 @@ jobs:
   browser-smoke:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,8 +31,8 @@ jobs:
       - name: Install temporary browser harness
         run: |
           npm install --no-save --package-lock=false playwright@1.55.0
-          npx playwright install --with-deps chromium
-      - name: Run Chromium release smoke
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Run cross-browser release smoke
         run: |
           npx vite preview --host 127.0.0.1 --port 4173 > /tmp/make-a-word-preview.log 2>&1 &
           PREVIEW_PID=$!
