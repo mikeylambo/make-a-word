@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 
 const baseURL = process.env.BASE_URL ?? 'http://127.0.0.1:4173';
 
@@ -15,19 +15,19 @@ async function waitForPlayableWordInput(page) {
   }, null, { timeout: 15_000 });
 }
 
-async function desktopJourney(browser) {
+async function desktopJourney(browser, engine) {
   const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
   const page = await context.newPage();
 
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await waitForScreen(page, 'menu');
-  assert.equal(await page.locator('[data-mode="classic"]').count(), 1, 'Classic must be directly available from the menu');
-  assert.equal(await page.locator('[data-mode="daily"]').count(), 1, 'Daily must be directly available from the menu');
-  assert.equal(await page.locator('[data-mode="burn"]').count(), 1, 'Burn must be directly available from the menu');
+  assert.equal(await page.locator('[data-mode="classic"]').count(), 1, `${engine}: Classic must be directly available from the menu`);
+  assert.equal(await page.locator('[data-mode="daily"]').count(), 1, `${engine}: Daily must be directly available from the menu`);
+  assert.equal(await page.locator('[data-mode="burn"]').count(), 1, `${engine}: Burn must be directly available from the menu`);
 
   await page.locator('[data-action="settings"]').first().click();
   await waitForScreen(page, 'settings');
-  assert.equal(await page.locator('[data-action="settings-back"]').count(), 1, 'Settings must expose a back action');
+  assert.equal(await page.locator('[data-action="settings-back"]').count(), 1, `${engine}: Settings must expose a back action`);
   await page.locator('[data-action="settings-back"]').click();
   await waitForScreen(page, 'menu');
 
@@ -38,7 +38,7 @@ async function desktopJourney(browser) {
   await input.fill('XYZ');
   await input.press('Enter');
   await waitForScreen(page, 'game');
-  assert.equal(await page.locator('#app[data-screen="settings"]').count(), 0, 'Enter inside word input must never open Settings');
+  assert.equal(await page.locator('#app[data-screen="settings"]').count(), 0, `${engine}: Enter inside word input must never open Settings`);
 
   // Give the round a real timer tick so its resumable snapshot is persisted.
   await page.waitForTimeout(1_250);
@@ -46,14 +46,14 @@ async function desktopJourney(browser) {
   await page.reload({ waitUntil: 'networkidle' });
   await waitForScreen(page, 'game');
   await waitForPlayableWordInput(page);
-  assert.ok((await page.locator('.word-entry input').count()) === 1, 'Recent solo run must restore after reload');
+  assert.equal(await page.locator('.word-entry input').count(), 1, `${engine}: recent solo run must restore after reload`);
   const timeAfterReload = await page.locator('.hud-stat strong').allTextContents();
-  assert.ok(timeAfterReload.length > 0 && timeBeforeReload.length > 0, 'HUD must survive round reload recovery');
+  assert.ok(timeAfterReload.length > 0 && timeBeforeReload.length > 0, `${engine}: HUD must survive round reload recovery`);
 
   await context.close();
 }
 
-async function mobileJourney(browser) {
+async function mobileJourney(browser, engine) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 3,
@@ -65,7 +65,7 @@ async function mobileJourney(browser) {
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await waitForScreen(page, 'menu');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  assert.ok(overflow <= 1, `mobile menu overflows horizontally by ${overflow}px`);
+  assert.ok(overflow <= 1, `${engine}: mobile menu overflows horizontally by ${overflow}px`);
 
   await page.locator('[data-mode="classic"]').click();
   await waitForScreen(page, 'game');
@@ -81,12 +81,12 @@ async function mobileJourney(browser) {
     autocorrect: 'off',
     autocapitalize: 'characters',
     spellcheck: 'false'
-  });
+  }, `${engine}: mobile word-entry metadata drifted`);
 
   await page.locator('.word-entry input').fill('XYZ');
   await page.locator('.word-entry input').press('Enter');
   await waitForScreen(page, 'game');
-  assert.equal(await page.locator('#app[data-screen="settings"]').count(), 0, 'mobile Enter must remain scoped to word submission');
+  assert.equal(await page.locator('#app[data-screen="settings"]').count(), 0, `${engine}: mobile Enter must remain scoped to word submission`);
 
   await context.close();
 }
@@ -106,17 +106,27 @@ async function offlineJourney(browser) {
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await waitForScreen(page, 'menu');
-  assert.equal(await page.locator('[data-mode="classic"]').count(), 1, 'cached app shell must boot offline');
+  assert.equal(await page.locator('[data-mode="classic"]').count(), 1, 'Chromium: cached app shell must boot offline');
   await context.setOffline(false);
   await context.close();
 }
 
-const browser = await chromium.launch({ headless: true });
-try {
-  await desktopJourney(browser);
-  await mobileJourney(browser);
-  await offlineJourney(browser);
-  console.log('Browser smoke passed: desktop navigation/input, round reload recovery, mobile form behavior/layout, and offline app-shell boot all work in Chromium.');
-} finally {
-  await browser.close();
+const engines = [
+  ['Chromium', chromium, true],
+  ['Firefox', firefox, false],
+  ['WebKit', webkit, true]
+];
+
+for (const [name, browserType, runMobile] of engines) {
+  const browser = await browserType.launch({ headless: true });
+  try {
+    await desktopJourney(browser, name);
+    if (runMobile) await mobileJourney(browser, name);
+    if (name === 'Chromium') await offlineJourney(browser);
+    console.log(`${name} browser smoke passed.`);
+  } finally {
+    await browser.close();
+  }
 }
+
+console.log('Cross-browser smoke passed: Chromium, Firefox, and WebKit desktop journeys are stable; Chromium/WebKit mobile behavior is stable; Chromium offline app-shell recovery works.');
