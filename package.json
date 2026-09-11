@@ -22,6 +22,7 @@
     "themes:verify": "node scripts/verify-themes.mjs",
     "board:verify": "node scripts/verify-board.mjs",
     "mobile:verify": "node scripts/verify-mobile.mjs && node scripts/verify-mobile-runtime.mjs",
+    "device:verify": "node scripts/verify-device-acceptance.mjs",
     "menu:verify": "node scripts/verify-menu.mjs",
     "flow:verify": "node scripts/verify-game-flow.mjs",
     "shell:verify": "node scripts/verify-shell-integrity.mjs",
@@ -33,7 +34,7 @@
     "lifecycle:verify": "node scripts/verify-url-lifecycle.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",
-    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run rules:runtime && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run menu:verify && npm run flow:verify && npm run shell:verify && npm run save:runtime && npm run telemetry:verify && npm run online:verify && npm run progression:verify && npm run pwa:verify && npm run lifecycle:verify && npm run build"
+    "verify": "npm run dictionary:server:check && npm run analyze && npm run phrases:review && npm run doctor && npm run burn:benchmark && npm run scoring:verify && npm run rules:runtime && npm run themes:verify && npm run board:verify && npm run mobile:verify && npm run device:verify && npm run menu:verify && npm run flow:verify && npm run shell:verify && npm run save:runtime && npm run telemetry:verify && npm run online:verify && npm run progression:verify && npm run pwa:verify && npm run lifecycle:verify && npm run build"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.3"
