@@ -27,7 +27,7 @@
     "shell:verify": "node scripts/verify-shell-integrity.mjs",
     "save:runtime": "node scripts/verify-save-runtime.mjs",
     "telemetry:verify": "node scripts/verify-telemetry.mjs",
-    "online:verify": "node scripts/verify-online-hardening.mjs",
+    "online:verify": "node scripts/verify-online-hardening.mjs && node scripts/verify-online-torture.mjs",
     "progression:verify": "node scripts/verify-progression.mjs",
     "doctor": "node scripts/phrase-doctor.mjs",
     "metrics": "node scripts/metrics.mjs",

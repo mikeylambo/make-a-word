@@ -9,13 +9,18 @@ const reject = (source, token, message) => { if (source.includes(token)) failure
 need(room, 'const HOST_FAILOVER_MS = 28_000;', 'host failover is not bounded to a short recovery window');
 need(room, 'const ROOM_LOCK_TTL_MS = 5_000;', 'room lock TTL is too fragile for network latency');
 need(room, 'const MAX_REQUEST_BYTES = 8_192;', 'room request body limit is missing');
+need(room, 'const ROOM_TTL_MS = ROOM_TTL_SECONDS * 1_000;', 'room lifetime is not modeled as an absolute six-hour window');
+need(room, 'function roomTtlSeconds(room: StoredRoom): number', 'absolute room expiry helper is missing');
+need(room, 'await redis.set(roomKey(normalizedCode), room, { ex: ttl });', 'heartbeats can still extend rooms beyond the six-hour lifetime');
+need(room, 'if (player.id === room.hostPlayerId) ensureActiveHost(room);', 'intentional host leave does not transfer control immediately');
+need(room, 'room.players = room.players.filter((entry) => entry.id === room.hostPlayerId || now - entry.lastSeen < HOST_FAILOVER_MS);', 'rematches retain stale disconnected players');
 need(room, 'const VALID_ACTIONS = new Set<OnlineAction["action"]>', 'runtime online action allowlist is missing');
 for (const action of ['create', 'join', 'ready', 'heartbeat', 'kick', 'start', 'submit', 'next-round', 'rematch', 'leave']) {
   need(room, `"${action}"`, `online action is not represented in the runtime contract: ${action}`);
 }
 need(room, 'now - host.lastSeen < HOST_FAILOVER_MS', 'inactive hosts do not transfer using the bounded failover threshold');
 need(room, 'px: ROOM_LOCK_TTL_MS', 'room mutations do not use the hardened lock TTL');
-need(room, 'for (let attempt = 0; attempt < 10; attempt += 1)', 'lock acquisition does not retry through short contention');
+need(room, 'for (let attempt = 0; attempt < 16; attempt += 1)', 'lock acquisition does not retry through burst submission contention');
 need(room, 'const created = await redis.set(roomKey(code), room, { nx: true, ex: ROOM_TTL_SECONDS });', 'room creation is not atomic');
 reject(room, 'redis.exists(roomKey(candidate))', 'room creation still has an exists-then-create race');
 need(room, 'if (code.length !== 6) throw new RoomError("Enter a six-character room code.");', 'GET room lookups do not reject malformed codes before Redis access');
@@ -40,6 +45,11 @@ if (!Number.isFinite(presence) || !Number.isFinite(failover) || failover <= pres
   failures.push('host failover must allow brief reconnect grace but recover within 30 seconds');
 }
 if (!Number.isFinite(lockTtl) || lockTtl < 5_000) failures.push('room lock TTL must tolerate at least five seconds of backend latency');
+
+const main = fs.readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+need(main, 'function onlineFailureEndsSession(code?: string): boolean', 'client does not classify permanent versus transient room failures');
+need(main, 'status.textContent = "Connection interrupted. Reconnecting…"', 'reload during a transient outage abandons the room instead of retrying');
+need(main, 'code === "ROOM_EXPIRED"', 'client does not terminate an absolutely expired room session');
 
 if (failures.length) {
   console.error(`Online hardening gate failed:\n- ${failures.join('\n- ')}`);
