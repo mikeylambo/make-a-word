@@ -117,3 +117,37 @@ assert.equal(new SaveStore('test.private').load().totalWords, 3, 'memory fallbac
 globalThis.localStorage = workingStorage;
 
 console.log('Save runtime passed: stale increments add without duplication, settings survive stale writers, malformed data is sanitized, and blocked storage keeps the session alive.');
+
+async function isolatedSaveStore(tag) {
+  const isolatedCompiled = ts.transpileModule(`${shellSource}\n// isolated:${tag}`, {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 }
+  }).outputText;
+  const url = `data:text/javascript;base64,${Buffer.from(isolatedCompiled).toString('base64')}`;
+  return (await import(url)).SaveStore;
+}
+
+data.delete('test.real-tabs');
+const TabAStore = await isolatedSaveStore('a');
+const TabBStore = await isolatedSaveStore('b');
+const tabA = new TabAStore('test.real-tabs');
+const tabB = new TabBStore('test.real-tabs');
+const tabASave = tabA.load();
+const tabBSave = tabB.load();
+tabASave.totalWords += 4;
+tabASave.totalScore += 900;
+tabA.save(tabASave);
+tabBSave.totalWords += 6;
+tabBSave.totalScore += 1100;
+tabB.save(tabBSave);
+const tabResult = JSON.parse(data.get('test.real-tabs'));
+assert.equal(tabResult.totalWords, 10, 'separate tabs must add stale word deltas instead of overwriting');
+assert.equal(tabResult.totalScore, 2000, 'separate tabs must add stale score deltas instead of overwriting');
+
+data.set('test.legacy', JSON.stringify({ bestScores: { blitz: 4321 }, totalWords: 11, settings: { sound: false } }));
+const legacy = new SaveStore('test.legacy').load();
+assert.equal(legacy.bestScores['classic:60'], 4321, 'legacy Blitz score must migrate into 60-second Classic');
+assert.equal(legacy.totalWords, 11);
+assert.equal(legacy.settings.sound, false);
+assert.equal(legacy.journeyUnlocked, 1, 'missing newer save fields must receive safe defaults');
+
+console.log('Extended save runtime passed: legacy saves migrate and genuinely separate tab modules reconcile their stale deltas.');

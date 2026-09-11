@@ -179,13 +179,14 @@ export class SaveStore {
 
   save(data: SaveData): void {
     let previous = MEMORY_SAVES.get(this.key);
-    if (!previous) {
-      try {
-        const raw = localStorage.getItem(this.key);
-        if (raw) previous = sanitizeSave(JSON.parse(raw));
-      } catch {
-        // Fall through to the default snapshot below.
-      }
+    try {
+      // Always re-read the persisted snapshot before merging. Separate tabs have
+      // separate module memory, so memory-first writes can otherwise overwrite
+      // legitimate progress or settings produced by another live tab.
+      const raw = localStorage.getItem(this.key);
+      if (raw) previous = sanitizeSave(JSON.parse(raw));
+    } catch {
+      // Fall through to the in-memory snapshot when storage is unavailable.
     }
     const current = previous ?? sanitizeSave(DEFAULT_SAVE);
     const baseline = SAVE_BASELINES.get(data) ?? current;
