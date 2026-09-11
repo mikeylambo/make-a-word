@@ -25,7 +25,7 @@
     "menu:verify": "node scripts/verify-menu.mjs",
     "flow:verify": "node scripts/verify-game-flow.mjs",
     "shell:verify": "node scripts/verify-shell-integrity.mjs",
-    "save:runtime": "node scripts/verify-save-runtime.mjs",
+    "save:runtime": "node scripts/verify-save-runtime.mjs && node scripts/verify-run-store.mjs",
     "telemetry:verify": "node scripts/verify-telemetry.mjs",
     "online:verify": "node scripts/verify-online-hardening.mjs && node --experimental-transform-types scripts/verify-online-torture.mjs",
     "progression:verify": "node scripts/verify-progression.mjs",

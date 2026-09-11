@@ -4,6 +4,7 @@ import "./layered-menu.css";
 import { installMobileExperience } from "./mobile";
 import { JOURNEY_PHRASES, PHRASES, phraseDisplayText, phraseForDay, randomPhrase, type PhraseEntry } from "./phrases";
 import { SaveStore, ScreenManager, MenuNavigator, TinyAudio, type SaveData, type ScreenId } from "./shell";
+import { RunStore, resumeGapMs, resumedTimeLeft, type RunSnapshot } from "./run-store";
 import {
   clearOnlineCredentials,
   fetchOnlineRoom,
@@ -149,6 +150,7 @@ if (!appRoot) throw new Error("Missing #app root");
 installMobileExperience(appRoot);
 
 const store = new SaveStore();
+const runStore = new RunStore();
 let save: SaveData = store.load();
 telemetry.enabled = save.settings.analytics && navigator.doNotTrack !== "1";
 const screens = new ScreenManager(appRoot);
@@ -226,6 +228,104 @@ function togetherTurnDuration(mode: TogetherMode): number {
   return 12;
 }
 
+function persistRoundSnapshot(): void {
+  const state = round;
+  if (!state || state.ended || state.starting || state.dealing) return;
+  const now = performance.now();
+  const capturedAt = state.paused && state.comboFrozenAt ? state.comboFrozenAt : now;
+  const comboAgeMs = state.lastValidAt ? Math.max(0, capturedAt - state.lastValidAt) : 0;
+  const startedElapsedMs = state.startedAt ? Math.max(0, capturedAt - state.startedAt) : 0;
+  runStore.save({
+    version: 1,
+    savedAt: Date.now(),
+    mode: state.mode,
+    phraseId: state.phrase.id,
+    score: state.score,
+    duration: state.duration,
+    timeLeft: state.timeLeft,
+    submitted: [...state.submitted],
+    found: state.found.map((entry) => ({ ...entry })),
+    burned: [...state.burned],
+    usedLetters: [...state.usedLetters],
+    combo: state.combo,
+    chainBank: state.chainBank,
+    chainLength: state.chainLength,
+    bestCombo: state.bestCombo,
+    comboAgeMs,
+    startedElapsedMs,
+    boardNumber: state.boardNumber,
+    boardsCleared: state.boardsCleared,
+    boardWords: state.boardWords,
+    boardCandidates: [...state.boardCandidates],
+    journeyStage: state.journeyStage,
+    challengeTarget: state.challengeTarget,
+    dailyKey: state.dailyKey,
+    paused: state.paused,
+    newBest: state.newBest,
+    firstWordTracked: state.firstWordTracked
+  });
+}
+
+function restoreRoundSnapshot(snapshot: RunSnapshot): boolean {
+  const phrase = PHRASES.find((entry) => entry.id === snapshot.phraseId)
+    ?? JOURNEY_PHRASES.find((entry) => entry.id === snapshot.phraseId);
+  if (!phrase) {
+    runStore.clear();
+    return false;
+  }
+  stopTimer();
+  stopTogetherTimer();
+  flowToken += 1;
+  const gapMs = resumeGapMs(snapshot);
+  const remaining = resumedTimeLeft(snapshot);
+  const now = performance.now();
+  round = {
+    mode: snapshot.mode,
+    phrase,
+    score: snapshot.score,
+    duration: snapshot.duration,
+    timeLeft: remaining,
+    submitted: new Set(snapshot.submitted),
+    found: snapshot.found.map((entry) => ({ ...entry })),
+    burned: new Set(snapshot.burned),
+    usedLetters: new Set(snapshot.usedLetters),
+    combo: snapshot.combo,
+    chainBank: snapshot.chainBank,
+    chainLength: snapshot.chainLength,
+    bestCombo: snapshot.bestCombo,
+    lastValidAt: snapshot.comboAgeMs ? now - snapshot.comboAgeMs - gapMs : 0,
+    comboFrozenAt: snapshot.paused && snapshot.comboAgeMs ? now : 0,
+    boardNumber: snapshot.boardNumber,
+    boardsCleared: snapshot.boardsCleared,
+    boardWords: snapshot.boardWords,
+    boardCandidates: [...snapshot.boardCandidates],
+    journeyStage: snapshot.journeyStage,
+    challengeTarget: snapshot.challengeTarget,
+    dailyKey: snapshot.dailyKey,
+    starting: false,
+    dealing: false,
+    paused: snapshot.paused,
+    ended: false,
+    newBest: snapshot.newBest,
+    startedAt: snapshot.startedElapsedMs ? now - snapshot.startedElapsedMs - gapMs : now,
+    firstWordTracked: snapshot.firstWordTracked
+  };
+  lastPhraseText = phrase.text;
+  renderGame();
+  if (remaining <= 0) {
+    endRound();
+    return true;
+  }
+  if (snapshot.paused) {
+    togglePause(true);
+  } else {
+    setGameControlsDisabled(false);
+    focusWordInput();
+    timerId = window.setInterval(tick, 1000);
+  }
+  return true;
+}
+
 function encodeChallenge(payload: ChallengePayload): string {
   return btoa(JSON.stringify(payload)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
@@ -279,6 +379,7 @@ function showMenu(): void {
   stopTimer();
   stopTogetherTimer();
   stopOnlineSync();
+  runStore.clear();
   flowToken += 1;
   const dailyKey = todayKey();
   const dailyPlayed = Object.prototype.hasOwnProperty.call(save.daily, dailyKey);
@@ -1348,6 +1449,7 @@ function choosePhrase(mode: ModeId): PhraseEntry {
 function startRound(mode: ModeId, phraseOverride?: PhraseEntry, journeyStage?: number, challengeTarget?: number, durationOverride?: number): void {
   stopTimer();
   stopTogetherTimer();
+  runStore.clear();
   const token = ++flowToken;
   const dailyDate = mode === "daily" ? new Date() : undefined;
   const phrase = phraseOverride ?? (dailyDate ? phraseForDay(dailyDate) : choosePhrase(mode));
@@ -1403,6 +1505,7 @@ async function runRoundCountdown(token: number): Promise<void> {
   audio.play("go", save.settings.sound);
   round.starting = false;
   round.startedAt = performance.now();
+  persistRoundSnapshot();
   setGameControlsDisabled(false);
   focusWordInput();
   await delay(650);
@@ -1612,6 +1715,7 @@ function submitCurrentWord(): void {
   }
   round.boardWords += 1;
   if (round.mode === "burn") round.burned = burnLetters(round.phrase.text, result.word, round.burned);
+  persistRoundSnapshot();
 
   input.value = "";
   audio.playAccept(result.word.length, rarity, round.chainLength, save.settings.sound);
@@ -1733,6 +1837,7 @@ function cashChain(announce = true): number {
   round.lastValidAt = 0;
   clearComboMeter();
   updateGameHud(previousScore);
+  persistRoundSnapshot();
   if (announce) {
     showEvent(`+${payout.toLocaleString()}`, "CHAIN BANKED", "event-card--board");
     audio.play("bank", save.settings.sound);
@@ -1835,6 +1940,7 @@ async function drainScoreFx(): Promise<void> {
 function tick(): void {
   if (!round || round.paused || round.dealing || round.ended) return;
   round.timeLeft -= 1;
+  persistRoundSnapshot();
   const time = document.querySelector<HTMLElement>("#time-value");
   const game = document.querySelector<HTMLElement>(".game-screen");
   if (time) {
@@ -1946,6 +2052,7 @@ function togglePause(force?: boolean): void {
   const willPause = force ?? !round.paused;
   if (willPause) freezeComboMeter();
   round.paused = willPause;
+  persistRoundSnapshot();
   const layer = document.querySelector<HTMLElement>("#pause-layer");
   if (!layer) return;
   if (!round.paused) {
@@ -2022,6 +2129,7 @@ function endRound(): void {
   const longest = round.found.reduce((best, entry) => entry.word.length > best.length ? entry.word : best, save.longestWord);
   save.longestWord = longest;
   store.save(save);
+  runStore.clear();
   showResults();
 }
 
@@ -2377,6 +2485,10 @@ window.addEventListener("visibilitychange", () => {
   if (document.hidden && together && !together.ended && !together.paused) toggleTogetherPause(true);
 });
 
+window.addEventListener("pagehide", () => {
+  if (round && !round.ended && !round.paused) persistRoundSnapshot();
+});
+
 document.documentElement.classList.toggle("reduce-motion", save.settings.reducedMotion);
 const initialQuery = new URLSearchParams(location.search);
 const initialRoomCode = cleanRoomCode(initialQuery.get("room") ?? "");
@@ -2384,7 +2496,10 @@ pendingChallenge = decodeChallenge(initialQuery.get("challenge"));
 if (pendingChallenge) telemetry.increment("invite_opened");
 if (initialRoomCode.length === 6) void resumeOnlineRoom(initialRoomCode);
 else if (pendingChallenge) showChallengeLanding();
-else showTitle();
+else {
+  const resumableRound = runStore.load();
+  if (!resumableRound || !restoreRoundSnapshot(resumableRound)) showTitle();
+}
 
 // Keep content referenced so future phrase-doctor tooling can inspect the bank from this bundle.
 void PHRASES;
